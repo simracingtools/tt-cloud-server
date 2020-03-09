@@ -40,7 +40,7 @@ public class SessionData {
 		Double laptime = (Double) lapData.get("laptime");
 		double lastLapFuel = 0.0;
 		if( laps.size() > 1 ) {
-			lastLapFuel = laps.get(1).getFuelLevel() - lap.getFuelLevel();
+			lastLapFuel = laps.get(1).getFuelLevel() - fuelLevel;
 		}
 
 		lap = Lap.builder()
