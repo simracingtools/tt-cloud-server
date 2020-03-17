@@ -33,7 +33,7 @@ public class SessionData {
 		Integer stintNo = (Integer) lapData.get("stintCount");
 		Integer stintLap = (Integer) lapData.get("stintLap");
 		Double fuelLevel = (Double) lapData.get("fuelLevel");
-		Lap lap = laps.get(0);
+		Lap lap = ((laps == null) || (laps.size() == 0)) ? null : laps.get(0);
 		if (lap != null && lap.getNo() == lapNo ) {
 			throw new IllegalArgumentException("Lap " + lap.getNo() + " already there");
 		}
@@ -49,7 +49,7 @@ public class SessionData {
 				.driver((String) lapData.get("driver"))
 				.fuelLevel(fuelLevel)
 				.lastLapFuelUsage(lastLapFuel - fuelLevel)
-				.no((Integer) lapData.get("lap"))
+				.no(lapNo)
 				.stint(stintNo)
 				.trackTemp((Double) lapData.get("trackTemp"))
 				.sessionTime((Double) lapData.get("sessionTime"))
@@ -73,6 +73,7 @@ public class SessionData {
 					.avgLapTime(laptime)
 					.lastLapFuel(lastLapFuel)
 					.avgFuelPerLap(lastLapFuel)
+					.driver((String) lapData.get("driver"))
 					.build();
 			stints.add(stint);
 		} else {

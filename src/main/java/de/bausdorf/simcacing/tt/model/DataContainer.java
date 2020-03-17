@@ -32,19 +32,11 @@ public class DataContainer {
 			}
 		} else {
 			sessionMap = new HashMap<>();
+			sessionMap.put(sessionId, createSessionDataFromMap(sessionId, sessionMessage));
 			data.put(teamId, sessionMap);
 		}
-		if( hasSession ) {
-			SessionData sd = SessionData.builder()
-					.carName((String)sessionMessage.get("car"))
-					.maxFuel((Double)sessionMessage.get("maxFuel"))
-					.sessionId(sessionId)
-					.sessionLaps((String)sessionMessage.get("sessionLaps"))
-					.sessionTime((String)sessionMessage.get("sessionTime"))
-					.sessionType((String)sessionMessage.get("sessionType"))
-					.teamName((String)sessionMessage.get("teamName"))
-					.build();
-			sessionMap.put(sessionId, sd);
+		if( !hasSession ) {
+			sessionMap.put(sessionId, createSessionDataFromMap(sessionId, sessionMessage));
 		}
 		return !hasSession;
 	}
@@ -55,5 +47,32 @@ public class DataContainer {
 			return sessionMap.get(sessionId);
 		}
 		throw new IllegalArgumentException("No session " + sessionId + " for team " + teamId);
+	}
+
+	private SessionData createSessionDataFromMap(String sessionId, Map<String, Object> sessionMessage) {
+
+		Double maxFuel = (Double)sessionMessage.get("maxFuel");
+
+		if( maxFuel == null ) {
+			throw new IllegalArgumentException("no maxFuel in session");
+		}
+
+		String sessionTime = (String)sessionMessage.get("sessionTime");
+		String sessionLaps = (String)sessionMessage.get("sessionLaps");
+
+		if( sessionTime == null | sessionLaps == null ) {
+			throw new IllegalArgumentException("sessionLaps or sessionTime has to be present");
+		}
+
+		return SessionData.builder()
+				.carName((String)sessionMessage.get("car"))
+				.maxFuel(maxFuel)
+				.sessionId(sessionId)
+				.sessionLaps(sessionLaps)
+				.sessionTime(sessionTime)
+				.sessionType((String)sessionMessage.get("sessionType"))
+				.teamName((String)sessionMessage.get("teamName"))
+				.build();
+
 	}
 }
