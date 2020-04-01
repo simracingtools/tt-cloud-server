@@ -25,24 +25,6 @@ public class SessionDataTest {
 		sessionData = TestHelper.createSessionData("0.75", 120.0D);
 	}
 
-	@Test
-	void addSessionLap() {
-		Map<String, Object> lap = new HashMap<>();
-		lap.put("lap", 1);
-		lap.put("stintCount", 1);
-		lap.put("stintLap", 1);
-		lap.put("fuelLevel", 116.1D);
-		lap.put("laptime", 0.0231D);
-		lap.put("driver", "Driver Name");
-		lap.put("sessionTime", 0.0891263D);
-		lap.put("trackTemp", 27.8D);
-
-		sessionData.addLap(lap);
-
-		Stint stint = sessionData.getCurrentStint();
-
-		assertThat(stint).isNotNull();
-	}
 
 	@Test
 	void addStintLaps() {

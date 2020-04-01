@@ -16,6 +16,7 @@ public class ClientMessage {
 	private MessageType type;
 	private String version;
 	private String sessionId;
-	private String teamid;
+	private String teamId;
+	private String clientId;
 	private Map<String, Object> payload;
 }

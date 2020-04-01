@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.clientapi;
+package de.bausdorf.simcacing.tt.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class PitstopData {
+@AllArgsConstructor
+@Builder
+public class Pitstop {
 
 	private int stint;
 	private int lap;

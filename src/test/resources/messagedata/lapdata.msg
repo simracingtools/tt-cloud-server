@@ -1,0 +1,1 @@
+{'type': 'lapdata', 'version': '1.02', 'sessionId': , teamid: 123456, 'payload': {'lap': 2, 'stintLap': 1, 'stintCount': 2, 'driver': 'Robert Bausdorf', 'laptime': 68.55249786376953, 'fuelLevel': 47.7462043762207, 'trackTemp': 40.555572509765625, 'sessionTime': 0.01478645835392778}}

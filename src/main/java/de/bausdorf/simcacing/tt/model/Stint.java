@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
+
 @Getter
 @AllArgsConstructor
 @Builder
@@ -14,17 +16,24 @@ public class Stint {
 	private int laps;
 	private String driver;
 	@Setter
-	private double avgLapTime;
+	private Duration avgLapTime;
 	@Setter
 	private double avgFuelPerLap;
 	@Setter
 	private double lastLapFuel;
 	@Setter
-	private double lastLaptime;
+	private Duration lastLaptime;
 	@Setter
 	private double availableLaps;
 	@Setter
 	private double maxLaps;
 	@Setter
-	private double stintDuration;
+	private Duration currentStintDuration;
+	@Setter
+	private Duration expectedStintDuration;
+
+	public Duration addStintDuration(Duration toAdd) {
+		currentStintDuration = currentStintDuration.plus(toAdd);
+		return currentStintDuration;
+	}
 }

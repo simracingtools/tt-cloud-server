@@ -1,20 +1,24 @@
 package de.bausdorf.simcacing.tt.model;
 
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.List;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import de.bausdorf.simcacing.tt.clientapi.ClientData;
+import lombok.*;
 
-@Data
+@Getter
 @NoArgsConstructor
-public class RunData {
+@AllArgsConstructor
+@Builder
+public class RunData implements ClientData {
 
-	private double sessionTime;
+	private LocalTime sessionTime;
 	private double fuelLevel;
-	private String[] flags;
-	private double estLapTime;
+	private List<FlagType> flags;
+	private Duration estLapTime;
 
 	public boolean isGreenFlag() {
-		return flags.length > 0 ? flags[0].equalsIgnoreCase("GREEN") : false;
+		return flags.contains(FlagType.GREEN);
 	}
 }
