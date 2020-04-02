@@ -15,13 +15,13 @@ public class ModelFactory {
     }
 
     public static LapData fromLapMessage(Map<String, Object> messagePayload) {
-        return LapData.builder()
-                .driver((String)messagePayload.get(MessageConstants.Lap.DRIVER))
-                .fuelLevel(((Double)messagePayload.get(MessageConstants.Lap.FUEL_LEVEL)))
-                .lapTime(getFromIracingDuration(messagePayload.get(MessageConstants.Lap.LAP_TIME)))
-                .no((Integer)messagePayload.get(MessageConstants.Lap.LAP))
-                .trackTemp((Double)messagePayload.get(MessageConstants.Lap.TRACK_TEMP))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.Lap.SESSION_TIME)))
+        return de.bausdorf.simcacing.tt.model.LapData.builder()
+                .driver((String)messagePayload.get(MessageConstants.LapData.DRIVER))
+                .fuelLevel(((Double)messagePayload.get(MessageConstants.LapData.FUEL_LEVEL)))
+                .lapTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.LAP_TIME)))
+                .no((Integer)messagePayload.get(MessageConstants.LapData.LAP))
+                .trackTemp((Double)messagePayload.get(MessageConstants.LapData.TRACK_TEMP))
+                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
                 .build();
     }
 
@@ -67,10 +67,10 @@ public class ModelFactory {
                 .build();
     }
 
-    public static SessionId parseClientSessionId(String sessionId) {
+    public static SessionIdentifier parseClientSessionId(String sessionId) {
         try {
-            String[] parts = new String(sessionId).split("\\s*[@#]+");
-            return SessionId.builder()
+            String[] parts = sessionId.split("\\s*[@#]+");
+            return SessionIdentifier.builder()
                     .teamName(parts[0])
                     .sessionId(parts[1])
                     .subSessionId(parts[2])
@@ -91,7 +91,7 @@ public class ModelFactory {
         return Duration.ofNanos((long)((Double)iRacingDuration * 1000000000));
     }
 
-    private static SessionId getFromClientString(Object clientSessionId) {
+    private static SessionIdentifier getFromClientString(Object clientSessionId) {
         return parseClientSessionId((String)clientSessionId);
     }
 

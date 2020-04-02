@@ -15,7 +15,7 @@ public class SessionData implements ClientData {
 
 	private final static String UNLIMITED = "unlimited";
 
-	private SessionId sessionId;
+	private SessionIdentifier sessionId;
 	private String teamName;
 	private String carName;
 	private String sessionLaps;

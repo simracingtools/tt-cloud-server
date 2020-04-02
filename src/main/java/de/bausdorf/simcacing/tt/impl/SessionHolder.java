@@ -18,7 +18,7 @@ public class SessionHolder implements MessageProcessor {
 	@AllArgsConstructor
 	@EqualsAndHashCode
 	public class SessionKey {
-		private SessionId sessionId;
+		private SessionIdentifier sessionId;
 		private String teamId;
 	}
 
