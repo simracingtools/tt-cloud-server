@@ -15,8 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Component
-@NoArgsConstructor
-@Getter
 @Slf4j
 public class SessionHolder implements MessageProcessor {
 
@@ -27,7 +25,7 @@ public class SessionHolder implements MessageProcessor {
 		private String teamId;
 	}
 
-	private Map<SessionKey, SessionController> data = new HashMap<>();
+	private Map<SessionKey, SessionController> data;
 
 	private Map<MessageType, MessageValidator> validators;
 
@@ -35,10 +33,13 @@ public class SessionHolder implements MessageProcessor {
 
 	public SessionHolder(@Autowired AssumptionHolder assumptionHolder) {
 		this.assumptionHolder = assumptionHolder;
+		this.data = new HashMap<>();
+		this.validators = new HashMap<>();
 	}
 
 	@Override
 	public void registerMessageValidator(MessageValidator validator) {
+		log.info("Registering validator for " + validator.supportedMessageType().name());
 		validators.put(validator.supportedMessageType(), validator);
 	}
 

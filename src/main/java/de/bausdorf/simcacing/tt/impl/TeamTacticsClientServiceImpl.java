@@ -16,7 +16,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	private static final List<String> acceptedVersions = new ArrayList<>();
 
 	static {
-		acceptedVersions.add("1.10");
+		acceptedVersions.add("1.20");
 	}
 
 	private MessageProcessor processor;

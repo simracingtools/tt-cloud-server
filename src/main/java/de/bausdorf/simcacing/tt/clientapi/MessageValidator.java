@@ -1,9 +1,21 @@
 package de.bausdorf.simcacing.tt.clientapi;
 
 
-public interface MessageValidator<T extends ClientData> {
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 
-    MessageType supportedMessageType();
+public abstract class MessageValidator<T extends ClientData> implements ApplicationListener<ApplicationReadyEvent> {
 
-    T validate(ClientMessage message);
+    private MessageProcessor processor;
+
+    public MessageValidator(MessageProcessor processor) {
+        this.processor = processor;
+    }
+
+    public void registerValidator() {
+        processor.registerMessageValidator(this);
+    }
+
+    public abstract MessageType supportedMessageType();
+    public abstract T validate(ClientMessage message);
 }

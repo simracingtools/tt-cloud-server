@@ -4,14 +4,16 @@ import de.bausdorf.simcacing.tt.clientapi.*;
 import de.bausdorf.simcacing.tt.impl.ModelFactory;
 import de.bausdorf.simcacing.tt.model.SessionData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
 
-@Component
-public class SessionValidatorImpl implements MessageValidator<SessionData> {
+import javax.annotation.PostConstruct;
 
+@Component
+public class SessionValidatorImpl extends MessageValidator<SessionData> {
 
     public SessionValidatorImpl(@Autowired MessageProcessor clientService) {
-        clientService.registerMessageValidator(this);
+        super(clientService);
     }
 
     @Override
@@ -34,5 +36,9 @@ public class SessionValidatorImpl implements MessageValidator<SessionData> {
         } catch (Exception e) {
             throw new InvalidClientMessageException(e);
         }
+    }
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+        super.registerValidator();
     }
 }
