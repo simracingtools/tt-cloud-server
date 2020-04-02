@@ -1,5 +1,8 @@
 package de.bausdorf.simcacing.tt.clientapi;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
+
 public enum MessageType {
 	LAP(MessageConstants.MessageType.LAPDATA_NAME),
 	SESSION_INFO(MessageConstants.MessageType.SESSION_INFO_NAME),
@@ -13,6 +16,7 @@ public enum MessageType {
 		this.jsonKey = name;
 	}
 
+	@JsonValue
 	public String getJsonKey() {
 		return jsonKey;
 	}

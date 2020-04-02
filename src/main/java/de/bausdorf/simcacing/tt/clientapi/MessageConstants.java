@@ -7,7 +7,7 @@ public class MessageConstants {
         public static final String SESSION_INFO_NAME = "sessionInfo";
         public static final String RUN_DATA_NAME = "runData";
         public static final String EVENTDATA_NAME = "event";
-        public static final String SYNCDATA_NAME = "syncdata";
+        public static final String SYNCDATA_NAME = "syncData";
     }
 
     public class Message {

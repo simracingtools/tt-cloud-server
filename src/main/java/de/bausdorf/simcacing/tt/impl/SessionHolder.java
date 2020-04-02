@@ -5,14 +5,10 @@ import java.util.Map;
 
 import de.bausdorf.simcacing.tt.clientapi.*;
 import de.bausdorf.simcacing.tt.model.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Component
 @Slf4j
@@ -20,6 +16,7 @@ public class SessionHolder implements MessageProcessor {
 
 	@Getter
 	@AllArgsConstructor
+	@EqualsAndHashCode
 	public class SessionKey {
 		private SessionId sessionId;
 		private String teamId;
@@ -48,18 +45,22 @@ public class SessionHolder implements MessageProcessor {
 		ClientData clientData = validateAndConvert(message);
 		SessionKey sessionKey = new SessionKey(
 				ModelFactory.parseClientSessionId(message.getSessionId()), message.getTeamId());
-		SessionController controller = getSessionController(sessionKey);
+		SessionController controller;
 		switch(message.getType()) {
 			case LAP:
+				controller = getSessionController(sessionKey);
 				controller.addLap((LapData)clientData);
 				break;
 			case RUN_DATA:
+				controller = getSessionController(sessionKey);
 				controller.updateRunData((RunData)clientData);
 				break;
 			case EVENT:
+				controller = getSessionController(sessionKey);
 				controller.processEventData((EventData)clientData);
 				break;
 			case SYNC:
+				controller = getSessionController(sessionKey);
 				controller.updateSyncData((SyncData)clientData);
 				break;
 			case SESSION_INFO:
@@ -97,7 +98,7 @@ public class SessionHolder implements MessageProcessor {
 		if( validator != null ) {
 			return validator.validate(message);
 		}
-		log.warn("No validator for message type " + message.getType().name());
+		log.debug("No validator for message type " + message.getType().name());
 		switch(message.getType()) {
 			case LAP: return ModelFactory.fromLapMessage(message.getPayload());
 			case EVENT: return ModelFactory.getFromEventMessage(message.getPayload());

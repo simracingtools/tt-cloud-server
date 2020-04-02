@@ -13,8 +13,8 @@ public class SessionController {
     private AssumptionHolder assumptions;
 
     private LocalTime greenFlagTime;
-    private Map<Integer, Stint> stints = new TreeMap<>();
-    private Map<Integer, LapData> laps = new TreeMap<>();
+    private SortedMap<Integer, Stint> stints = new TreeMap<>();
+    private SortedMap<Integer, LapData> laps = new TreeMap<>();
     private Map<String, SyncData> heartbeats = new HashMap<>();
     private RunData runData;
 
@@ -59,6 +59,7 @@ public class SessionController {
             currentStint.setAvgFuelPerLap(laps.values().stream()
                     .filter(s -> s.getStint() == stintNo)
                     .filter(s -> !s.getLapTime().isZero())
+                    .filter(s -> s.getLastLapFuelUsage() > 0.0)
                     .mapToDouble(s -> s.getLastLapFuelUsage())
                     .average().getAsDouble()
             );
@@ -90,7 +91,7 @@ public class SessionController {
     }
 
     public void processEventData(EventData eventData) {
-        throw new UnsupportedOperationException("processEventData not implemented yet");
+        //TODO: implement this
     }
 
     public Duration getRemainingSessionTime() {
@@ -115,7 +116,8 @@ public class SessionController {
         if (laps.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(laps.get(laps.size() - 1));
+        Integer lastKey = laps.lastKey();
+        return Optional.of(laps.get(lastKey));
     }
 
     private void setStintValuesToLap(LapData newLap) {

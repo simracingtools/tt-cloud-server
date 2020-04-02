@@ -5,6 +5,7 @@ import de.bausdorf.simcacing.tt.model.*;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 public class ModelFactory {
@@ -29,13 +30,14 @@ public class ModelFactory {
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
-                .flags(FlagType.fromIrBitmask((Long)messagePayload.get(MessageConstants.RunData.FLAGS)))
+//                .flags(FlagType.fromIrBitmask((Long)messagePayload.get(MessageConstants.RunData.FLAGS)))
+                .flags((List<FlagType>)messagePayload.get(MessageConstants.RunData.FLAGS))
                 .build();
     }
 
     public static EventData getFromEventMessage(Map<String, Object> messagePayload) {
         return EventData.builder()
-                .flags(FlagType.fromIrBitmask((Long)messagePayload.get(MessageConstants.EventData.FLAGS)))
+                .flags(FlagType.fromIrBitmask((Integer)messagePayload.get(MessageConstants.EventData.FLAGS)))
                 .trackLocationType(TrackLocationType.forIrCode((Integer)messagePayload.get(MessageConstants.EventData.TRACK_LOCATION)))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
                 .optRepairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.OPT_REPAIR_TIME)))
@@ -67,7 +69,7 @@ public class ModelFactory {
 
     public static SessionId parseClientSessionId(String sessionId) {
         try {
-            String[] parts = ( sessionId).split("[@#]");
+            String[] parts = new String(sessionId).split("\\s*[@#]+");
             return SessionId.builder()
                     .teamName(parts[0])
                     .sessionId(parts[1])
@@ -81,12 +83,12 @@ public class ModelFactory {
 
     private static LocalTime getFromIracingSessionTime(Object iRacingSessionTime) {
         // iRacing session time is seconds as double
-        return LocalTime.ofNanoOfDay((long)((Double)iRacingSessionTime * 1000));
+        return LocalTime.ofNanoOfDay((long)((Double)iRacingSessionTime * 1000000000));
     }
 
     private static Duration getFromIracingDuration(Object iRacingDuration) {
         // iRacing lap, repair and tow times are seconds as float
-        return Duration.ofNanos((long)((Double)iRacingDuration * 1000));
+        return Duration.ofNanos((long)((Double)iRacingDuration * 1000000000));
     }
 
     private static SessionId getFromClientString(Object clientSessionId) {

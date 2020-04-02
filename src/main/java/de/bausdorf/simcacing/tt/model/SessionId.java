@@ -1,12 +1,15 @@
 package de.bausdorf.simcacing.tt.model;
 
+import de.bausdorf.simcacing.tt.impl.SessionHolder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class SessionId {
     private String teamName;
     private String sessionId;
