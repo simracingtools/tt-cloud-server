@@ -19,6 +19,7 @@
     <spring-boot-admin.version>2.2.1</spring-boot-admin.version>
     <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
+    <appengine.version>2</appengine.version>
   </properties>
 
   <dependencies>
@@ -50,6 +51,14 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.security</groupId>-->
+<!--      <artifactId>spring-security-oauth2-client</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.security</groupId>-->
+<!--      <artifactId>spring-security-oauth2-jose</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-gcp-starter</artifactId>
@@ -131,12 +140,26 @@
         <artifactId>appengine-maven-plugin</artifactId>
         <version>2.1.0</version>
         <configuration>
-          <version>1</version>
+          <version>${appengine.version}</version>
           <projectId>${gcloud-project-id}</projectId>
         </configuration>
       </plugin>
 
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+<!--        <version>2.5.3</version>-->
+        <configuration>
+          <useReleaseProfile>false</useReleaseProfile>
+          <tagNameFormat>v@{version}</tagNameFormat>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
+  <scm>
+    <connection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</connection>
+    <url>scm:git:git@github.com:simracingtools/tt-cloud-server.git</url>
+    <developerConnection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 </project>
