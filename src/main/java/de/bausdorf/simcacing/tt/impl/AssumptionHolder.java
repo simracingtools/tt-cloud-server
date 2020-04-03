@@ -23,10 +23,10 @@ public class AssumptionHolder {
     public static final String COMMON = "common";
     public static final String DURATION_PATTERN = "HH:mm:ss.S";
 
-    private ServerProperties config;
+    private TeamtacticsServerProperties config;
     private Assumptions assumptions;
 
-    public AssumptionHolder(@Autowired ServerProperties config) {
+    public AssumptionHolder(@Autowired TeamtacticsServerProperties config) {
         this.config = config;
     }
 

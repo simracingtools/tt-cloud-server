@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix="teamtactics")
 @NoArgsConstructor
 @Data
-public class ServerProperties {
+public class TeamtacticsServerProperties {
     private String version;
     private String assumptionResource;
 }

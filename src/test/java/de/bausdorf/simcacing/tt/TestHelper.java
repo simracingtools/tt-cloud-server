@@ -20,7 +20,7 @@ public class TestHelper {
 				.sessionType("Race")
 				.sessionTime(sessionTime)
 				.sessionLaps("unlimitad")
-				.sessionId(ModelFactory.parseClientSessionId("FBPTeamRED@615423#727234#nuerburgring combined#2"))
+				.sessionId(ModelFactory.parseClientSessionId("FBPTeamRED@615423#727234#2"))
 				.maxCarFuel(maxFuel)
 				.carName("bmw z4")
 				.trackName("nuerburgring combined")
