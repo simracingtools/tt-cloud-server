@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class GoogleUserService extends OidcUserService {
@@ -22,12 +23,18 @@ public class GoogleUserService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
         Map attributes = oidcUser.getAttributes();
-        TtUser.builder()
-                .email((String) attributes.get("email"))
-                .id((String) attributes.get("sub"))
-                .imageUrl((String) attributes.get("picture"))
-                .name((String) attributes.get("name"))
-                .userType(TtUserType.NEW);
+        String userId = (String) attributes.get("sub");
+        Optional<TtUser> user = userRepository.findById(userId);
+        if(!user.isPresent()) {
+            userRepository.save(TtUser.builder()
+                    .email((String) attributes.get("email"))
+                    .id(userId)
+                    .imageUrl((String) attributes.get("picture"))
+                    .name((String) attributes.get("name"))
+                    .userType(TtUserType.NEW)
+                    .build()
+            );
+        }
         return oidcUser;
     }
 }

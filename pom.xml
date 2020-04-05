@@ -75,6 +75,14 @@
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-gcp-security-firebase</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.cloud</groupId>-->
+<!--      <artifactId>spring-cloud-gcp-data-datastore</artifactId>-->
+<!--    </dependency>-->
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-firestore</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>

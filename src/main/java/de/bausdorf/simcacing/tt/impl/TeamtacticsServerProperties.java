@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.impl;
 
+import com.google.api.client.util.Value;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,4 +15,5 @@ import org.springframework.stereotype.Component;
 public class TeamtacticsServerProperties {
     private String version;
     private String assumptionResource;
+    private String userCollectionName;
 }
