@@ -1,18 +1,17 @@
 package de.bausdorf.simcacing.tt.impl;
 
-import de.bausdorf.simcacing.tt.BufferedLogReader;
-import de.bausdorf.simcacing.tt.clientapi.ClientMessage;
+import de.bausdorf.simcacing.tt.model.TimedMessage;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -23,15 +22,27 @@ public class SessionHolderTest {
     private SessionHolder holder;
 
     @Test
-    public void replayLog() {
-        ClassPathResource resource = new ClassPathResource("/logs/irtactics.log");
-        try (BufferedLogReader logReader = new BufferedLogReader(new InputStreamReader(resource.getInputStream()))) {
-            while( logReader.ready() ) {
-                ClientMessage message = logReader.readMessage();
-                holder.processMessage(message);
-            }
+    @Disabled
+    public void fastLogReplay() {
+        try {
+            LogReplay replay = new LogReplay(holder);
+            ClassPathResource resource = new ClassPathResource("/logs/irtactics.log");
+            replay.replayLogfile(resource.getInputStream(), false);
         } catch (IOException e) {
             fail(e.getMessage(), e);
         }
     }
+
+    @Test
+    @Disabled
+    public void timedLogReplay() {
+        try {
+            LogReplay replay = new LogReplay(holder);
+            ClassPathResource resource = new ClassPathResource("/logs/irtactics.log");
+            replay.replayLogfile(resource.getInputStream(), false);
+        } catch (IOException e) {
+            fail(e.getMessage(), e);
+        }
+    }
+
 }

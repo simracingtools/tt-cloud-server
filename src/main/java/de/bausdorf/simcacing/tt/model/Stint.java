@@ -1,19 +1,18 @@
 package de.bausdorf.simcacing.tt.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Duration;
 
 @Getter
 @AllArgsConstructor
 @Builder
+@ToString
 public class Stint {
 
 	private int no;
 	private int laps;
+	@Setter
 	private String driver;
 	@Setter
 	private Duration avgLapTime;
@@ -33,7 +32,14 @@ public class Stint {
 	private Duration expectedStintDuration;
 
 	public Duration addStintDuration(Duration toAdd) {
+		if( currentStintDuration == null ) {
+			currentStintDuration = Duration.ZERO;
+		}
 		currentStintDuration = currentStintDuration.plus(toAdd);
 		return currentStintDuration;
+	}
+
+	public int increaseLapCount() {
+		return ++laps;
 	}
 }
