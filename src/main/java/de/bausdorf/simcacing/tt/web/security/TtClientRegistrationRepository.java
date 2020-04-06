@@ -56,6 +56,14 @@ public class TtClientRegistrationRepository {
                 .collect(Collectors.toList());
     }
 
+    public List<TtUser> findByUserEmail(String email) {
+        List<QueryDocumentSnapshot> docList = firestore.findByFieldValue(userCollectionName,
+                "email", email);
+        return docList.stream()
+                .map(s -> new TtUser(s))
+                .collect(Collectors.toList());
+    }
+
     public void save(TtUser user) {
         firestore.save(userCollectionName, user.getId(), user.toObjectMap());
     }

@@ -27,7 +27,7 @@ public class TtClientRegistrationRepositoryTest {
     public void saveUser() {
         TtUser user = TtUser.builder()
                 .id("testid")
-                .userType(TtUserType.NEW)
+                .userType(TtUserType.TT_NEW)
                 .email("email")
                 .imageUrl("imageurl")
                 .name("name")
@@ -44,7 +44,7 @@ public class TtClientRegistrationRepositoryTest {
     public void deleteUser() {
         TtUser user = TtUser.builder()
                 .id("testid")
-                .userType(TtUserType.NEW)
+                .userType(TtUserType.TT_NEW)
                 .email("email")
                 .imageUrl("imageurl")
                 .name("name")
@@ -61,7 +61,7 @@ public class TtClientRegistrationRepositoryTest {
     public void findUserBy() {
         TtUser user = TtUser.builder()
                 .id("testid")
-                .userType(TtUserType.NEW)
+                .userType(TtUserType.TT_NEW)
                 .email("email")
                 .imageUrl("imageurl")
                 .name("name")
