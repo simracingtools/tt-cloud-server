@@ -44,7 +44,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     			.antMatchers("/clientmessage").permitAll()
                 .anyRequest().authenticated()
 				.and()
-                .userDetailsService(userService)
+//                .userDetailsService(userService)
 				.oauth2Login()
                 .userInfoEndpoint()
                 .oidcUserService(userService);

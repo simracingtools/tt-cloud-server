@@ -1,0 +1,15 @@
+.container, .container-lg, .container-md, .container-sm, .container-xl {
+  background-color: rgb(136,136,255);
+}
+
+#header {
+}
+
+#team-name {
+  margin-bottom: 0;
+}
+
+#user-sync {
+  margin-bottom: 0;
+}
+

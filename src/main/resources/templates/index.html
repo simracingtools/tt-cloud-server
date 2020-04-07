@@ -2,24 +2,61 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>iRacing TeamTacics</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-    <h1>iRacing TeamTactics</h1>
-    <h2>Available sessions</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Team-Id</th>
-                <th>Session</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="s : ${sessions}">
-                <td th:text="${s.teamId}">teamId</td>
-                <td th:text="${s.sessionId}">sessionId</td>
-            </tr>
-        </tbody>
-    </table>
+    <div th:fragment="header">
+        <header style="height: 10%;">
+            <div class="row" style="width: 100%;background-image: url(&quot;assets/img/be-logo.png&quot;);background-repeat: no-repeat;margin: 0;background-size: contain;background-color: #89c7e1;">
+                <div class="col offset-md-1">
+                    <div class="row">
+                        <div class="col"><span class="text-nowrap text-truncate" id="page-heading" style="font-size: 20px;filter: blur(0px) contrast(100%) invert(0%);font-style: italic;"><strong>iRacing TeamTactics</strong><br></span></div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-nowrap text-truncate text-left d-flex"><span id="car-name" class="sessioninfo-class" style="margin-right: 5px;font-size: 14px;">Porsche Cayman 718 GT4</span></div>
+                        <div class="col-3 text-truncate text-center"><span id="session-type" class="sessioninfo-class" style="font-size: 14px;">Lone Qualify</span></div>
+                        <div class="col-2 text-truncate d-sm-flex justify-content-sm-end" style="padding: 0;"><span class="text-nowrap sessioninfo-class" id="session-duration" style="width: auto;font-family: 'Roboto Mono', monospace;font-size: 14px;">00:00:00</span></div>
+                    </div>
+                </div>
+                <div class="col-2 col-lg-2">
+                    <div class="row">
+                        <div class="col text-nowrap"><span id="user-name"><strong th:text="${user.getUsername()}">John Doe</strong><br></span></div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-nowrap text-truncate"><span th:text="${user.getUserType().name()}" id="team-name">Connected</span></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+    <div th:fragment="content">
+        <table>
+            <thead>
+                <tr>
+                    <th>Team-Id</th>
+                    <th>Session</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="s : ${sessions}">
+                    <td th:text="${s.teamId}">teamId</td>
+                    <td th:text="${s.sessionId}">sessionId</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:fragment="footer">
+        <footer style="height: 10%;">
+            <div class="row">
+                <div class="col"><span style="font-size: 8px;">(C) 2020 bausdorf engineering</span></div>
+            </div>
+        </footer>
+    </div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

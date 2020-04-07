@@ -2,21 +2,17 @@ package de.bausdorf.simcacing.tt.web;
 
 import de.bausdorf.simcacing.tt.impl.SessionHolder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @Controller
-public class IndexController {
+public class IndexController extends BaseController {
 
     SessionHolder sessionHolder;
 
@@ -25,8 +21,7 @@ public class IndexController {
     }
 
     @GetMapping({"/", "/index", "index.html"})
-    public String index(Model model, Principal user) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public String index(Model model) {
         return "index";
     }
 
@@ -40,5 +35,15 @@ public class IndexController {
 //            keys.add("No session available");
 //        }
         return sessionHolder.getAvailableSessions();
+    }
+
+    @GetMapping("/newuser")
+    public String showHeaderPart() {
+        return "newuser";
+    }
+
+    @GetMapping("/showFooterPart")
+    public String showFooterPart() {
+        return "footer-part";
     }
 }
