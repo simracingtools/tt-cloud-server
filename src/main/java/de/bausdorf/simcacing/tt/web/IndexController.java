@@ -35,10 +35,10 @@ public class IndexController extends BaseController {
         return sessionHolder.getAvailableSessions();
     }
 
-    @GetMapping("/newuser")
-    public String showHeaderPart() {
-        return "newuser";
-    }
+//    @GetMapping("/newuser")
+//    public String showHeaderPart() {
+//        return "newuser";
+//    }
 
     @GetMapping("/showFooterPart")
     public String showFooterPart() {

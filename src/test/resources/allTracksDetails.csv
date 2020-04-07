@@ -1,4 +1,4 @@
-ID,Name,Cost,Surface,Night Lighting,Nominal Lap Time,Track Type
+id,name,cost,surface,nightLighting,nominalLapTime,trackType
 51,Atlanta Motor Speedway Road Course,Paid,Paved,No,1:22.556,Road
 52,Atlanta Motor Speedway Legends Oval,Paid,Paved,No,15.557,Oval
 53,Atlanta Motor Speedway Oval,Paid,Paved,No,34.178,Oval
