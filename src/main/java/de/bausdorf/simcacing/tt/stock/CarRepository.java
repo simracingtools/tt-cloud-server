@@ -6,8 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.bausdorf.simcacing.tt.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
+import de.bausdorf.simcacing.tt.util.CachedRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Component

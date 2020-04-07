@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt;
+package de.bausdorf.simcacing.tt.util;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
@@ -35,8 +35,11 @@ public class FirestoreDB {
         ApiFuture<QuerySnapshot> future = query.get();
         try {
             return future.get().getDocuments();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new de.bausdorf.simcacing.tt.live.impl.FirestoreException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
         }
     }
 
@@ -45,8 +48,11 @@ public class FirestoreDB {
         try {
             WriteResult writeResult = future.get();
             return writeResult.getUpdateTime();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new de.bausdorf.simcacing.tt.live.impl.FirestoreException(e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
         }
     }
 
@@ -55,7 +61,10 @@ public class FirestoreDB {
         try {
             WriteResult writeResult = future.get();
             return writeResult.getUpdateTime();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
             throw new FirestoreException(e.getMessage(), e);
         }
     }

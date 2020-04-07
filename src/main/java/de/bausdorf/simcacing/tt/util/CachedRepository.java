@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.stock;
+package de.bausdorf.simcacing.tt.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,13 +8,12 @@ import java.util.concurrent.ExecutionException;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
 
-import de.bausdorf.simcacing.tt.FirestoreDB;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class CachedRepository<T> {
 
-	protected Map<String, T> cache;
+	protected Map<String, CacheEntry<T>> cache;
 	private FirestoreDB firestore;
 
 	abstract protected T fromMap(Map<String, Object> data);
@@ -31,7 +30,11 @@ public abstract class CachedRepository<T> {
 		try {
 			docSnap = carDoc.get();
 			return Optional.ofNullable(fromMap(docSnap.getData()));
-		} catch (InterruptedException | ExecutionException e) {
+		} catch (InterruptedException e) {
+			log.warn(e.getMessage());
+			Thread.currentThread().interrupt();
+			return Optional.empty();
+		} catch (ExecutionException e) {
 			log.warn(e.getMessage());
 			return Optional.empty();
 		}
@@ -39,16 +42,33 @@ public abstract class CachedRepository<T> {
 
 	public void save(String collectionName, String name, T object) {
 		firestore.save(collectionName, name, toMap(object));
-		cache.put(name, object);
+		putToCache(name, object);
+	}
+
+	protected void putToCache(String key, T object) {
+		cache.put(key, new CacheEntry<>(object));
+	}
+
+	protected Optional<T> getFromCache(String key) {
+		if( cache.containsKey(key) ) {
+			return Optional.ofNullable(cache.get(key).getContent());
+		}
+		return Optional.empty();
+	}
+
+	protected void removeFromCache(String key) {
+		if( cache.containsKey(key) ) {
+			cache.remove(key);
+		}
 	}
 
 	protected Optional<T> findByName(String collectionName, String key) {
 		if( cache.containsKey(key) ) {
-			return Optional.of(cache.get(key));
+			return getFromCache(key);
 		}
 		Optional<T> fromDb = load(collectionName, key);
 		if( fromDb.isPresent() ) {
-			cache.put(key, fromDb.get());
+			putToCache(key, fromDb.get());
 		}
 		return fromDb;
 	}

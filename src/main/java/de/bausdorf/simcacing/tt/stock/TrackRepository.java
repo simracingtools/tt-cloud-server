@@ -6,8 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.bausdorf.simcacing.tt.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
+import de.bausdorf.simcacing.tt.util.CachedRepository;
 
 @Component
 public class TrackRepository extends CachedRepository<IRacingTrack> {

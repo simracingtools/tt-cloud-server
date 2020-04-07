@@ -1,10 +1,8 @@
 package de.bausdorf.simcacing.tt.stock.model;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.bausdorf.simcacing.tt.stock.CachedRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
