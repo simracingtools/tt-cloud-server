@@ -1,10 +1,9 @@
 package de.bausdorf.simcacing.tt.web.security;
 
-import com.google.api.client.util.Value;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import de.bausdorf.simcacing.tt.impl.FirestoreDB;
-import de.bausdorf.simcacing.tt.impl.TeamtacticsServerProperties;
+import de.bausdorf.simcacing.tt.live.impl.FirestoreDB;
+import de.bausdorf.simcacing.tt.live.impl.TeamtacticsServerProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
