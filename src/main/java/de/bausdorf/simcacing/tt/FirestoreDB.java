@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.impl;
+package de.bausdorf.simcacing.tt;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.Timestamp;
@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import de.bausdorf.simcacing.tt.live.impl.FirestoreException;
 
 @Component
 public class FirestoreDB {
@@ -34,7 +36,7 @@ public class FirestoreDB {
         try {
             return future.get().getDocuments();
         } catch (InterruptedException | ExecutionException e) {
-            throw new FirestoreException(e.getMessage(), e);
+            throw new de.bausdorf.simcacing.tt.live.impl.FirestoreException(e.getMessage(), e);
         }
     }
 
@@ -44,7 +46,7 @@ public class FirestoreDB {
             WriteResult writeResult = future.get();
             return writeResult.getUpdateTime();
         } catch (InterruptedException | ExecutionException e) {
-            throw new FirestoreException(e.getMessage(), e);
+            throw new de.bausdorf.simcacing.tt.live.impl.FirestoreException(e.getMessage(), e);
         }
     }
 
