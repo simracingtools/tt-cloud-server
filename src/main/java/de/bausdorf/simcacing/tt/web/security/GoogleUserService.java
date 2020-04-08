@@ -38,7 +38,7 @@ public class GoogleUserService extends OidcUserService implements UserDetailsSer
                     .userType(TtUserType.TT_NEW)
                     .locked(false)
                     .expired(false)
-                    .enabled(true)
+                    .enabled(false)
                     .build()
             );
         }

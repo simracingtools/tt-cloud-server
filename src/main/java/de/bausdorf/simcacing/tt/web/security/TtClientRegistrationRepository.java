@@ -30,6 +30,9 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
 
     @Override
     protected TtUser fromMap(Map<String, Object> data) {
+        if( data == null ) {
+            return null;
+        }
         return new TtUser(data);
     }
 
