@@ -1,6 +1,5 @@
 package de.bausdorf.simcacing.tt.web.security;
 
-import com.google.cloud.firestore.DocumentSnapshot;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,8 +13,19 @@ import java.util.*;
 @Builder
 @ToString
 public class TtUser implements UserDetails {
-    private String id;
 
+    public static final String ID = "id";
+    public static final String NAME = "name";
+    public static final String IMAGE_URL = "imageUrl";
+    public static final String EMAIL = "email";
+    public static final String I_RACING_ID = "iRacingId";
+    public static final String USER_TYPE = "userType";
+    public static final String CLIENT_MESSAGE_ACCESS_TOKEN = "clientMessageAccessToken";
+    public static final String ENABLED = "enabled";
+    public static final String LOCKED = "locked";
+    public static final String EXPIRED = "expired";
+
+    private String id;
     private String name;
     private String email;
     private String imageUrl;
@@ -26,31 +36,31 @@ public class TtUser implements UserDetails {
     private boolean locked;
     private boolean expired;
 
-    public TtUser(DocumentSnapshot doc) {
-        id = doc.getId();
-        name = doc.getString("name");
-        imageUrl = doc.getString("imageUrl");
-        email = doc.getString("email");
-        iRacingId = doc.getString("iRacingId");
-        userType = TtUserType.valueOf(doc.getString("userType"));
-        clientMessageAccessToken = doc.getString("clientMessageAccessToken");
-        enabled = doc.getBoolean("enabled");
-        locked = doc.getBoolean("locked");
-        expired = doc.getBoolean("expired");
+    public TtUser(Map<String, Object> data) {
+        id = (String)data.get(ID);
+        name = (String)data.get(NAME);
+        imageUrl = (String)data.get(IMAGE_URL);
+        email = (String)data.get(EMAIL);
+        iRacingId = (String)data.get(I_RACING_ID);
+        userType = TtUserType.valueOf((String)data.get(USER_TYPE));
+        clientMessageAccessToken = (String)data.get(CLIENT_MESSAGE_ACCESS_TOKEN);
+        enabled = (Boolean) data.get(ENABLED);
+        locked = (Boolean) data.get(LOCKED);
+        expired = (Boolean) data.get(EXPIRED);
     }
 
     public Map<String, Object> toObjectMap() {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", id);
-        map.put("name", name);
-        map.put("imageUrl", imageUrl);
-        map.put("email", email);
-        map.put("iRacingId", iRacingId);
-        map.put("clientMessageAccessToken", clientMessageAccessToken);
-        map.put("userType", userType.name());
-        map.put("enabled", enabled);
-        map.put("locked", locked);
-        map.put("expired", expired);
+        map.put(ID, id);
+        map.put(NAME, name);
+        map.put(IMAGE_URL, imageUrl);
+        map.put(EMAIL, email);
+        map.put(I_RACING_ID, iRacingId);
+        map.put(CLIENT_MESSAGE_ACCESS_TOKEN, clientMessageAccessToken);
+        map.put(USER_TYPE, userType.name());
+        map.put(ENABLED, enabled);
+        map.put(LOCKED, locked);
+        map.put(EXPIRED, expired);
         return map;
     }
 

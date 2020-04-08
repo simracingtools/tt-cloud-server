@@ -45,6 +45,11 @@ public abstract class CachedRepository<T> {
 		putToCache(name, object);
 	}
 
+	public void delete(String collectionName, String name) {
+		firestore.delete(collectionName, name);
+		removeFromCache(name);
+	}
+	
 	protected void putToCache(String key, T object) {
 		cache.put(key, new CacheEntry<>(object));
 	}

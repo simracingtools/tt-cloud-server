@@ -14,11 +14,4 @@ public class UserContentController extends BaseController {
         return "newuser";
     }
 
-    @Bean(name="newuser")
-    @Scope("prototype")
-    public ThymeleafView content() {
-        ThymeleafView view = new ThymeleafView("newuser");
-        view.setMarkupSelector("content");
-        return view;
-    }
 }

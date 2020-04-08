@@ -2,10 +2,13 @@ package de.bausdorf.simcacing.tt.web;
 
 import de.bausdorf.simcacing.tt.live.impl.SessionHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.thymeleaf.spring5.view.ThymeleafView;
 
 import java.util.Set;
 
@@ -23,25 +26,23 @@ public class IndexController extends BaseController {
         return "index";
     }
 
+    @GetMapping({"/main"})
+    public String mainContent(Model model) {
+        return "main";
+    }
+
     @ModelAttribute("sessions")
     public Set<SessionHolder.SessionKey> availableSessionKeys() {
-//        ArrayList<String> keys = new ArrayList<>();
-//        for (SessionHolder.SessionKey key : sessionHolder.getAvailableSessions() ) {
-//            keys.add(key.toString());
-//        }
-//        if( keys.isEmpty() ) {
-//            keys.add("No session available");
-//        }
         return sessionHolder.getAvailableSessions();
     }
 
-//    @GetMapping("/newuser")
-//    public String showHeaderPart() {
-//        return "newuser";
+//    @Bean(name="newuser")
+//    @Scope("prototype")
+//    public ThymeleafView content() {
+//        ThymeleafView view = new ThymeleafView("newuser");
+//        view.setCharacterEncoding("UTF-8");
+//        view.setMarkupSelector("newuser");
+//        return view;
 //    }
 
-    @GetMapping("/showFooterPart")
-    public String showFooterPart() {
-        return "footer-part";
-    }
 }

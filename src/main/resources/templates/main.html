@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <div th:fragment="main-content">
+    <table>
+      <thead>
+      <tr>
+        <th>Team-Id</th>
+        <th>Session</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="s : ${sessions}">
+        <td th:text="${s.teamId}">teamId</td>
+        <td th:text="${s.sessionId}">sessionId</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
