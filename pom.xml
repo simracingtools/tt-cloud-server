@@ -20,6 +20,7 @@
     <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <appengine.version>2</appengine.version>
+    <maven.test.skip>true</maven.test.skip>
   </properties>
 
   <dependencies>
