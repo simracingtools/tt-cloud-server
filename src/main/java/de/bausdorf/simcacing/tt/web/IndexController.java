@@ -36,13 +36,4 @@ public class IndexController extends BaseController {
         return sessionHolder.getAvailableSessions();
     }
 
-//    @Bean(name="newuser")
-//    @Scope("prototype")
-//    public ThymeleafView content() {
-//        ThymeleafView view = new ThymeleafView("newuser");
-//        view.setCharacterEncoding("UTF-8");
-//        view.setMarkupSelector("newuser");
-//        return view;
-//    }
-
 }

@@ -1,31 +1,42 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-  <div th:insert="index :: head"></div>
-</head>
-<body>
-  <div th:insert="index :: header"></div>
+    <head th:replace="index :: head">></head>
+    <body>
+        <header th:replace="index :: header"></header>
 
-  <div class="alert alert-success" role="alert"><span><strong>Alert</strong> text.</span></div>
-
-  <div class="register-photo" style="padding: 10px;">
-    <!-- Start: Form Container -->
-    <div class="form-container">
-      <!-- Start: Image -->
-      <div class="image-holder"><img th:attr="src=${user.getImageUrl()}"></div>
-      <!-- End: Image -->
-      <form method="post" th:action="@{/saveuser}" th:object="${user}" >
-        <h2 class="text-center"><strong>Your profile data</h2>
-        <input class="form-control" th:field="*{id}" type="hidden" name="id">
-        <div class="form-group"><input th:field="*{email}" class="form-control" type="email" name="email" readonly placeholder="Email"></div>
-        <div class="form-group"><input th:field="*{name}" class="form-control" type="text" name="Name" readonly placeholder="Name"></div>
-        <div class="form-group"><input th:field="*{iRacingId}" class="form-control" type="number" name="iRacingId" placeholder="iRacingId" required=""></div>
-        <div class="form-group"><input th:field="*{clientMessageAccessToken}" readonly class="form-control" type="text"></div><label>The above token is needed configure the TeamTactics client logger on your iRacing machine.</label>
-        <div class="form-group"><button class="btn btn-primary btn-block" type="submit" style="background-color: #2b913b;">Acknowleged</button></div>
-      </form>
-    </div>
-    <!-- End: Form Container -->
-  </div>
-
-  <div th:insert="index :: footer"></div>
-</body>
+        <!-- Start: Profile Edit Form -->
+        <div class="container profile profile-view" id="profile" style="background-color: rgb(255,255,255);">
+            <div th:insert="index :: messages"></div>
+            <form method="post" th:action="@{/profile}" th:object="${user}">
+                <div class="form-row profile-row">
+                    <div class="col-md-4 relative">
+                        <div class="avatar">
+                            <div class="avatar-bg center" th:attr="style='background: url(' + *{imageUrl} + ')'"></div>
+                        </div>
+                        <input class="form-control" th:field="*{id}" type="hidden" name="id">
+                        <input class="form-control" th:field="*{email}" type="hidden" name="id">
+                    </div>
+                    <div class="col-md-8">
+                        <h1>Profile </h1>
+                        <hr>
+                        <div class="form-row">
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group"><label>Name</label><input th:field="*{name}" class="form-control" type="text"/></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group"><label>iRacing ID&nbsp;</label><input th:field="*{iRacingId}" class="form-control" type="text"/></div>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>TeamTactics client access token&nbsp;</label><input th:field="*{clientMessageAccessToken}" readonly class="form-control" type="text" required=""/></div>
+                        <hr>
+                        <div class="form-row">
+                            <div class="col-md-12 content-right"><button class="btn btn-primary form-btn" type="submit">SAVE </button></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- End: Profile Edit Form -->
+        <div th:insert="index :: footer"></div>
+    </body>
+</html>

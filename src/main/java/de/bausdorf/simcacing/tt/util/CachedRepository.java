@@ -89,4 +89,14 @@ public abstract class CachedRepository<T> {
 		}
 		return fromDb;
 	}
+
+	public List<T> findByFieldValue(String collectionName, String fieldName, String fieldValue) {
+		List<QueryDocumentSnapshot> list = firestore.findByFieldValue(collectionName, fieldName, fieldValue);
+		List<T> objectList = new ArrayList<>();
+		for( QueryDocumentSnapshot docSnap : list ) {
+			objectList.add(fromMap(docSnap.getData()));
+		}
+		return objectList;
+	}
+
 }

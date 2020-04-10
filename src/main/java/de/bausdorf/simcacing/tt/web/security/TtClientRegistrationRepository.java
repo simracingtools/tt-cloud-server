@@ -1,7 +1,5 @@
 package de.bausdorf.simcacing.tt.web.security;
 
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.*;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
@@ -12,16 +10,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser> {
 
-    private String userCollectionName;
-
-    private FirestoreDB firestore;
+    private final String userCollectionName;
 
     public TtClientRegistrationRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
         super(db, config.getUserRepositoryCacheMinutes());
@@ -46,27 +40,18 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
     }
 
     public List<TtUser> findByIracingId(String iRacingId) {
-        List<QueryDocumentSnapshot> docList = firestore.findByFieldValue(userCollectionName,
+        return super.findByFieldValue(userCollectionName,
                 "iRacingId", iRacingId);
-        return docList.stream()
-                .map(s -> new TtUser(s.getData()))
-                .collect(Collectors.toList());
     }
 
     public List<TtUser> findByAccessToken(String tokenValue) {
-        List<QueryDocumentSnapshot> docList = firestore.findByFieldValue(userCollectionName,
+        return super.findByFieldValue(userCollectionName,
                 "clientMessageAccessToken", tokenValue);
-        return docList.stream()
-                .map(s -> new TtUser(s.getData()))
-                .collect(Collectors.toList());
     }
 
     public List<TtUser> findByUserEmail(String email) {
-        List<QueryDocumentSnapshot> docList = firestore.findByFieldValue(userCollectionName,
+        return super.findByFieldValue(userCollectionName,
                 "email", email);
-        return docList.stream()
-                .map(s -> new TtUser(s.getData()))
-                .collect(Collectors.toList());
     }
 
     public void save(TtUser user) {
