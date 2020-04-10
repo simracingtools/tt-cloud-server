@@ -1,8 +1,11 @@
 package de.bausdorf.simcacing.tt.stock;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,15 +36,24 @@ public class TrackRepository extends CachedRepository<IRacingTrack> {
 		return object.toMap();
 	}
 
-	public Optional<IRacingTrack> findByName(String name) {
-		return super.findByName(COLLECTION_NAME, name);
+	public Optional<IRacingTrack> findById(String id) {
+		return super.findByName(COLLECTION_NAME, id);
 	}
 
 	public void save(IRacingTrack track) {
-		super.save(COLLECTION_NAME, track.getName(), track);
+		super.save(COLLECTION_NAME, track.getId(), track);
 	}
 
 	public TrackRepository(@Autowired FirestoreDB db) {
 		super(db);
+	}
+
+	public List<IRacingTrack> loadAll(boolean fromCache) {
+		if (fromCache && !cache.isEmpty() ) {
+			return cache.values().stream().map(s -> s.getContent()).collect(Collectors.toList());
+		}
+		List<IRacingTrack> allCars = super.loadAll(COLLECTION_NAME);
+		allCars.stream().forEach(s -> putToCache(s.getId(), s));
+		return allCars;
 	}
 }

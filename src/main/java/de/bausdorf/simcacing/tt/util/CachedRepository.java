@@ -1,13 +1,12 @@
 package de.bausdorf.simcacing.tt.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
 
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -40,6 +39,15 @@ public abstract class CachedRepository<T> {
 		}
 	}
 
+	public List<T> loadAll(String collectionName) {
+		List<QueryDocumentSnapshot> list = firestore.loadAll(collectionName);
+		List<T> objectList = new ArrayList<>();
+		for( QueryDocumentSnapshot docSnap : list ) {
+			objectList.add(fromMap(docSnap.getData()));
+		}
+		return objectList;
+	}
+
 	public void save(String collectionName, String name, T object) {
 		firestore.save(collectionName, name, toMap(object));
 		putToCache(name, object);
@@ -65,6 +73,10 @@ public abstract class CachedRepository<T> {
 		if( cache.containsKey(key) ) {
 			cache.remove(key);
 		}
+	}
+
+	public void flushCache() {
+		cache.clear();
 	}
 
 	protected Optional<T> findByName(String collectionName, String key) {

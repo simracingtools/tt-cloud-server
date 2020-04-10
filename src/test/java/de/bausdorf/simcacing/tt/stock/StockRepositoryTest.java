@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.stock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
@@ -32,7 +33,7 @@ class StockRepositoryTest {
 
 	@Test
 	@Disabled
-	public void loadCars() {
+	public void loadCarsFromCSV() {
 		List<IRacingCar> cars = loadObjectList(IRacingCar.class, "carIds.csv");
 		for( IRacingCar o : cars) {
 			carRepository.save(o);
@@ -41,7 +42,7 @@ class StockRepositoryTest {
 
 	@Test
 	@Disabled
-	public void loadTracks() {
+	public void loadTracksFromCSV() {
 		List<IRacingTrack> cars = loadObjectList(IRacingTrack.class, "allTracksDetails.csv");
 		for( IRacingTrack o : cars) {
 			if( o.getName().indexOf('/') > 0 ) {
@@ -50,6 +51,42 @@ class StockRepositoryTest {
 			log.info("Try to save: {}", o);
 			trackRepository.save(o);
 		}
+	}
+
+	@Test
+	@Disabled
+	public void loadAllTracksFromRepository() {
+		long loadStart = System.currentTimeMillis();
+		List<IRacingTrack> allTracks = trackRepository.loadAll(true);
+		long loadEnd = System.currentTimeMillis();
+		assertThat(allTracks.isEmpty()).isFalse();
+		log.info("Loading of {} tracks took {} ms", allTracks.size(), loadEnd - loadStart);
+
+		allTracks.clear();
+
+		loadStart = System.currentTimeMillis();
+		allTracks = trackRepository.loadAll(true);
+		loadEnd = System.currentTimeMillis();
+		assertThat(allTracks.isEmpty()).isFalse();
+		log.info("Loading of {} tracks took {} ms", allTracks.size(), loadEnd - loadStart);
+	}
+
+	@Test
+	@Disabled
+	public void loadAllCarsFromRepository() {
+		long loadStart = System.currentTimeMillis();
+		List<IRacingCar> allTracks = carRepository.loadAll(true);
+		long loadEnd = System.currentTimeMillis();
+		assertThat(allTracks.isEmpty()).isFalse();
+		log.info("Loading of {} cars took {} ms", allTracks.size(), loadEnd - loadStart);
+
+		allTracks.clear();
+
+		loadStart = System.currentTimeMillis();
+		allTracks = carRepository.loadAll(true);
+		loadEnd = System.currentTimeMillis();
+		assertThat(allTracks.isEmpty()).isFalse();
+		log.info("Loading of {} cars took {} ms", allTracks.size(), loadEnd - loadStart);
 	}
 
 	public <T> List<T> loadObjectList(Class<T> type, String fileName) {

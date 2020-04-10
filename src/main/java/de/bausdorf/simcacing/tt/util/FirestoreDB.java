@@ -29,6 +29,18 @@ public class FirestoreDB {
         return firestore.collection(collectionName).document(documentName).get();
     }
 
+    public List<QueryDocumentSnapshot> loadAll(String collectionName) {
+        ApiFuture<QuerySnapshot> future = firestore.collection(collectionName).get();
+        try {
+            return future.get().getDocuments();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
+        }
+    }
+
     public List<QueryDocumentSnapshot> findByFieldValue(String collectionName, String fieldName, String fieldValue) {
         CollectionReference colRef = firestore.collection(collectionName);
         Query query = colRef.whereEqualTo(fieldName, fieldValue);
