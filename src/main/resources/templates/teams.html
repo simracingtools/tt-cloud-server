@@ -1,0 +1,87 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="index :: head">></head>
+    <body>
+        <header th:replace="index :: header"></header>
+
+        <!-- Start: Team content -->
+        <div class="container" style="background-color: rgb(255,255,255);">
+            <div th:insert="index :: messages"></div>
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Team name</th>
+                                <th>Team ID</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>FBP Racing RED</td>
+                                <td>47110815</td>
+                                <td><button class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team"><i class="fas fa-trash-alt"></i></button><button class="btn btn-primary" type="button"
+                                                                                                                                                                                                                              style="margin: 0px 5px;"><i class="far fa-copy" data-toggle="tooltip" data-bs-tooltip="" title="Duplicate team"></i></button></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col">
+                    <h3>Edit team</h3>
+                    <form>
+                        <div class="form-group"><input class="form-control" type="text" name="teamName" placeholder="Team name" required=""></div>
+                        <div class="form-group"><input class="form-control" type="number" name="teamId" placeholder="iRacing team ID" min="0" required=""></div>
+                        <div class="form-group">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>Driver name</th>
+                                        <th>Driver iRacing ID</th>
+                                        <th>Team admin</th>
+                                        <th>validated</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="text-left">
+                                    <tr class="text-left">
+                                        <td>Robert Bausdorf</td>
+                                        <td>229120</td>
+                                        <td class="text-center"><input type="checkbox" checked=""></td>
+                                        <td class="text-center"><i class="far fa-check-circle" style="color: rgb(15,0,184);"></i></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>N.N.</td>
+                                        <td>0</td>
+                                        <td class="text-center"><input type="checkbox"></td>
+                                        <td class="text-center"><i class="far fa-times-circle" style="color: rgb(251,31,1);"></i></td>
+                                        <td><button class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" title="Remove this driver"><i class="fas fa-trash-alt"></i></button></td>
+                                    </tr>
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <td><input class="form-control" type="text" name="newDriverName" placeholder="Driver name"></td>
+                                        <td><input class="form-control" type="number" placeholder="000000" name="newIracingId"></td>
+                                        <td class="text-center"><input type="checkbox"></td>
+                                        <td></td>
+                                        <td><button class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" title="Add driver to team"><i class="fas fa-plus-square"></i></button></td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="assets/js/bs-init.js"></script>
+        <!-- End: Team content -->
+
+        <div th:insert="index :: footer"></div>
+    </body>
+</html>
