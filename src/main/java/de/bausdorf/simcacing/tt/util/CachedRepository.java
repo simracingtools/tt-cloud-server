@@ -8,6 +8,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public abstract class CachedRepository<T> {
@@ -24,6 +25,9 @@ public abstract class CachedRepository<T> {
 	}
 
 	public Optional<T> load(String collectionName, String name) {
+		if(StringUtils.isEmpty(collectionName) || StringUtils.isEmpty(name) ) {
+			return Optional.empty();
+		}
 		ApiFuture<DocumentSnapshot> carDoc = firestore.getDocumentById(collectionName, name);
 		DocumentSnapshot docSnap = null;
 		try {

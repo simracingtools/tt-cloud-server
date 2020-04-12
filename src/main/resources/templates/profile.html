@@ -8,6 +8,7 @@
         <div class="container profile profile-view" id="profile" style="background-color: rgb(255,255,255);">
             <div th:insert="index :: messages"></div>
             <form method="post" th:action="@{/profile}" th:object="${user}">
+                <input type="hidden" th:field="*{userType}">
                 <div class="form-row profile-row">
                     <div class="col-md-4 relative">
                         <div class="avatar">
@@ -26,8 +27,13 @@
                             <div class="col-sm-12 col-md-6">
                                 <div class="form-group"><label>iRacing ID&nbsp;</label><input th:field="*{iRacingId}" class="form-control" type="text"/></div>
                             </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group"><label>TeamTactics client access token&nbsp;</label><input th:field="*{clientMessageAccessToken}" readonly class="form-control" type="text" required=""/></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group"><label>Driver nick&nbsp;</label><input th:field="*{driverNick}" class="form-control" type="text"/></div>
+                            </div>
                         </div>
-                        <div class="form-group"><label>TeamTactics client access token&nbsp;</label><input th:field="*{clientMessageAccessToken}" readonly class="form-control" type="text" required=""/></div>
                         <hr>
                         <div class="form-row">
                             <div class="col-md-12 content-right"><button class="btn btn-primary form-btn" type="submit">SAVE </button></div>

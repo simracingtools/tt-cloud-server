@@ -18,7 +18,8 @@
                 <!-- End: Image -->
                 <form method="post" th:action="@{/saveuser}" th:object="${user}" >
                     <h2 class="text-center"><strong>Update</strong> your details.</h2>
-                    <input class="form-control" th:field="*{id}" type="hidden" name="id">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{userType}">
                     <div class="form-group"><input th:field="*{email}" class="form-control" type="email" name="email" readonly placeholder="Email"></div>
                     <div class="form-group"><input th:field="*{name}" class="form-control" type="text" name="Name" readonly placeholder="Name"></div>
                     <div class="form-group"><input th:field="*{iRacingId}" class="form-control" type="number" name="iRacingId" placeholder="iRacingId" required=""></div>

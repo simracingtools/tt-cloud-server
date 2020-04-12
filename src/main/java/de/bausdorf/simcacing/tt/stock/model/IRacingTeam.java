@@ -17,10 +17,12 @@ public class IRacingTeam {
 	public static final String TEAM_ID = "TeamId";
 	public static final String OWNER_ID = "OwnerId";
 	public static final String AUTHORIZED_DRIVERS = "AuthorizedDrivers";
+	public static final String TEAM_ADMINS = "TeamAdmins";
 
 	private String name;
 	private String id;
 	private String ownerId;
+	private List<String> teamAdminIds;
 	private List<String> authorizedDriverIds;
 
 	public Map<String, Object> toMap() {
@@ -28,6 +30,7 @@ public class IRacingTeam {
 		map.put(TEAM_NAME, name);
 		map.put(TEAM_ID, id);
 		map.put(OWNER_ID, ownerId);
+		map.put(TEAM_ADMINS, teamAdminIds);
 		map.put(AUTHORIZED_DRIVERS, authorizedDriverIds);
 		return map;
 	}

@@ -39,8 +39,10 @@
                     </div>
                 </div>
                 <div class="col">
-                    <h3>Edit team</h3>
+                    <h3 style="margin-top: 5px">Team details</h3>
                     <form method="post" th:action="@{/teams}" th:object="${selectedTeam}">
+                        <input type="hidden" th:field="*{ownerId}">
+                        <input type="hidden" th:field="*{currentUserTeamAdmin}">
                         <div class="form-group">
                             <input class="form-control" th:field="*{name}" type="text" name="teamName" placeholder="Team name" required="">
                         </div>
@@ -53,30 +55,35 @@
                                             <th>Driver name</th>
                                             <th>Driver iRacing ID</th>
                                             <th>Team admin</th>
-                                            <th>validated</th>
-                                            <th></th>
+                                            <th>Validated</th>
+                                            <th>Owner</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-left">
-                                        <tr th:each="driver, driverStat : *{authorizedDriverIds}" class="text-left">
-                                            <td th:text="${teamDrivers[__${driverStat.index}__].name}">Robert Bausdorf</td>
-                                            <td th:text="*{authorizedDriverIds[__${driverStat.index}__]}">229120</td>
+                                        <tr th:each="driver, driverStat : *{authorizedDrivers}" class="text-left">
+                                            <input type="hidden" th:field="*{authorizedDrivers[__${driverStat.index}__].id}">
+                                            <input type="hidden" th:field="*{authorizedDrivers[__${driverStat.index}__].name}">
+                                            <td th:text="*{authorizedDrivers[__${driverStat.index}__].name}">Name</td>
+                                            <td th:text="*{authorizedDrivers[__${driverStat.index}__].id}">123456</td>
                                             <td class="text-center">
-                                                <input th:if="${teamDrivers[__${driverStat.index}__].teamAdmin}" type="checkbox">
+                                                <input type="checkbox" th:field="*{authorizedDrivers[__${driverStat.index}__].teamAdmin}" th:disabled="*{authorizedDrivers[__${driverStat.index}__].owner}">
                                             </td>
                                             <td class="text-center">
-                                                <i th:if="${teamDrivers[__${driverStat.index}__].validated}" class="far fa-check-circle" style="color: rgb(15,0,184);"></i>
-                                                <i th:if="!${teamDrivers[__${driverStat.index}__].validated}" class="far fa-times-circle" style="color: rgb(251,31,1);"></i>
+                                                <i th:if="*{authorizedDrivers[__${driverStat.index}__].validated}" class="far fa-check-circle" style="color: rgb(15,0,184);"></i>
+                                                <i th:if="!*{authorizedDrivers[__${driverStat.index}__].validated}" class="far fa-times-circle" style="color: rgb(251,31,1);"></i>
                                             </td>
-                                            <td></td>
+                                            <td>
+                                                <i th:if="*{authorizedDrivers[__${driverStat.index}__].owner}" class="far fa-check-circle" style="color: rgb(15,0,184);"></i>
+                                                <i th:if="!*{authorizedDrivers[__${driverStat.index}__].owner}" class="far fa-times-circle" style="color: rgb(251,31,1);"></i>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
+                        <div th:if="${selectedTeam.currentUserTeamAdmin}" class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
                     </form>
-                    <form th:if="${selectedTeam.id != null}" method="post" th:action="@{/newDriver}" th:object="${newDriver}">
+                    <form th:if="${selectedTeam.id != null && selectedTeam.currentUserTeamAdmin}" method="post" th:action="@{/newDriver}" th:object="${newDriver}">
                         <input type="hidden" th:field="*{teamId}" th:value="${selectedTeam.id}">
                         <div class="form-group">
                             <div class="table-responsive">

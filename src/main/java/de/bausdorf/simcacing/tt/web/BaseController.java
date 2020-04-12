@@ -1,5 +1,7 @@
 package de.bausdorf.simcacing.tt.web;
 
+import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.web.model.UserProfileView;
 import de.bausdorf.simcacing.tt.web.security.TtClientRegistrationRepository;
 import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
@@ -18,11 +20,19 @@ public class BaseController {
     @Autowired
     TtClientRegistrationRepository userService;
 
+    @Autowired
+    DriverRepository driverRepository;
+
     @ModelAttribute("user")
-    TtUser currentUser() {
+    public UserProfileView currentUserProfile() {
+        return new UserProfileView(currentUser(), driverRepository);
+    }
+
+    protected TtUser currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Optional<TtUser> details = userService.findById(auth.getName());
-        return details.isPresent() ? details.get() : TtUser.builder()
+        return details.isPresent() ? details.get()
+                : TtUser.builder()
                 .name("Unknown")
                 .userType(TtUserType.TT_NEW)
                 .build();
@@ -49,17 +59,17 @@ public class BaseController {
             .build(), model);
     }
 
-    protected void addWarning(String error, Model model) {
+    protected void addWarning(String warning, Model model) {
         addMessage(Message.builder()
                 .type(Message.WARN)
-                .text(error)
+                .text(warning)
                 .build(), model);
     }
 
-    protected void addInfo(String error, Model model) {
+    protected void addInfo(String info, Model model) {
         addMessage(Message.builder()
                 .type(Message.INFO)
-                .text(error)
+                .text(info)
                 .build(), model);
     }
 }

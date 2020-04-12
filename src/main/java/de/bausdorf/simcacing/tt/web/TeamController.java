@@ -1,11 +1,10 @@
 package de.bausdorf.simcacing.tt.web;
 
-import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.web.model.NewDriver;
-import de.bausdorf.simcacing.tt.web.model.TeamDriver;
+import de.bausdorf.simcacing.tt.web.model.TeamView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,18 +21,15 @@ import java.util.stream.Collectors;
 @Controller
 public class TeamController extends BaseController {
 
-    public static final String TEAM_DRIVERS = "teamDrivers";
     public static final String SELECTED_TEAM = "selectedTeam";
     public static final String TEAMS = "teams";
     public static final String TEAMS_VIEW = "teams";
     public static final String NEW_DRIVER = "newDriver";
 
-    private TeamRepository teamRepository;
-    private DriverRepository driverRepository;
+    private final TeamRepository teamRepository;
 
-    public TeamController(@Autowired TeamRepository teamRepository, @Autowired DriverRepository driverRepository) {
+    public TeamController(@Autowired TeamRepository teamRepository) {
         this.teamRepository = teamRepository;
-        this.driverRepository = driverRepository;
     }
 
     @GetMapping("/teams")
@@ -41,8 +37,7 @@ public class TeamController extends BaseController {
         if( teamId.isPresent() ) {
             Optional<IRacingTeam> repoTeam = teamRepository.findById(teamId.get());
             if (repoTeam.isPresent() /*&& repoTeam.get().getOwnerId().equals(currentUser().getIRacingId())*/) {
-                model.addAttribute(TEAM_DRIVERS, getTeamDrivers(repoTeam.get()));
-                model.addAttribute(SELECTED_TEAM, repoTeam.get());
+                model.addAttribute(SELECTED_TEAM, new TeamView(repoTeam.get(), driverRepository, currentUser().getIRacingId()));
                 model.addAttribute(NEW_DRIVER, NewDriver.builder()
                         .id("0")
                         .name("N.N")
@@ -52,20 +47,16 @@ public class TeamController extends BaseController {
                 return TEAMS_VIEW;
             }
         }
-        model.addAttribute(SELECTED_TEAM, IRacingTeam.builder()
-                .ownerId(currentUser().getIRacingId())
-                .authorizedDriverIds(new ArrayList<>())
-                .build()
-        );
-        model.addAttribute(TEAM_DRIVERS, new ArrayList<>());
+
+        addEmptySelectedTeam(model);
         return TEAMS_VIEW;
     }
 
     @PostMapping("/teams")
-    public String saveTeam(@ModelAttribute(SELECTED_TEAM) IRacingTeam resultTeam, Model model) {
+    public String saveTeam(@ModelAttribute(SELECTED_TEAM) TeamView resultTeam, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(resultTeam.getId());
         if( existingTeam.isPresent() ) {
-            if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
+            if (!resultTeam.isCurrentUserTeamAdmin()) {
                 addError("Team with ID " + resultTeam.getId() + " already exists and you are not a team admin.", model);
                 model.addAttribute(NEW_DRIVER, NewDriver.builder()
                         .id("0")
@@ -75,15 +66,12 @@ public class TeamController extends BaseController {
                         .build());
                 return TEAMS_VIEW;
             } else {
-                existingTeam.get().setName(resultTeam.getName());
-                existingTeam.get().setId(resultTeam.getId());
-                existingTeam.get().setAuthorizedDriverIds(resultTeam.getAuthorizedDriverIds());
-                teamRepository.save(existingTeam.get());
-                model.addAttribute(SELECTED_TEAM, existingTeam.get());
+                teamRepository.save(resultTeam.getTeam());
+                model.addAttribute(SELECTED_TEAM, resultTeam);
             }
         } else {
             resultTeam.setOwnerId(currentUser().getIRacingId());
-            teamRepository.save(resultTeam);
+            teamRepository.save(resultTeam.getTeam());
             model.addAttribute(SELECTED_TEAM, resultTeam);
         }
         model.addAttribute(TEAMS, getMyTeams());
@@ -103,61 +91,40 @@ public class TeamController extends BaseController {
             addWarning("Team ID " + teamId + " does not exist.", model);
         } else {
             if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
-                addError("You are not the owner of this team.", model);
+                addError("Only the team owner is allowed to delete his team.", model);
             } else {
                 teamRepository.delete(teamId);
+                model.addAttribute(TEAMS, getMyTeams());
             }
         }
-
+        addEmptySelectedTeam(model);
         return TEAMS_VIEW;
     }
 
     @PostMapping("/newDriver")
     public String addNewDriver(@ModelAttribute("newDriver") NewDriver newDriver, Model model) {
-        IRacingDriver newIracingDriver = IRacingDriver.builder()
-                .id(newDriver.getId())
-                .name(newDriver.getName())
-                .build();
         Optional<IRacingDriver> existingDriver = driverRepository.findById(newDriver.getId());
         if( !existingDriver.isPresent() ) {
-            driverRepository.save(newIracingDriver);
-        } else {
-            newIracingDriver = existingDriver.get();
+            driverRepository.save(IRacingDriver.builder()
+                    .id(newDriver.getId())
+                    .name(newDriver.getName())
+                    .build());
         }
         Optional<IRacingTeam> team = teamRepository.findById(newDriver.getTeamId());
         if( team.isPresent() ) {
+            if( newDriver.isTeamAdmin() ) {
+                team.get().getTeamAdminIds().add(newDriver.getId());
+            }
             if( team.get().getAuthorizedDriverIds() == null ) {
                 team.get().setAuthorizedDriverIds(new ArrayList<>());
             }
             team.get().getAuthorizedDriverIds().add(newDriver.getId());
             teamRepository.save(team.get());
-            List<TeamDriver> teamDrivers = getTeamDrivers(team.get());
-            teamDrivers.add(new TeamDriver(newIracingDriver));
-            model.addAttribute(SELECTED_TEAM, team.get());
-            model.addAttribute(TEAM_DRIVERS, teamDrivers);
+            model.addAttribute(SELECTED_TEAM, new TeamView(team.get(), driverRepository, currentUser().getIRacingId()));
         } else {
             addError("Team ID " + newDriver.getTeamId() + " not found.", model);
         }
         return TEAMS_VIEW;
-    }
-
-    public List<TeamDriver> getTeamDrivers(IRacingTeam selectedTeam) {
-        List<TeamDriver> authorizedDrivers = new ArrayList<>();
-        if( selectedTeam.getOwnerId() == null || selectedTeam.getAuthorizedDriverIds() == null) {
-            return authorizedDrivers;
-        }
-        List<String> authorizedDriverIds = selectedTeam.getAuthorizedDriverIds();
-        for( String driverId : authorizedDriverIds ) {
-            Optional<IRacingDriver> driver = driverRepository.findById(driverId);
-            if(driver.isPresent()) {
-                TeamDriver teamDriver = new TeamDriver(driver.get());
-                if( teamDriver.getId().equals(currentUser().getIRacingId())) {
-                    teamDriver.setTeamAdmin(true);
-                }
-                authorizedDrivers.add(teamDriver);
-            }
-        }
-        return authorizedDrivers;
     }
 
     @ModelAttribute("teams")
@@ -167,5 +134,14 @@ public class TeamController extends BaseController {
                 .filter(s -> !teams.contains(s)).collect(Collectors.toList())
         );
         return teams;
+    }
+
+    private void addEmptySelectedTeam(Model model) {
+        model.addAttribute(SELECTED_TEAM, TeamView.builder()
+                .ownerId(currentUser().getIRacingId())
+                .currentUserTeamAdmin(true)
+                .authorizedDrivers(new ArrayList<>())
+                .build()
+        );
     }
 }

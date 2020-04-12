@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.stock;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,8 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 				.name((String)data.get(IRacingTeam.TEAM_NAME))
 				.ownerId((String)data.get(IRacingTeam.OWNER_ID))
 				.authorizedDriverIds((List<String>)data.get(IRacingTeam.AUTHORIZED_DRIVERS))
+				.teamAdminIds(data.get(IRacingTeam.TEAM_ADMINS) != null
+				 		? (List<String>)data.get(IRacingTeam.TEAM_ADMINS) : new ArrayList<>())
 				.build();
 	}
 
@@ -53,5 +56,9 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 
 	public List<IRacingTeam> findByAuthorizedDrivers(String driverId) {
 		return super.findByArrayContains(COLLECTION_NAME, IRacingTeam.AUTHORIZED_DRIVERS, driverId);
+	}
+
+	public List<IRacingTeam> findByTeamAdmins(String driverId) {
+		return super.findByArrayContains(COLLECTION_NAME, IRacingTeam.TEAM_ADMINS, driverId);
 	}
 }

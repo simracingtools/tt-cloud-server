@@ -15,11 +15,13 @@ public class TeamDriver {
     private String id;
     private boolean validated;
     private boolean teamAdmin;
+    private boolean owner;
 
     public TeamDriver(IRacingDriver iRacingDriver) {
         this.name = iRacingDriver.getName();
         this.id = iRacingDriver.getId();
         this.validated = iRacingDriver.isValidated();
         this.teamAdmin = false;
+        this.owner = false;
     }
 }
