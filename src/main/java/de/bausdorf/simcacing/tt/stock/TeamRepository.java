@@ -38,14 +38,20 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 		return object.toMap();
 	}
 
-
 	public void save(IRacingTeam object) {
 		super.save(COLLECTION_NAME, object.getId(), object);
 	}
+	public void delete(String id) { super.delete(COLLECTION_NAME, id); }
 
 	public Optional<IRacingTeam> findById(String id) {
 		return super.findByName(COLLECTION_NAME, id);
 	}
 
-	public void delete(String id) { super.delete(COLLECTION_NAME, id); }
+	public List<IRacingTeam> findByOwnerId(String ownerId) {
+		return super.findByFieldValue(COLLECTION_NAME, IRacingTeam.OWNER_ID, ownerId);
+	}
+
+	public List<IRacingTeam> findByAuthorizedDrivers(String driverId) {
+		return super.findByArrayContains(COLLECTION_NAME, IRacingTeam.AUTHORIZED_DRIVERS, driverId);
+	}
 }

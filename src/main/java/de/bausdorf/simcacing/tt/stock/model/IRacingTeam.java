@@ -32,4 +32,11 @@ public class IRacingTeam {
 		map.put(AUTHORIZED_DRIVERS, authorizedDriverIds);
 		return map;
 	}
+
+	public boolean isOwner(String memberId) {
+		if( ownerId != null || memberId != null ) {
+			return ownerId.equals(memberId);
+		}
+		return false;
+	}
 }

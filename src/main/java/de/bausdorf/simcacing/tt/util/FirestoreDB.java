@@ -55,6 +55,20 @@ public class FirestoreDB {
         }
     }
 
+    public List<QueryDocumentSnapshot> findByArrayContains(String collectionName, String fieldName, String fieldValue) {
+        CollectionReference colRef = firestore.collection(collectionName);
+        Query query = colRef.whereArrayContains(fieldName, fieldValue);
+        ApiFuture<QuerySnapshot> future = query.get();
+        try {
+            return future.get().getDocuments();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
+        }
+    }
+
     public Timestamp save(String collectionName, String documentName, Map<String, Object> documentData) {
         ApiFuture<WriteResult> future = firestore.collection(collectionName).document(documentName).set(documentData);
         try {

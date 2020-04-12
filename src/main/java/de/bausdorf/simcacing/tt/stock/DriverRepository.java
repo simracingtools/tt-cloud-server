@@ -27,6 +27,7 @@ public class DriverRepository extends TimeCachedRepository<IRacingDriver> {
 		return IRacingDriver.builder()
 				.id((String)data.get(IRacingDriver.I_RACING_ID))
 				.name((String)data.get(IRacingDriver.NAME))
+				.validated((Boolean)data.get(IRacingDriver.VALIDATED))
 				.build();
 	}
 

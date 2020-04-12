@@ -26,7 +26,6 @@ public class UserContentController extends BaseController {
 
     @PostMapping("/acknewuser")
     public String showIndexAfterAck() {
-        clearMessages();
         return "index";
     }
 
@@ -60,16 +59,16 @@ public class UserContentController extends BaseController {
         }
         String newIRacingId = user.getIRacingId();
         if( newIRacingId.isEmpty() ) {
-            addError("iRacing ID must not be empty !");
+            addError("iRacing ID must not be empty !", model);
         } else if( !newIRacingId.equals(modelUser.getIRacingId()) ) {
             List<TtUser> existingUser = userService.findByIracingId(newIRacingId);
             if (existingUser.isEmpty()) {
                 user.setClientMessageAccessToken(UUID.randomUUID().toString());
                 userService.save(user);
                 modelUser.setIRacingId(user.getIRacingId());
-                addInfo("iRacing ID changed in profile. A new token was generated - change your TeamTactics client config");
+                addInfo("iRacing ID changed in profile. A new token was generated - change your TeamTactics client config", model);
             } else {
-                addError("iRacingId " + newIRacingId + " is already registered");
+                addError("iRacingId " + newIRacingId + " is already registered", model);
             }
         }
         modelUser.setClientMessageAccessToken(user.getClientMessageAccessToken());

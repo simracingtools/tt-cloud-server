@@ -6,6 +6,7 @@ import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.ArrayList;
@@ -13,10 +14,10 @@ import java.util.Optional;
 
 public class BaseController {
 
+    public static final String MESSAGES = "messages";
+
     @Autowired
     TtClientRegistrationRepository userService;
-
-    Messages messages;
 
     @ModelAttribute("user")
     TtUser currentUser() {
@@ -28,40 +29,38 @@ public class BaseController {
                 .build();
     }
 
-    @ModelAttribute("messages")
+    @ModelAttribute(MESSAGES)
     Messages messages() {
+        return new Messages();
+    }
+
+    protected void addMessage(Message msg, Model model) {
+        Messages messages = ((Messages)model.getAttribute(MESSAGES));
         if( messages == null ) {
-            messages = new Messages();
+            messages = messages();
+            model.addAttribute(MESSAGES, messages);
         }
-        return messages;
+        messages.add(msg);
     }
 
-    protected void addMessage(Message msg) {
-        messages().add(msg);
-    }
-
-    protected void addError(String error) {
+    protected void addError(String error, Model model) {
         addMessage(Message.builder()
             .type(Message.ERROR)
             .text(error)
-            .build());
+            .build(), model);
     }
 
-    protected void addWarning(String error) {
+    protected void addWarning(String error, Model model) {
         addMessage(Message.builder()
                 .type(Message.WARN)
                 .text(error)
-                .build());
+                .build(), model);
     }
 
-    protected void addInfo(String error) {
+    protected void addInfo(String error, Model model) {
         addMessage(Message.builder()
                 .type(Message.INFO)
                 .text(error)
-                .build());
-    }
-
-    protected void clearMessages() {
-        messages().clear();
+                .build(), model);
     }
 }

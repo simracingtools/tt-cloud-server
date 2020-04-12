@@ -99,4 +99,12 @@ public abstract class CachedRepository<T> {
 		return objectList;
 	}
 
+	public List<T> findByArrayContains(String collectionName, String fieldName, String fieldValue) {
+		List<QueryDocumentSnapshot> list = firestore.findByArrayContains(collectionName, fieldName, fieldValue);
+		List<T> objectList = new ArrayList<>();
+		for( QueryDocumentSnapshot docSnap : list ) {
+			objectList.add(fromMap(docSnap.getData()));
+		}
+		return objectList;
+	}
 }
