@@ -1,6 +1,5 @@
 package de.bausdorf.simcacing.tt.web.model;
 
-import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

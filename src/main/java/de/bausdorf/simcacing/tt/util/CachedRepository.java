@@ -15,8 +15,8 @@ public abstract class CachedRepository<T> {
 	protected Map<String, CacheEntry<T>> cache;
 	private FirestoreDB firestore;
 
-	abstract protected T fromMap(Map<String, Object> data);
-	abstract protected Map<String, Object> toMap(T object);
+	protected abstract T fromMap(Map<String, Object> data);
+	protected abstract Map<String, Object> toMap(T object);
 
 	public CachedRepository(FirestoreDB db) {
 		cache = new HashMap<>();

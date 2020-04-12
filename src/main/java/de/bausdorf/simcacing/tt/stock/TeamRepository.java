@@ -27,7 +27,7 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 
 		return IRacingTeam.builder()
 				.id((String)data.get(IRacingTeam.TEAM_ID))
-				.name((String)data.get(IRacingTeam.NAME))
+				.name((String)data.get(IRacingTeam.TEAM_NAME))
 				.ownerId((String)data.get(IRacingTeam.OWNER_ID))
 				.authorizedDriverIds((List<String>)data.get(IRacingTeam.AUTHORIZED_DRIVERS))
 				.build();
