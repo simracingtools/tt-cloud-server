@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.stock;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,10 +51,15 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 
 	public List<IRacingCar> loadAll(boolean fromCache) {
 		if (fromCache && !cache.isEmpty() ) {
-			return cache.values().stream().map(s -> s.getContent()).collect(Collectors.toList());
+			return cache.values().stream()
+					.map(s -> s.getContent())
+					.sorted(Comparator.comparing(IRacingCar::getName))
+					.collect(Collectors.toList());
 		}
 		List<IRacingCar> allCars = super.loadAll(COLLECTION_NAME);
 		allCars.stream().forEach(s -> putToCache(s.getId(), s));
-		return allCars;
+		return allCars.stream()
+				.sorted(Comparator.comparing(IRacingCar::getName))
+				.collect(Collectors.toList());
 	}
 }

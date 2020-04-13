@@ -1,9 +1,8 @@
-package de.bausdorf.simcacing.tt.live.impl;
+package de.bausdorf.simcacing.tt.util;
 
 import de.bausdorf.simcacing.tt.live.model.LapData;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
@@ -19,8 +18,13 @@ public class TimeTools {
         );
     }
 
+    public static ZonedDateTime zonedDateTimeFromPattern(String timestring, String pattern) {
+        LocalDateTime localTime = LocalDateTime.parse(timestring, DateTimeFormatter.ofPattern(pattern));
+        return ZonedDateTime.of(localTime, ZoneId.of("CET"));
+    }
+
     public static Duration durationFromPattern(String timestring, String pattern) {
-        LocalDateTime time = LocalDateTime.parse(timestring, DateTimeFormatter.ofPattern(pattern));
+        LocalTime time = LocalTime.parse(timestring, DateTimeFormatter.ofPattern(pattern));
         Duration duration = Duration.ofHours(time.getHour());
         duration.plusMinutes(time.getMinute());
         duration.plusSeconds(time.getSecond());

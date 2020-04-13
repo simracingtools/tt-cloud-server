@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="index :: head">></head>
+    <body>
+        <header th:replace="index :: header"></header>
+
+        <!-- Start: Plan content -->
+        <div class="row">
+            <div th:insert="index :: messages"></div>
+
+            <div class="col-lg-8 offset-lg-2">
+                <form method="post" th:action="@{/newraceplan}" th:object="${raceplan}">
+                    <h2 class="text-center">Select existing planning</h2>
+                    <div class="form-group text-center">
+                        <label for="existingPlan">1. Select Track</label>
+                        <select th:field="*{id}" class="form-control" name="existingPlan" required="">
+                            <option th:each="plan : ${plans}" th:value="${plan.id}" th:text="${plan.name}" selected="">My race Plan</option>
+                        </select>
+                    </div>
+                    <div class="form-group text-center">
+                        <button class="btn btn-primary" type="submit">Select plan</button>
+                    </div>
+                </form>
+                <h1 class="text-center">-- OR --</h1>
+                <form method="post" th:action="@{/newraceplan}" th:object="${raceplan}">
+                    <h2 class="text-center">Create new race planning</h2>
+                    <div class="form-group text-center">
+                        <label for="track">1. Select Track</label>
+                        <select th:field="*{trackId}" class="form-control" name="track" required="">
+                            <option th:each="track : ${tracks}" th:value="${track.id}" th:text="${track.name}" selected="">Nürburgring Combined 24</option>
+                        </select>
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="car">2. Select Car</label>
+                        <select th:field="*{carId}" class="form-control" name="car">
+                            <option th:each="car : ${cars}" th:value="${car.id}" th:text="${car.name}" selected="">BMW Z4 GT3</option>
+                        </select>
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="team">3. Select team</label>
+                        <select th:field="*{teamId}" class="form-control" name="team" required="">
+                            <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}" selected="">FBP racing RED</option>
+                        </select>
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="raceDuration">4. Race duration (hh:mm)</label>
+                        <input class="form-control" type="text" name="raceDuration" placeholder="00:00" required="" pattern="^(?:(?:([0-9]?\d|2[0-9]):)?([0-5]?\d)$">
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="startTime">5. Start time (hh:mm)</label>
+                        <input class="form-control" type="text" name="startTime" placeholder="00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d)$">
+                    </div>
+                    <div class="form-group text-center">
+                        <label for="planName">6. Name the plan</label>
+                        <input th:field="*{planName}" class="form-control" type="text" name="planName" placeholder="New race plan" required="">
+                    </div>
+                    <div class="form-group text-center">
+                        <button class="btn btn-primary" type="submit">Create plan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="assets/js/bs-init.js"></script>
+        <!-- End: plan content -->
+
+        <div th:insert="index :: footer"></div>
+    </body>
+</html>

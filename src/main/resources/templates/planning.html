@@ -1,0 +1,189 @@
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="index :: head">></head>
+    <body>
+        <header th:replace="index :: header"></header>
+
+        <!-- planning content start -->
+        <div class="container" style="background-color: rgb(255,255,255);">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div th:fragment="stint-table" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead style="vertical-align: middle;">
+                            <tr class="text-center">
+                                <th>Stint</th>
+                                <th>Driver</th>
+                                <th>Start ST</th>
+                                <th>Start LT</th>
+                                <th>Start TOD</th>
+                                <th>Laps</th>
+                                <th>Duration</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><select><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></td>
+                                <td>00:04:53</td>
+                                <td>13:04:53</td>
+                                <td>09:34:53</td>
+                                <td>7</td>
+                                <td>01:04:28</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><select><option value="12">Dave</option><option value="13" selected="">Evan</option><option value="14">Robert</option></select></td>
+                                <td>01:09:21</td>
+                                <td>14:09:21<br></td>
+                                <td>10:39:21</td>
+                                <td>7</td>
+                                <td>01:04:28</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><select><option value="12">Dave</option><option value="13">Evan</option><option value="14" selected="">Robert</option></select></td>
+                                <td>02:13:49</td>
+                                <td>15:13:49<br></td>
+                                <td>11:43:49</td>
+                                <td>6</td>
+                                <td>00:46:11</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div th:fragment="schedule-table" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Stint</th>
+                                <th>Start LT</th>
+                                <th>Start ToD</th>
+                                <th>Dave</th>
+                                <th>Evan</th>
+                                <th>Robert</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>13:04:53</td>
+                                <td>09:34:53</td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                                <td><select class="bg-warning"><option value="12">Open</option><option value="13" selected="">Tentative</option><option value="14">Blocked</option></select></td>
+                                <td><select class="bg-warning"><option value="12">Open</option><option value="13" selected="">Tentative</option><option value="14">Blocked</option></select></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>14:09:53</td>
+                                <td>10:39:21</td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>15:13:49</td>
+                                <td>12:30:00</td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                                <td><select class="bg-danger"><option value="12">Open</option><option value="13">Tentative</option><option value="14" selected="">Blocked</option></select></td>
+                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+
+
+                <div class="col-lg-4">
+                    <form>
+                        <div class="form-row">
+                            <div class="col">
+                                <ul class="nav nav-tabs border rounded shadow">
+                                    <li class="nav-item border rounded"><a class="nav-link active bg-warning" href="#">Times</a></li>
+                                    <li class="nav-item border rounded"><a class="nav-link bg-info" href="#">Schedule</a></li>
+                                </ul><input class="form-control" type="text" name="racePlanName" placeholder="New race plan"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><select class="form-control" name="tracks" readonly="" style="margin-top: 5px;"><optgroup label="Tracks"><option value="96" selected="">Sebring International Raceway Modified</option><option value="13">This is item 2</option><option value="14">This is item 3</option></optgroup></select>
+                                    <select
+                                            class="form-control" name="team" readonly="" style="margin-top: 5px;">
+                                        <option value="96" selected="">FBP Racing RED</option>
+                                        <option value="13">This is item 2</option>
+                                        <option value="14">This is item 3</option>
+                                    </select><select class="form-control" name="car" readonly="" style="margin-top: 5px;"><option value="96" selected="">BMW Z4 GT3</option><option value="13">This is item 2</option><option value="14">This is item 3</option></select></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="raceStartLocal">Race start (Local)</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="raceDuration">Race duration</label><input class="form-control" type="text" name="raceDuration" placeholder="00:00:00" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="raceStartTod">Race start (ToD)</label><input class="form-control" type="text" name="raceStartTod" placeholder="00:00:00" required=""></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="greenFlagOffset">Green flag offset</label><input class="form-control" type="text" name="greenFlagOffset" placeholder="00:00:00" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="maxFuel">Max. fuel</label><input class="form-control" type="text" name="maxFuel" placeholder="115,5" required=""></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="avgPitTime">Pitstop duration</label><input class="form-control" type="text" name="avgPitTime" placeholder="00:00:00" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="driverCount">Driver count</label><input class="form-control" type="number" name="driverCount" value="3"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><select class="form-control"><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required=""></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label for="raceStartLocal">from</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label for="raceDuration">until</label><input class="form-control" type="text" name="raceDuration" placeholder="23:59:59" required="" pattern="##:##:##"></div>
+                            </div>
+                        </div>
+                        <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="assets/js/bs-init.js"></script>
+        <!-- End: Team content -->
+
+        <div th:insert="index :: footer"></div>
+    </body>
+</html>

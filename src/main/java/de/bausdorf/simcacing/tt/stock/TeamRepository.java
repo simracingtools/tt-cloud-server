@@ -18,7 +18,7 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 	public static final String COLLECTION_NAME = "iRacingTeams";
 
 	public TeamRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
-		super(db, config.getTeamRepositoryCacheMinutes());
+		super(db, config.getTeamRepositoryCacheMinutes() * 60000);
 	}
 
 	@Override
