@@ -20,9 +20,14 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 
 	@Override
 	protected IRacingCar fromMap(Map<String, Object> data) {
+		if( data == null ) {
+			return null;
+		}
 		return IRacingCar.builder()
 				.name((String)data.get(IRacingCar.NAME))
 				.id((String)data.get(IRacingCar.ID))
+				.maxFuel((Double)data.get(IRacingCar.MAX_FUEL))
+				.unit((String)data.get(IRacingCar.UNIT))
 				.build();
 	}
 

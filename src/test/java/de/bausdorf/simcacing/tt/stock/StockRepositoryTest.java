@@ -4,9 +4,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.bausdorf.simcacing.tt.util.UnitConverter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest
 class StockRepositoryTest {
 
+	public static final String CAR_JSON_BASE_PATH = "D:\\Users\\robert\\Projects\\SIMRacingAppsSIMPluginiRacing\\src\\com\\SIMRacingApps\\SIMPlugins\\iRacing\\Cars";
+
 	@Autowired
 	CarRepository carRepository;
 
@@ -36,18 +51,23 @@ class StockRepositoryTest {
 	public void loadCarsFromCSV() {
 		List<IRacingCar> cars = loadObjectList(IRacingCar.class, "carIds.csv");
 		for( IRacingCar o : cars) {
+			if( !o.getUnit().equals("l") ) {
+				o.setMaxFuel(UnitConverter.toLiters(o.getMaxFuel(), o.getUnit()));
+				o.setUnit("l");
+			}
 			carRepository.save(o);
 		}
 	}
+
 
 	@Test
 	@Disabled
 	public void loadTracksFromCSV() {
 		List<IRacingTrack> cars = loadObjectList(IRacingTrack.class, "allTracksDetails.csv");
 		for( IRacingTrack o : cars) {
-			if( o.getName().indexOf('/') > 0 ) {
-				o.setName(o.getName().replaceAll("/", " "));
-			}
+//			if( o.getName().indexOf('/') > 0 ) {
+//				o.setName(o.getName().replaceAll("/", " "));
+//			}
 			log.info("Try to save: {}", o);
 			trackRepository.save(o);
 		}
