@@ -1,8 +1,9 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,9 +26,9 @@ public class RacePlan {
 
 	private String name;
 	private String teamId;
-	private ZonedDateTime sessionStart;
+	private LocalDateTime sessionStart;
 	private LocalTime greenFlagOffset;
-	private LocalTime simStartTime;
+	private LocalDateTime simStartTime;
 	private Duration raceDuration;
 	private String trackName;
 	private String carName;
@@ -39,27 +40,30 @@ public class RacePlan {
 	private Map<String, Estimation> estimations;
 	private PitStopEstimation pitStopEstimation;
 
-	public static RacePlan createRacePlanTemplate(String teamId,
-			Duration raceDuration,
-			ZonedDateTime sessionStartTime,
-			double carMaxFuel,
-			int driverCount,
-			Estimation baseEstimation) {
+	public static RacePlan createRacePlanTemplate(RacePlanParameters params) {
 		RacePlan new_race_plan =  RacePlan.builder()
 				.name("New race plan")
-				.teamId(teamId)
-				.raceDuration(raceDuration)
-				.sessionStart(sessionStartTime)
-				.carMaxFuel(carMaxFuel)
+				.teamId(params.getTeamId())
+				.raceDuration(params.getRaceDuration())
+				.sessionStart(LocalDateTime.of(LocalDate.now(), params.getSessionStartTime()))
+				.carMaxFuel(params.getMaxCarFuel())
 				.estimations(new HashMap<String, Estimation>())
 				.greenFlagOffset(LocalTime.MIN.plusSeconds(300))
 				.pitStopEstimation(PitStopEstimation.defaultPitStopEstimation())
+				.simStartTime(LocalDateTime.of(LocalDate.now(), params.getTodStartTime()))
+				.greenFlagOffset(params.getGreenFlagOffsetTime())
 				.build();
 
-		new_race_plan.getEstimations().put(COMMON_ESTIMATION_KEY, baseEstimation);
+		Estimation estimation = Estimation.builder()
+				.avgFuelPerLap(params.getAvgFuelPerLap())
+				.avgLapTime(params.getAvgLapTime())
+				.driverName(RacePlan.COMMON_ESTIMATION_KEY)
+				.build();
+
+		new_race_plan.getEstimations().put(COMMON_ESTIMATION_KEY, estimation);
 
 		List<String> availableDrivers = new ArrayList<>();
-		for( int i = 1; i <= driverCount; i++) {
+		for( int i = 1; i <= params.getDriverCount(); i++) {
 			availableDrivers.add("Driver " + i);
 		}
 		new_race_plan.setAvailableDrivers(availableDrivers);
@@ -77,22 +81,24 @@ public class RacePlan {
 			currentRacePlan = new ArrayList<>();
 		}
 
-		LocalTime raceClock = sessionStart.toLocalTime().plusSeconds(greenFlagOffset.toSecondOfDay());
-		LocalTime sessionEndTime = raceClock.plus(raceDuration);
+		LocalDateTime raceClock = sessionStart.plusSeconds(greenFlagOffset.toSecondOfDay());
+		LocalDateTime todClock = simStartTime.plusSeconds(greenFlagOffset.toSecondOfDay());
+		LocalDateTime sessionEndTime = raceClock.plus(raceDuration);
 		int currentDriverIndex = 0;
 		while( raceClock.isBefore(sessionEndTime) ) {
 			String currentDriver = availableDrivers.get(currentDriverIndex);
 			Estimation driverEstimation = estimations.containsKey(currentDriver) ? estimations.get(currentDriver) : estimations.get(COMMON_ESTIMATION_KEY);
-			Stint nextStint = calculateNewStint(raceClock, currentDriver, carMaxFuel, driverEstimation);
+			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver, carMaxFuel, driverEstimation);
 			currentRacePlan.add(nextStint);
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
+			todClock = todClock.plus(nextStint.getStintDuration(true));
 			currentDriverIndex = ++currentDriverIndex % availableDrivers.size();
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(sessionEndTime) ) {
 				currentDriver = availableDrivers.get(currentDriverIndex);
 				driverEstimation = estimations.containsKey(currentDriver) ? estimations.get(currentDriver) : estimations.get(COMMON_ESTIMATION_KEY);
-				Stint lastStint = calculateLastStint(raceClock, currentDriver, Duration.between(raceClock, sessionEndTime), driverEstimation);
+				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver, Duration.between(raceClock, sessionEndTime), driverEstimation);
 				currentRacePlan.add(lastStint);
 				break;
 			}
@@ -100,8 +106,8 @@ public class RacePlan {
 
 	}
 
-	public Stint calculateNewStint(LocalTime stintStartTime, String driverName, double amountFuel, Estimation estimation) {
-		Stint stint = newStintForDriver(stintStartTime, driverName);
+	public Stint calculateNewStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {
+		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
 		double fuelLeft = amountFuel - (estimation.getAvgFuelPerLap() * maxLaps);
@@ -121,8 +127,8 @@ public class RacePlan {
 		return stint;
 	}
 
-	public Stint calculateLastStint(LocalTime stintStartTime, String driverName, Duration timeLeft, Estimation estimation) {
-		Stint lastStint = newStintForDriver(stintStartTime, driverName);
+	public Stint calculateLastStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, Duration timeLeft, Estimation estimation) {
+		Stint lastStint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int lapsLeft = (int)Math.ceil((double)timeLeft.toMillis() / estimation.getAvgLapTime().toMillis());
 		double neededFuel = lapsLeft * estimation.getAvgFuelPerLap();
@@ -133,10 +139,11 @@ public class RacePlan {
 		return lastStint;
 	}
 
-	public Stint newStintForDriver(LocalTime stintStartTime, String driverName) {
+	public Stint newStintForDriver(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {
 		return Stint.builder()
 				.driverName(driverName)
 				.startTime(stintStartTime)
+				.todStartTime(todStartTime)
 				.pitStop(Optional.empty())
 				.build();
 	}

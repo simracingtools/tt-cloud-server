@@ -1,3 +1,4 @@
+<!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
     <head th:replace="index :: head">></head>
     <body>
@@ -7,58 +8,42 @@
         <div class="container" style="background-color: rgb(255,255,255);">
             <div class="row">
                 <div class="col-lg-8">
-                    <div th:fragment="stint-table" class="table-responsive">
+                    <div th:if="${viewMode.equals('time')}" th:fragment="stint-table" class="table-responsive">
                         <table class="table table-striped">
                             <thead style="vertical-align: middle;">
                             <tr class="text-center">
                                 <th>Stint</th>
                                 <th>Driver</th>
-                                <th>Start ST</th>
-                                <th>Start LT</th>
-                                <th>Start TOD</th>
+                                <th>Start local</th>
+                                <th>Start ToD</th>
                                 <th>Laps</th>
                                 <th>Duration</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td><select><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></td>
-                                <td>00:04:53</td>
-                                <td>13:04:53</td>
-                                <td>09:34:53</td>
-                                <td>7</td>
-                                <td>01:04:28</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td><select><option value="12">Dave</option><option value="13" selected="">Evan</option><option value="14">Robert</option></select></td>
-                                <td>01:09:21</td>
-                                <td>14:09:21<br></td>
-                                <td>10:39:21</td>
-                                <td>7</td>
-                                <td>01:04:28</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td><select><option value="12">Dave</option><option value="13">Evan</option><option value="14" selected="">Robert</option></select></td>
-                                <td>02:13:49</td>
-                                <td>15:13:49<br></td>
-                                <td>11:43:49</td>
-                                <td>6</td>
-                                <td>00:46:11</td>
+                            <tr th:each="stint, stintStat: ${raceplan.getCurrentRacePlan()}">
+                                <td th:text="${stintStat.index}">1</td>
+                                <td>
+                                    <select>
+                                        <option th:each="driver, driverStat : ${raceplan.getAvailableDrivers()}" th:value="${stint}" th:text="${driver}" th:selected="${stint.getDriverName().equals(driver)}">Dave</option>
+                                    </select>
+                                </td>
+                                <td th:text="${stint.getStartTimeString()}">00:04:53</td>
+                                <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
+                                <td th:text="${stint.getLaps()}">7</td>
+                                <td th:text="${stint.getStintDurationString(true)}">01:04:28</td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
 
 
-                    <div th:fragment="schedule-table" class="table-responsive">
+                    <div th:if="${viewMode.equals('schedule')}" th:fragment="schedule-table" class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                             <tr>
                                 <th>Stint</th>
-                                <th>Start LT</th>
+                                <th>Start Local</th>
                                 <th>Start ToD</th>
                                 <th>Dave</th>
                                 <th>Evan</th>
@@ -99,84 +84,113 @@
 
 
                 <div class="col-lg-4">
-                    <form>
-                        <div class="form-row">
-                            <div class="col">
-                                <ul class="nav nav-tabs border rounded shadow">
-                                    <li class="nav-item border rounded"><a class="nav-link active bg-warning" href="#">Times</a></li>
-                                    <li class="nav-item border rounded"><a class="nav-link bg-info" href="#">Schedule</a></li>
-                                </ul><input class="form-control" type="text" name="racePlanName" placeholder="New race plan"></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><select class="form-control" name="tracks" readonly="" style="margin-top: 5px;"><optgroup label="Tracks"><option value="96" selected="">Sebring International Raceway Modified</option><option value="13">This is item 2</option><option value="14">This is item 3</option></optgroup></select>
-                                    <select
-                                            class="form-control" name="team" readonly="" style="margin-top: 5px;">
-                                        <option value="96" selected="">FBP Racing RED</option>
-                                        <option value="13">This is item 2</option>
-                                        <option value="14">This is item 3</option>
-                                    </select><select class="form-control" name="car" readonly="" style="margin-top: 5px;"><option value="96" selected="">BMW Z4 GT3</option><option value="13">This is item 2</option><option value="14">This is item 3</option></select></div>
+                    <form method="post" th:action="@{/planning(viewMode='time')}" th:object="${selectedPlan}">
+                        <div th:if="${viewMode.equals('time')}">
+                            <div class="form-row">
+                                <div class="col">
+                                    <ul class="nav nav-tabs border rounded shadow">
+                                        <li class="nav-item border rounded"><a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">Times</a></li>
+                                        <li class="nav-item border rounded"><a class="nav-link bg-info" th:href="@{/planning(viewMode='schedule', planId=*{id})}">Schedule</a></li>
+                                    </ul>
+                                    <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
+                                    <input th:field="*{id}" type="hidden">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <select th:field="*{trackId}" class="form-control" name="track" required="">
+                                            <option th:each="track : ${tracks}" th:value="${track.id}" th:text="${track.name}">Nürburgring Combined 24</option>
+                                        </select>
+                                        <select th:field="*{teamId}" class="form-control" name="team" readonly="" style="margin-top: 5px;">
+                                            <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}">FBP Racing RED</option>
+                                        </select>
+                                        <select th:field="*{carId}" class="form-control" name="car">
+                                            <option th:each="car : ${cars}" th:value="${car.id}" th:text="${car.name}" selected="">BMW Z4 GT3</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Nominal lap time</label>
+                                        <input th:field="*{avgLapTime}" class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>Avg. fuel per lap</label>
+                                        <input th:field="*{avgFuelPerLap}" class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Race start (Local)</label>
+                                        <input th:field="*{sessionStartTime}" class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>Race duration</label>
+                                        <input th:field="*{raceDuration}" class="form-control" type="text" name="raceDuration" placeholder="00:00:00" required="" pattern="^(?:(?:([0-9]?\d|2[0-9]):)?([0-5]?\d)$">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Race start (ToD)</label>
+                                        <input th:field="*{todStartTime}" class="form-control" type="text" name="raceStartTod" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>Green flag offset</label>
+                                        <input th:field="*{greenFlagOffsetTime}" class="form-control" type="text" name="greenFlagOffset" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"></div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Max. fuel</label>
+                                        <input th:field="*{maxCarFuel}" class="form-control" type="text" name="maxFuel" placeholder="115,5" required="">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>Pitstop duration</label>
+                                        <input th:field="*{avgPitStopTime}" class="form-control" type="text" name="avgPitTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"></div>
+                        <div th:if="${viewMode.equals('schedule')}">
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Driver count</label>
+                                        <input th:field="*{driverCount}" class="form-control" type="number" name="driverCount" value="3"></div>
+                                </div>
                             </div>
-                            <div class="col">
-                                <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><select class="form-control"><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="raceStartLocal">Race start (Local)</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required=""></div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                                </div>
                             </div>
-                            <div class="col">
-                                <div class="form-group"><label for="raceDuration">Race duration</label><input class="form-control" type="text" name="raceDuration" placeholder="00:00:00" required="" pattern="##:##:##"></div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="raceStartTod">Race start (ToD)</label><input class="form-control" type="text" name="raceStartTod" placeholder="00:00:00" required=""></div>
-                            </div>
-                            <div class="col">
-                                <div class="form-group"><label for="greenFlagOffset">Green flag offset</label><input class="form-control" type="text" name="greenFlagOffset" placeholder="00:00:00" required="" pattern="##:##:##"></div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="maxFuel">Max. fuel</label><input class="form-control" type="text" name="maxFuel" placeholder="115,5" required=""></div>
-                            </div>
-                            <div class="col">
-                                <div class="form-group"><label for="avgPitTime">Pitstop duration</label><input class="form-control" type="text" name="avgPitTime" placeholder="00:00:00" required="" pattern="##:##:##"></div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group"><label>from</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group"><label>until</label><input class="form-control" type="text" name="raceDuration" placeholder="23:59:59" required="" pattern="##:##:##"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="driverCount">Driver count</label><input class="form-control" type="number" name="driverCount" value="3"></div>
-                            </div>
+                        <div class="form-group text-center">
+                            <button class="btn btn-primary btn-block" type="submit">Save</button>
                         </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><select class="form-control"><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required=""></div>
-                            </div>
-                            <div class="col">
-                                <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col">
-                                <div class="form-group"><label for="raceStartLocal">from</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
-                            </div>
-                            <div class="col">
-                                <div class="form-group"><label for="raceDuration">until</label><input class="form-control" type="text" name="raceDuration" placeholder="23:59:59" required="" pattern="##:##:##"></div>
-                            </div>
-                        </div>
-                        <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
                     </form>
                 </div>
             </div>

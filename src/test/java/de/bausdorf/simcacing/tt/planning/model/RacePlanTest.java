@@ -2,6 +2,7 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -14,20 +15,22 @@ public class RacePlanTest {
 
 	@Test
 	public void calculate_race_plan() {
-		Estimation estimation = Estimation.builder()
+		RacePlanParameters params = RacePlanParameters.builder()
 				.avgFuelPerLap(2.2)
+				.maxCarFuel(115.5)
 				.avgLapTime(Duration.ofMinutes(1).plusSeconds(45))
-				.driverName(RacePlan.COMMON_ESTIMATION_KEY)
+				.avgPitStopTime(Duration.ofMinutes(1))
+				.carId("55")
+				.driverCount(3)
+				.id("47110815")
+				.name("Testplan")
+				.raceDuration(Duration.ofHours(24))
+				.sessionStartTime(LocalTime.parse("13:00:00"))
+				.teamId("4711")
+				.trackId("252")
 				.build();
 
-		RacePlan plan = RacePlan.createRacePlanTemplate(
-				"0815",
-				Duration.ofHours(6),
-				ZonedDateTime.of(LocalDateTime.of(2020, 4, 28, 13, 0), ZoneId.of("UTC")),
-				115.5,
-				3,
-				estimation
-				);
+		RacePlan plan = RacePlan.createRacePlanTemplate(params);
 
 		plan.getCurrentRacePlan().stream().forEach(
 				s -> log.info(s.toString())
