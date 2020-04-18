@@ -45,35 +45,21 @@
                                 <th>Stint</th>
                                 <th>Start Local</th>
                                 <th>Start ToD</th>
-                                <th>Dave</th>
-                                <th>Evan</th>
-                                <th>Robert</th>
+                                <th th:each="driver : ${raceplan.getAvailableDrivers()}" th:text="${driver}">Dave</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>13:04:53</td>
-                                <td>09:34:53</td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
-                                <td><select class="bg-warning"><option value="12">Open</option><option value="13" selected="">Tentative</option><option value="14">Blocked</option></select></td>
-                                <td><select class="bg-warning"><option value="12">Open</option><option value="13" selected="">Tentative</option><option value="14">Blocked</option></select></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>14:09:53</td>
-                                <td>10:39:21</td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>15:13:49</td>
-                                <td>12:30:00</td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
-                                <td><select class="bg-danger"><option value="12">Open</option><option value="13">Tentative</option><option value="14" selected="">Blocked</option></select></td>
-                                <td><select class="bg-success"><option value="12" selected="">Open</option><option value="13">Tentative</option><option value="14">Blocked</option></select></td>
+                            <tr th:each="stint, stintStat: ${raceplan.getCurrentRacePlan()}">
+                                <td th:text="${stintStat.index}">1</td>
+                                <td th:text="${stint.getStartTimeString()}">00:04:53</td>
+                                <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
+                                <td th:each="driver : ${raceplan.getAvailableDrivers()}">Dave
+                                    <select  class="bg-success" th:id="${stintStat.index + '-' + driver}" th:onchange="'this.className = this.value'">
+                                        <option class="bg-success" value="bg-success" selected="">Open</option>
+                                        <option class="bg-warning" value="bg-warning">Tentative</option>
+                                        <option class="bg-danger" value="bg-danger">Blocked</option>
+                                    </select>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -85,17 +71,17 @@
 
                 <div class="col-lg-4">
                     <form method="post" th:action="@{/planning(viewMode='time')}" th:object="${selectedPlan}">
-                        <div th:if="${viewMode.equals('time')}">
-                            <div class="form-row">
-                                <div class="col">
-                                    <ul class="nav nav-tabs border rounded shadow">
-                                        <li class="nav-item border rounded"><a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">Times</a></li>
-                                        <li class="nav-item border rounded"><a class="nav-link bg-info" th:href="@{/planning(viewMode='schedule', planId=*{id})}">Schedule</a></li>
-                                    </ul>
-                                    <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
-                                    <input th:field="*{id}" type="hidden">
-                                </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <ul class="nav nav-tabs border rounded shadow">
+                                    <li class="nav-item border rounded"><a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">Times</a></li>
+                                    <li class="nav-item border rounded"><a class="nav-link bg-info" th:href="@{/planning(viewMode='schedule', planId=*{id})}">Schedule</a></li>
+                                </ul>
+                                <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
+                                <input th:field="*{id}" type="hidden">
                             </div>
+                        </div>
+                        <div th:if="${viewMode.equals('time')}">
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group">
