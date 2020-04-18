@@ -1,6 +1,9 @@
 package de.bausdorf.simcacing.tt.planning;
 
+import de.bausdorf.simcacing.tt.planning.model.PitStop;
+import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
+import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -34,7 +41,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .name(stringFromMap(RacePlanParameters.NAME, data))
                 .driverCount(((Long)data.get(RacePlanParameters.DRIVER_COUNT)).intValue())
                 .raceDuration(durationFromMap(RacePlanParameters.RACE_DURATION, data))
-                .sessionStartTime(timeFromMap(RacePlanParameters.SESSION_START_TIME, data))
+                .sessionStartTime(dateTimeFromMap(RacePlanParameters.SESSION_START_TIME, data))
                 .teamId(stringFromMap(RacePlanParameters.TEAM_ID, data))
                 .trackId(stringFromMap(RacePlanParameters.TRACK_ID, data))
                 .carId(stringFromMap(RacePlanParameters.CAR_ID, data))
@@ -43,7 +50,8 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .avgPitStopTime(durationFromMap(RacePlanParameters.AVG_PIT_STOP_TIME, data))
                 .maxCarFuel(doubleFromMap(RacePlanParameters.MAX_CAR_FUEL, data))
                 .greenFlagOffsetTime(timeFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
-                .todStartTime(timeFromMap(RacePlanParameters.TOD_START_TIME, data))
+                .todStartTime(dateTimeFromMap(RacePlanParameters.TOD_START_TIME, data))
+                .stints(stintsFromMap(RacePlanParameters.STINTS, data))
                 .build();
     }
 
@@ -102,5 +110,55 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
             log.warn(e.getMessage());
         }
         return LocalTime.MIN;
+    }
+
+    private LocalDateTime dateTimeFromMap(String key, Map<String, Object> data) {
+        try {
+            return LocalDateTime.parse((String)data.get(key));
+        } catch( Exception e ) {
+            log.warn(e.getMessage());
+        }
+        return LocalDateTime.MIN;
+    }
+
+    private List<String> stringListFromMap(String key, Map<String, Object> data) {
+        try {
+            return (List<String>)data.get(key);
+        } catch( Exception e ) {
+            log.warn(e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
+    private List<Stint> stintsFromMap(String key, Map<String, Object> data) {
+        SortedMap<Integer, Stint> stints = new TreeMap<>();
+        try {
+            Map<String, Object> stintsMap = (Map<String, Object>) data.get(key);
+            for( String stintKey : stintsMap.keySet() ) {
+                Map<String, Object> stintMap = (Map<String, Object>)stintsMap.get(stintKey);
+                Stint stint = Stint.builder()
+                        .driverName(stringFromMap(Stint.DRIVER_NAME, stintMap))
+                        .startTime(dateTimeFromMap(Stint.START_TIME, stintMap))
+                        .todStartTime(dateTimeFromMap(Stint.TOD_START_TIME, stintMap))
+                        .endTime(dateTimeFromMap(Stint.END_TIME, stintMap))
+                        .laps(((Long)stintMap.get(Stint.LAPS)).intValue())
+                        .refuelAmount(doubleFromMap(Stint.REFUEL_AMOUNT, stintMap))
+                        .pitStop(Optional.empty())
+                        .build();
+
+                List<String> pitService = stringListFromMap(Stint.PITSTOP_SERVICE, stintMap);
+                if( pitService != null && !pitService.isEmpty() ) {
+                    PitStop pitstop = PitStop.defaultPitStop();
+                    pitstop.getService().clear();
+                    pitService.stream().forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
+                    stint.setPitStop(Optional.of(pitstop));
+                }
+
+                stints.put(Integer.parseInt(stintKey), stint);
+            }
+        } catch( Exception e ) {
+            log.warn(e.getMessage());
+        }
+        return stints.tailMap(0).values().stream().collect(Collectors.toList());
     }
 }

@@ -1,9 +1,7 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,34 +22,17 @@ public class RacePlan {
 	public final static List<PitStopServiceType> DEFAULT_SERVICE = Collections.unmodifiableList(
 			Arrays.asList(PitStopServiceType.FUEL, PitStopServiceType.WS, PitStopServiceType.TYRES));
 
-	private String name;
-	private String teamId;
-	private LocalDateTime sessionStart;
-	private LocalTime greenFlagOffset;
-	private LocalDateTime simStartTime;
-	private Duration raceDuration;
-	private String trackName;
-	private String carName;
-	private double carMaxFuel;
+	private RacePlanParameters planParameters;
 
 	private List<Stint> currentRacePlan;
 
 	private List<String> availableDrivers;
 	private Map<String, Estimation> estimations;
-	private PitStopEstimation pitStopEstimation;
 
 	public static RacePlan createRacePlanTemplate(RacePlanParameters params) {
 		RacePlan new_race_plan =  RacePlan.builder()
-				.name("New race plan")
-				.teamId(params.getTeamId())
-				.raceDuration(params.getRaceDuration())
-				.sessionStart(LocalDateTime.of(LocalDate.now(), params.getSessionStartTime()))
-				.carMaxFuel(params.getMaxCarFuel())
+				.planParameters(params)
 				.estimations(new HashMap<String, Estimation>())
-				.greenFlagOffset(LocalTime.MIN.plusSeconds(300))
-				.pitStopEstimation(PitStopEstimation.defaultPitStopEstimation())
-				.simStartTime(LocalDateTime.of(LocalDate.now(), params.getTodStartTime()))
-				.greenFlagOffset(params.getGreenFlagOffsetTime())
 				.build();
 
 		Estimation estimation = Estimation.builder()
@@ -81,14 +62,14 @@ public class RacePlan {
 			currentRacePlan = new ArrayList<>();
 		}
 
-		LocalDateTime raceClock = sessionStart.plusSeconds(greenFlagOffset.toSecondOfDay());
-		LocalDateTime todClock = simStartTime.plusSeconds(greenFlagOffset.toSecondOfDay());
-		LocalDateTime sessionEndTime = raceClock.plus(raceDuration);
+		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		LocalDateTime todClock = planParameters.getTodStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		int currentDriverIndex = 0;
 		while( raceClock.isBefore(sessionEndTime) ) {
 			String currentDriver = availableDrivers.get(currentDriverIndex);
 			Estimation driverEstimation = estimations.containsKey(currentDriver) ? estimations.get(currentDriver) : estimations.get(COMMON_ESTIMATION_KEY);
-			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver, carMaxFuel, driverEstimation);
+			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver, planParameters.getMaxCarFuel(), driverEstimation);
 			currentRacePlan.add(nextStint);
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
@@ -115,14 +96,10 @@ public class RacePlan {
 		stint.setLaps(maxLaps);
 		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(maxLaps);
 
-		Duration pitStopDuration = pitStopEstimation.getOverallDuration();
-		PitStop pitstop = PitStop.builder()
-				.service(DEFAULT_SERVICE)
-				.overallDuration(pitStopDuration)
-				.service(DEFAULT_SERVICE)
-				.build();
+
+		PitStop pitstop = PitStop.defaultPitStop();
 		stint.setPitStop(Optional.of(pitstop));
-		stint.setEndTime(stintStartTime.plus(stintDuration).plus(pitStopDuration));
+		stint.setEndTime(stintStartTime.plus(stintDuration).plus(pitstop.getOverallDuration()));
 
 		return stint;
 	}

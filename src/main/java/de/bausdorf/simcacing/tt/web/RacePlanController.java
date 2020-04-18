@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -93,7 +94,7 @@ public class RacePlanController extends BaseController {
                 .trackId(planView.getTrackId())
                 .teamId(planView.getTeamId())
                 .driverCount(3)
-                .sessionStartTime(LocalTime.parse(planView.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")))
+                .sessionStartTime(LocalDateTime.parse(planView.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")))
                 .raceDuration(TimeTools.durationFromPattern(planView.getRaceDuration(), "HH:mm"))
                 .name(planView.getPlanName())
                 .avgPitStopTime(Duration.ofMinutes(1))

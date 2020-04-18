@@ -5,9 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -28,6 +30,7 @@ public class RacePlanParameters {
     public static final String MAX_CAR_FUEL = "maxCarFuel";
     public static final String TOD_START_TIME = "todStartTime";
     public static final String GREEN_FLAG_OFFSET_TIME = "greenFlagOffsetTime";
+    public static final String STINTS = "stints";
 
     private String id;
     private String name;
@@ -35,14 +38,15 @@ public class RacePlanParameters {
     private String trackId;
     private String carId;
     private Duration raceDuration;
-    private LocalTime sessionStartTime;
-    private LocalTime todStartTime;
+    private LocalDateTime sessionStartTime;
+    private LocalDateTime todStartTime;
     private LocalTime greenFlagOffsetTime;
     private Integer driverCount;
     private Duration avgLapTime;
     private Duration avgPitStopTime;
     private double avgFuelPerLap;
     private double maxCarFuel;
+    private List<Stint> stints;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -60,6 +64,11 @@ public class RacePlanParameters {
         map.put(MAX_CAR_FUEL, maxCarFuel);
         map.put(TOD_START_TIME, todStartTime.toString());
         map.put(GREEN_FLAG_OFFSET_TIME, greenFlagOffsetTime.toString());
+        if( !stints.isEmpty() ) {
+            Map<String, Object> stintMap = new HashMap<>();
+            stints.stream().forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
+            map.put(STINTS, stintMap);
+        }
         return map;
     }
 
@@ -102,6 +111,9 @@ public class RacePlanParameters {
         }
         if( update.getName() != null ) {
             name = update.getName();
+        }
+        if( update.getStints() != null ) {
+            stints = update.getStints();
         }
     }
 }
