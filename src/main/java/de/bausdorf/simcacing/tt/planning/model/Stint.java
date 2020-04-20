@@ -79,4 +79,13 @@ public class Stint {
 
 		return map;
 	}
+
+	public String shortInfo() {
+		StringBuilder out = new StringBuilder()
+				.append(startTime.toString()).append(": ")
+				.append(driverName).append(" (")
+				.append(laps).append(") ")
+				.append(getStintDuration(true));
+		return out.toString();
+	}
 }

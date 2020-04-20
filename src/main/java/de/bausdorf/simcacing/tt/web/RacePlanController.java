@@ -8,6 +8,7 @@ import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.TrackRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
+import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
 import de.bausdorf.simcacing.tt.util.TimeTools;
@@ -22,9 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,11 +37,12 @@ public class RacePlanController extends BaseController {
     public static final String NEWRACEPLAN_VIEW = "newraceplan";
     public static final String PLANNING_VIEW = "planning";
     public static final String RACEPLAN = "raceplan";
+    public static final String AUTHORIZED_DRIVERS = "authorizedDrivers";
+    public static final String VIEW_MODE = "viewMode";
 
     TrackRepository trackRepository;
     CarRepository carRepository;
     TeamRepository teamRepository;
-    DriverRepository driverRepository;
     RacePlanRepository planRepository;
 
     public RacePlanController(@Autowired TrackRepository trackRepository,
@@ -60,7 +61,7 @@ public class RacePlanController extends BaseController {
     public String viewNewRacePlan(Model model) {
         model.addAttribute(RACEPLAN, new PlanParametersView());
         model.addAttribute("plans", planRepository.findByTeamIds(getMyTeams().stream()
-                .map(s -> s.getId())
+                .map(IRacingTeam::getId)
                 .collect(Collectors.toList()))
         );
         return NEWRACEPLAN_VIEW;
@@ -93,7 +94,6 @@ public class RacePlanController extends BaseController {
                 .carId(planView.getCarId())
                 .trackId(planView.getTrackId())
                 .teamId(planView.getTeamId())
-                .driverCount(3)
                 .sessionStartTime(LocalDateTime.parse(planView.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")))
                 .raceDuration(TimeTools.durationFromPattern(planView.getRaceDuration(), "HH:mm"))
                 .name(planView.getPlanName())
@@ -111,7 +111,7 @@ public class RacePlanController extends BaseController {
 
     @GetMapping("/planning")
     public String doPlanning(@ModelAttribute(SELECTED_PLAN) PlanParametersView planView,
-            @RequestParam("viewMode") Optional<String> mode,
+            @RequestParam(VIEW_MODE) Optional<String> mode,
             @RequestParam("planId") Optional<String> planId,
             Model model) {
         if((planView == null || planView.getId() == null) && !planId.isPresent()) {
@@ -119,9 +119,9 @@ public class RacePlanController extends BaseController {
             return NEWRACEPLAN_VIEW;
         }
         if( mode.isPresent() ) {
-            model.addAttribute("viewMode", mode.get());
+            model.addAttribute(VIEW_MODE, mode.get());
         } else {
-            model.addAttribute("viewMode", "time");
+            model.addAttribute(VIEW_MODE, "time");
         }
         String racePlanId = (planView != null && planView.getId() != null) ? planView.getId() : planId.get();
         Optional<RacePlanParameters> racePlanParameters = planRepository.findById(racePlanId);
@@ -131,33 +131,35 @@ public class RacePlanController extends BaseController {
             return NEWRACEPLAN_VIEW;
         }
         RacePlan racePlan = RacePlan.createRacePlanTemplate(racePlanParameters.get());
+        racePlanParameters.get().setStints(racePlan.getCurrentRacePlan());
 
-        model.addAttribute(RACEPLAN, racePlan);
+        model.addAttribute(AUTHORIZED_DRIVERS, getAuthorizedDrivers(racePlanParameters.get().getTeamId()));
         model.addAttribute(SELECTED_PLAN, racePlanParameters.get());
         return PLANNING_VIEW;
     }
 
     @PostMapping("/planning")
-    public String updatePlanning(@ModelAttribute RacePlanParameters viewPlanParameters, @RequestParam Optional<String> mode, Model model) {
+    public String updatePlanning(@ModelAttribute RacePlanParameters viewPlanParameters, @RequestParam(VIEW_MODE) Optional<String> mode, Model model) {
         Optional<RacePlanParameters> repoPlanParameters = planRepository.findById(viewPlanParameters.getId());
         if (!repoPlanParameters.isPresent()) {
             addError("Race plan id " + viewPlanParameters.getId() + " not found", model);
             return NEWRACEPLAN_VIEW;
         }
         if( mode.isPresent() ) {
-            model.addAttribute("viewMode", mode.get());
+            model.addAttribute(VIEW_MODE, mode.get());
         } else {
-            model.addAttribute("viewMode", "time");
+            model.addAttribute(VIEW_MODE, "time");
         }
 
         repoPlanParameters.get().updateData(viewPlanParameters);
+        repoPlanParameters.get().updateDrivers(driverRepository);
+        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters.get());
+        repoPlanParameters.get().setStints(racePlan.getCurrentRacePlan());
+
         planRepository.save(repoPlanParameters.get());
 
-        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters.get());
-
-        model.addAttribute(RACEPLAN, racePlan);
-        model.addAttribute(SELECTED_PLAN, repoPlanParameters);
-
+        model.addAttribute(AUTHORIZED_DRIVERS, getAuthorizedDrivers(repoPlanParameters.get().getTeamId()));
+        model.addAttribute(SELECTED_PLAN, repoPlanParameters.get());
         return PLANNING_VIEW;
     }
 
@@ -180,4 +182,17 @@ public class RacePlanController extends BaseController {
         return carRepository.loadAll(true);
     }
 
+    List<IRacingDriver> getAuthorizedDrivers(String teamId) {
+        Optional<IRacingTeam> team =  teamRepository.findById(teamId);
+        List<IRacingDriver> authorizedDrivers = new ArrayList<>();
+        if (team.isPresent()) {
+            for (String driverId : team.get().getAuthorizedDriverIds()) {
+                Optional<IRacingDriver> driver = driverRepository.findById(driverId);
+                if (driver.isPresent()) {
+                    authorizedDrivers.add(driver.get());
+                }
+            }
+        }
+        return authorizedDrivers;
+    }
 }

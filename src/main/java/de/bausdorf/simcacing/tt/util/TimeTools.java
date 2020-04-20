@@ -5,13 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalField;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -71,11 +66,7 @@ public class TimeTools {
 
     public static Duration durationFromPattern(String timestring, String pattern) {
         LocalTime time = LocalTime.parse(timestring, DateTimeFormatter.ofPattern(pattern));
-        Duration duration = Duration.ofHours(time.getHour());
-        duration.plusMinutes(time.getMinute());
-        duration.plusSeconds(time.getSecond());
-        duration.plusNanos(time.getNano());
-        return duration;
+        return Duration.between(LocalTime.MIN, time);
     }
 
     public static String longDurationString(Duration duration) {
@@ -114,7 +105,25 @@ public class TimeTools {
     }
 
     public static Duration durationFromString(String timestring) {
-        return durationFromTime(timeFromString(timestring));
+        if (timestring == null) {
+            return Duration.ZERO;
+        }
+        Duration duration = Duration.ZERO;
+        String[] timeParts = timestring.split(":");
+        if (timeParts.length == 3) {
+            duration = duration.plusHours(Long.parseLong(timeParts[0]));
+            duration = duration.plusMinutes(Long.parseLong(timeParts[1]));
+            duration = duration.plusMillis((long)Double.parseDouble(timeParts[2]) * 1000);
+        } else if (timeParts.length == 2) {
+            if (timeParts[1].indexOf('.') > -1) {
+                duration = duration.plusMinutes(Long.parseLong(timeParts[0]));
+                duration = duration.plusMillis((long)Double.parseDouble(timeParts[1]) * 1000);
+            } else {
+                duration = duration.plusHours(Long.parseLong(timeParts[0]));
+                duration = duration.plusMinutes(Long.parseLong(timeParts[1]));
+            }
+        }
+        return duration;
     }
 
     public static String normalizeTimeString(String timestring) {
@@ -127,8 +136,12 @@ public class TimeTools {
         }
 
         if (timestring.contains(",")) {
-            result = result.replaceAll(",", ".");
+            result = result.replace(",", ".");
         }
         return result;
+    }
+
+    public static LocalDateTime updateDate(LocalDateTime dateTime, LocalDate date) {
+        return LocalDateTime.of(date, dateTime.toLocalTime());
     }
 }

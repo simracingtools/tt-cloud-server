@@ -7,23 +7,23 @@ import java.util.Locale;
 
 import org.springframework.format.Formatter;
 
-import de.bausdorf.simcacing.tt.util.TimeTools;
-
 public class LocalTimeFormatter implements Formatter<LocalTime> {
+
+	public static final String TIME_PATTERN = "HH:mm";
 
 	@Override
 	public LocalTime parse(String s, Locale locale) throws ParseException {
 		if( s == null ) {
 			return LocalTime.MIN;
 		}
-		return TimeTools.timeFromString(s);
+		return LocalTime.parse(s, DateTimeFormatter.ofPattern(TIME_PATTERN));
 	}
 
 	@Override
 	public String print(LocalTime localTime, Locale locale) {
 		if( localTime == null ) {
-			return "";
+			return LocalTime.MIN.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
 		}
-		return localTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		return localTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
 	}
 }

@@ -13,7 +13,7 @@ import lombok.Data;
 @Builder
 public class PitStop {
 
-	public static List<PitStopServiceType> defaultService;
+	protected static final List<PitStopServiceType> defaultService;
 
 	static {
 		defaultService = new ArrayList<>();
@@ -30,7 +30,7 @@ public class PitStop {
 
 	private Duration calculateServiceDuration() {
 		this.serviceDuration = Duration.ZERO;
-		service.stream().forEach(s -> serviceDuration.plusSeconds(s.getSeconds()));
+		service.stream().forEach(s -> serviceDuration = serviceDuration.plusSeconds(s.getSeconds()));
 		return serviceDuration;
 	}
 

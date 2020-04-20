@@ -5,9 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.AllArgsConstructor;
@@ -18,67 +16,63 @@ import lombok.Data;
 @AllArgsConstructor
 @Builder
 public class RacePlan {
-	public final static String COMMON_ESTIMATION_KEY = "COMMON";
-	public final static List<PitStopServiceType> DEFAULT_SERVICE = Collections.unmodifiableList(
+	public static final List<PitStopServiceType> DEFAULT_SERVICE = Collections.unmodifiableList(
 			Arrays.asList(PitStopServiceType.FUEL, PitStopServiceType.WS, PitStopServiceType.TYRES));
 
 	private RacePlanParameters planParameters;
 
 	private List<Stint> currentRacePlan;
 
-	private List<String> availableDrivers;
-	private Map<String, Estimation> estimations;
-
 	public static RacePlan createRacePlanTemplate(RacePlanParameters params) {
-		RacePlan new_race_plan =  RacePlan.builder()
+		RacePlan newRacePlan =  RacePlan.builder()
 				.planParameters(params)
-				.estimations(new HashMap<String, Estimation>())
 				.build();
 
-		Estimation estimation = Estimation.builder()
-				.avgFuelPerLap(params.getAvgFuelPerLap())
-				.avgLapTime(params.getAvgLapTime())
-				.driverName(RacePlan.COMMON_ESTIMATION_KEY)
-				.build();
-
-		new_race_plan.getEstimations().put(COMMON_ESTIMATION_KEY, estimation);
-
-		List<String> availableDrivers = new ArrayList<>();
-		for( int i = 1; i <= params.getDriverCount(); i++) {
-			availableDrivers.add("Driver " + i);
-		}
-		new_race_plan.setAvailableDrivers(availableDrivers);
-
-		new_race_plan.calculateStints();
-		return new_race_plan;
+		newRacePlan.calculateStints();
+		return newRacePlan;
 	}
 
 	public void calculateStints() {
+		List<Stint> oldRacePlan = null;
 		if( currentRacePlan != null ) {
 			if( !currentRacePlan.isEmpty() ) {
+				oldRacePlan = new ArrayList<>(currentRacePlan);
 				currentRacePlan.clear();
 			}
 		} else {
 			currentRacePlan = new ArrayList<>();
 		}
 
+		Estimation genericEstimation = planParameters.getGenericEstimation();
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = planParameters.getTodStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
-		int currentDriverIndex = 0;
+		int stintCount = 1;
 		while( raceClock.isBefore(sessionEndTime) ) {
-			String currentDriver = availableDrivers.get(currentDriverIndex);
-			Estimation driverEstimation = estimations.containsKey(currentDriver) ? estimations.get(currentDriver) : estimations.get(COMMON_ESTIMATION_KEY);
+			String currentDriver = "N.N.";
+			if( oldRacePlan != null && oldRacePlan.size() > stintCount) {
+				currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
+			}
+			Estimation driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
+			if( driverEstimation == null ) {
+				driverEstimation = genericEstimation;
+			}
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver, planParameters.getMaxCarFuel(), driverEstimation);
 			currentRacePlan.add(nextStint);
+			stintCount++;
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
-			currentDriverIndex = ++currentDriverIndex % availableDrivers.size();
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(sessionEndTime) ) {
-				currentDriver = availableDrivers.get(currentDriverIndex);
-				driverEstimation = estimations.containsKey(currentDriver) ? estimations.get(currentDriver) : estimations.get(COMMON_ESTIMATION_KEY);
+				currentDriver = "N.N.";
+				if( oldRacePlan != null && oldRacePlan.size() >= stintCount) {
+					currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
+				}
+				driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
+				if( driverEstimation == null ) {
+					driverEstimation = genericEstimation;
+				}
 				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver, Duration.between(raceClock, sessionEndTime), driverEstimation);
 				currentRacePlan.add(lastStint);
 				break;
@@ -87,7 +81,7 @@ public class RacePlan {
 
 	}
 
-	public Stint calculateNewStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {
+	private Stint calculateNewStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
@@ -104,7 +98,7 @@ public class RacePlan {
 		return stint;
 	}
 
-	public Stint calculateLastStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, Duration timeLeft, Estimation estimation) {
+	private Stint calculateLastStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, Duration timeLeft, Estimation estimation) {
 		Stint lastStint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int lapsLeft = (int)Math.ceil((double)timeLeft.toMillis() / estimation.getAvgLapTime().toMillis());
@@ -116,19 +110,12 @@ public class RacePlan {
 		return lastStint;
 	}
 
-	public Stint newStintForDriver(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {
+	private Stint newStintForDriver(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {
 		return Stint.builder()
 				.driverName(driverName)
 				.startTime(stintStartTime)
 				.todStartTime(todStartTime)
 				.pitStop(Optional.empty())
 				.build();
-	}
-
-	public Estimation getEstimationForDriver(String name) {
-		if( estimations.containsKey(name) ) {
-			return estimations.get(name);
-		}
-		return estimations.get(COMMON_ESTIMATION_KEY);
 	}
 }

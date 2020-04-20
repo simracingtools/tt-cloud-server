@@ -3,6 +3,7 @@ package de.bausdorf.simcacing.tt.planning;
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
+import de.bausdorf.simcacing.tt.planning.model.Roster;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
@@ -28,7 +29,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
     public static final String COLLECTION_NAME = "RacePlanParameters";
 
     public RacePlanRepository(@Autowired FirestoreDB db) {
-        super(db, 720 * 60000);
+        super(db, 720L * 60000L);
     }
 
     @Override
@@ -39,7 +40,6 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         return RacePlanParameters.builder()
                 .id(stringFromMap(RacePlanParameters.ID, data))
                 .name(stringFromMap(RacePlanParameters.NAME, data))
-                .driverCount(((Long)data.get(RacePlanParameters.DRIVER_COUNT)).intValue())
                 .raceDuration(durationFromMap(RacePlanParameters.RACE_DURATION, data))
                 .sessionStartTime(dateTimeFromMap(RacePlanParameters.SESSION_START_TIME, data))
                 .teamId(stringFromMap(RacePlanParameters.TEAM_ID, data))
@@ -52,6 +52,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .greenFlagOffsetTime(timeFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
                 .todStartTime(dateTimeFromMap(RacePlanParameters.TOD_START_TIME, data))
                 .stints(stintsFromMap(RacePlanParameters.STINTS, data))
+                .roster(new Roster((Map<String, Object>)data.get(RacePlanParameters.ROSTER)))
                 .build();
     }
 
