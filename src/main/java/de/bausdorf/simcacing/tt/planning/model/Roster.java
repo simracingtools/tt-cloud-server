@@ -54,10 +54,10 @@ public class Roster {
 		if( data == null ) {
 			return;
 		}
-		for (String driverId : data.keySet()) {
-			Map<String, Object> driverMap = (Map<String, Object>)data.get(driverId);
+		for (Map.Entry<String,Object> mapEntry : data.entrySet()) {
+			Map<String, Object> driverMap = (Map<String, Object>)mapEntry.getValue();
 			IRacingDriver driver = IRacingDriver.builder()
-					.id(driverId)
+					.id(mapEntry.getKey())
 					.name((String)driverMap.get(NAME))
 					.build();
 			drivers.add(driver);
@@ -65,17 +65,17 @@ public class Roster {
 			Map<String, Object> estimationsMap = (Map<String, Object>)driverMap.get(ESTIMATIONS);
 			if (estimationsMap != null) {
 				List<Estimation> estimationList = new ArrayList<>();
-				for (String estimationFrom : estimationsMap.keySet()) {
-					Map<String, Object> estimationMap = (Map<String, Object>) estimationsMap.get(estimationFrom);
+				for (Map.Entry<String, Object> estimationMapEntry : estimationsMap.entrySet()) {
+					Map<String, Object> estimationMap = (Map<String, Object>) estimationMapEntry.getValue();
 					Estimation estimation = Estimation.builder()
 							.avgFuelPerLap((Double) estimationMap.get(Estimation.AVG_FUEL_PER_LAP))
 							.avgLapTime(Duration.parse((String) estimationMap.get(Estimation.AVG_LAP_TIME)))
 							.driver(driver)
-							.todFrom(LocalDateTime.parse(estimationFrom))
+							.todFrom(LocalDateTime.parse(estimationMapEntry.getKey()))
 							.build();
 					estimationList.add(estimation);
 					estimationList = sortEstimations(estimationList);
-					driverEstimations.put(driverId, estimationList);
+					driverEstimations.put(mapEntry.getKey(), estimationList);
 				}
 			}
 
@@ -83,17 +83,17 @@ public class Roster {
 			Map<String, Object> availabilitiesMap = (Map<String, Object>)driverMap.get(SCHEDULE);
 			if (availabilitiesMap != null) {
 				List<ScheduleEntry> availabilityList = new ArrayList<>();
-				for (String from : availabilitiesMap.keySet()) {
-					Map<String, Object> availabilityMap = (Map<String, Object>) availabilitiesMap.get(from);
+				for (Map.Entry<String, Object> availabilityMapEntry : availabilitiesMap.entrySet()) {
+					Map<String, Object> availabilityMap = (Map<String, Object>) availabilityMapEntry.getValue();
 					ScheduleEntry entry = ScheduleEntry.builder()
 							.driver(driver)
-							.from(LocalDateTime.parse(from))
+							.from(LocalDateTime.parse(availabilityMapEntry.getKey()))
 							.status(ScheduleDriverOptionType.valueOf((String) availabilityMap.get(ScheduleEntry.STATUS)))
 							.build();
 					availabilityList.add(entry);
 				}
 				availabilityList = sortScheduleEntries(availabilityList);
-				driverAvailability.put(driverId, availabilityList);
+				driverAvailability.put(mapEntry.getKey(), availabilityList);
 			}
 		}
 	}
@@ -134,7 +134,25 @@ public class Roster {
 		return false;
 	}
 
-	public void updateDriver(IRacingDriver driverToUpdate) {
+	public void removeDriver(IRacingDriver driver) {
+		if (!drivers.contains(driver)) {
+			return;
+		}
+		drivers.remove(driver);
+		driverAvailability.remove(driver.getId());
+		driverEstimations.remove(driver.getId());
+	}
+
+	public boolean containsDriverId(String driverId) {
+		for (IRacingDriver driver : drivers) {
+			if (driver.getId().equalsIgnoreCase(driverId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void updateDriverData(IRacingDriver driverToUpdate) {
 		for (IRacingDriver driver : drivers) {
 			if (driver.getId().equalsIgnoreCase(driverToUpdate.getId())) {
 				driver.setName(driverToUpdate.getName());

@@ -33,15 +33,7 @@ public class RacePlan {
 	}
 
 	public void calculateStints() {
-		List<Stint> oldRacePlan = null;
-		if( currentRacePlan != null ) {
-			if( !currentRacePlan.isEmpty() ) {
-				oldRacePlan = new ArrayList<>(currentRacePlan);
-				currentRacePlan.clear();
-			}
-		} else {
-			currentRacePlan = new ArrayList<>();
-		}
+		List<Stint> oldRacePlan = prepareOldRacePlan();
 
 		Estimation genericEstimation = planParameters.getGenericEstimation();
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
@@ -50,7 +42,7 @@ public class RacePlan {
 		int stintCount = 1;
 		while( raceClock.isBefore(sessionEndTime) ) {
 			String currentDriver = "N.N.";
-			if( oldRacePlan != null && oldRacePlan.size() > stintCount) {
+			if( oldRacePlan.size() > stintCount) {
 				currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
 			}
 			Estimation driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
@@ -66,7 +58,7 @@ public class RacePlan {
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(sessionEndTime) ) {
 				currentDriver = "N.N.";
-				if( oldRacePlan != null && oldRacePlan.size() >= stintCount) {
+				if( oldRacePlan.size() >= stintCount) {
 					currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
 				}
 				driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
@@ -79,6 +71,20 @@ public class RacePlan {
 			}
 		}
 
+	}
+
+	private List<Stint> prepareOldRacePlan() {
+		if( currentRacePlan != null ) {
+			if( !currentRacePlan.isEmpty() ) {
+				List<Stint> oldRacePlan = new ArrayList<>(currentRacePlan);
+				currentRacePlan.clear();
+				return oldRacePlan;
+			}
+		} else {
+			currentRacePlan = new ArrayList<>();
+			return planParameters.getStints();
+		}
+		return new ArrayList<>();
 	}
 
 	private Stint calculateNewStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {

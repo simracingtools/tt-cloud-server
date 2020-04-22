@@ -55,8 +55,8 @@ public class RacePlanParameters {
 	private LocalTime greenFlagOffsetTime;
 	private Duration avgLapTime;
 	private Duration avgPitStopTime;
-	private double avgFuelPerLap;
-	private double maxCarFuel;
+	private Double avgFuelPerLap;
+	private Double maxCarFuel;
 	private List<Stint> stints;
 	private Roster roster;
 
@@ -98,14 +98,6 @@ public class RacePlanParameters {
 				.status(ScheduleDriverOptionType.OPEN)
 				.build();
 		roster.addScheduleEntry(scheduleEntry);
-
-		Estimation estimation = Estimation.builder()
-				.driver(driver)
-				.todFrom(todStartTime)
-				.avgLapTime(avgLapTime)
-				.avgFuelPerLap(avgFuelPerLap)
-				.build();
-		roster.addEstimation(estimation);
 	}
 
 	public Estimation getGenericEstimation() {
@@ -125,7 +117,7 @@ public class RacePlanParameters {
 
 	public List<IRacingDriver> getAvailableDrivers(LocalDateTime forTime) {
 		if (roster != null ) {
-			roster.getAvailableDrivers(forTime);
+			return roster.getAvailableDrivers(forTime);
 		}
 		return Arrays.asList(NN_DRIVER);
 	}
@@ -148,13 +140,6 @@ public class RacePlanParameters {
 						.id(driverId)
 						.build();
 
-				roster.addEstimation(Estimation.builder()
-						.driver(driver)
-						.avgFuelPerLap(avgFuelPerLap)
-						.avgLapTime(avgLapTime)
-						.todFrom(todStartTime)
-						.build()
-				);
 				roster.addScheduleEntry(ScheduleEntry.builder()
 						.driver(driver)
 						.from(sessionStartTime)
@@ -290,7 +275,7 @@ public class RacePlanParameters {
 			stints = update.getStints();
 		}
 		if (update.getRoster() != null) {
-			roster = update.getRoster();
+			mergeRoster(update.getRoster());
 		}
 	}
 
@@ -301,9 +286,37 @@ public class RacePlanParameters {
 			if (driver.getName() == null) {
 				Optional<IRacingDriver> repoDriver = driverRepository.findById(driver.getId());
 				if (repoDriver.isPresent()) {
-					roster.updateDriver(repoDriver.get());
+					roster.updateDriverData(repoDriver.get());
 				}
 			}
+		}
+	}
+
+	private void mergeRoster(Roster other) {
+		// Check driver removal
+		List<IRacingDriver> driversToRemove = new ArrayList<>();
+		for (IRacingDriver driver : roster.getDrivers()) {
+			if (!other.containsDriverId(driver.getId())) {
+				driversToRemove.add(driver);
+			}
+		}
+		for (IRacingDriver driver : driversToRemove) {
+			roster.removeDriver(driver);
+		}
+		// Add and update existing
+		List<IRacingDriver> driversToAdd = new ArrayList<>();
+		for (IRacingDriver driver : other.getDrivers()) {
+			if (!roster.containsDriverId(driver.getId())) {
+				driversToAdd.add(driver);
+			}
+		}
+		for (IRacingDriver driver : driversToAdd) {
+			addDriver(driver);
+			roster.addScheduleEntry(ScheduleEntry.builder()
+					.driver(driver)
+					.from(sessionStartTime)
+					.status(ScheduleDriverOptionType.OPEN)
+					.build());
 		}
 	}
 }

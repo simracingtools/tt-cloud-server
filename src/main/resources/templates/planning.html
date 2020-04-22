@@ -8,36 +8,6 @@
         <div class="container" style="background-color: rgb(255,255,255);">
             <div class="row">
                 <div class="col-lg-8">
-                    <div th:if="${viewMode.equals('time')}" th:fragment="stint-table" class="table-responsive">
-                        <table class="table table-striped">
-                            <thead style="vertical-align: middle;">
-                            <tr class="text-center">
-                                <th>Stint</th>
-                                <th>Driver</th>
-                                <th>Start local</th>
-                                <th>Start ToD</th>
-                                <th>Laps</th>
-                                <th>Duration</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="stint, stintStat: ${selectedPlan.getStints()}">
-                                <td th:text="${stintStat.index}">1</td>
-                                <td>
-                                    <select>
-                                        <option th:each="driver, driverStat : ${selectedPlan.getAvailableDrivers(stint.getEndTime())}" th:value="${stint}" th:text="${driver.getName()}" th:selected="${stint.getDriverName().equals(driver.getName())}">Dave</option>
-                                    </select>
-                                </td>
-                                <td th:text="${stint.getStartTimeString()}">00:04:53</td>
-                                <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
-                                <td th:text="${stint.getLaps()}">7</td>
-                                <td th:text="${stint.getStintDurationString(true)}">01:04:28</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-
                     <div th:if="${viewMode.equals('schedule')}" th:fragment="schedule-table" class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -56,18 +26,51 @@
                                 <td th:each="driver : ${selectedPlan.getAllDrivers()}"
                                     th:text="${selectedPlan.getDriverStatusAt(driver.getId(), stint.getEndTime()).name()}"
                                     th:class="${selectedPlan.getDriverStatusAt(driver.getId(), stint.getEndTime()).cssClassName()}">
-<!--                                    <select  class="bg-success" th:id="${stintStat.index + '-' + driver}" th:onchange="'this.className = this.value'">-->
-<!--                                        <option class="bg-success" value="bg-success" selected="">Open</option>-->
-<!--                                        <option class="bg-warning" value="bg-warning">Tentative</option>-->
-<!--                                        <option class="bg-danger" value="bg-danger">Blocked</option>-->
-<!--                                    </select>-->
                                 </td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
 
-
+                    <div th:if="${viewMode.equals('time')}" th:fragment="stint-table" class="table-responsive">
+                        <form method="post" th:object="${stintDriverView}"  th:action="@{/updateStintDrivers(viewMode=${viewMode})}">
+                            <input th:field="*{planId}" type="hidden">
+                            <table class="table table-striped">
+                                <thead style="vertical-align: middle;">
+                                <tr class="text-center">
+                                    <th style="vertical-align: middle;">Stint</th>
+                                    <th style="vertical-align: middle;">Driver
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="far fa-save"></i>
+                                        </button>
+                                    </th>
+                                    <th style="vertical-align: middle;">Start local</th>
+                                    <th style="vertical-align: middle;">Start ToD</th>
+                                    <th style="vertical-align: middle;">Laps</th>
+                                    <th style="vertical-align: middle;">Duration</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="stint, stintStat: ${selectedPlan.getStints()}" class="text-center">
+                                    <td th:text="${stintStat.index}">1</td>
+                                    <td>
+                                        <select th:field="*{stintDrivers[__${stintStat.index}__]}" th:value="*{stintDrivers[__${stintStat.index}__]}">
+                                            <option th:each="driver, driverStat : ${selectedPlan.getAvailableDrivers(stint.getEndTime())}"
+                                                    th:value="${driver.name}"
+                                                    th:selected="*{stintDrivers[__${stintStat.index}__]} == ${driver.name}"
+                                                    th:text="${driver.name}">Dave</option>
+                                            <option th:selected="*{stintDrivers[__${stintStat.index}__].equals('N.N.')}" value="N.N.">unassigned</option>
+                                        </select>
+                                    </td>
+                                    <td th:text="${stint.getStartTimeString()}">00:04:53</td>
+                                    <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
+                                    <td th:text="${stint.getLaps()}">7</td>
+                                    <td th:text="${stint.getStintDurationString(true)}">01:04:28</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
                 </div>
 
 
@@ -76,8 +79,16 @@
                         <div class="form-row">
                             <div class="col">
                                 <ul class="nav nav-tabs border rounded shadow">
-                                    <li class="nav-item border rounded"><a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">Times</a></li>
-                                    <li class="nav-item border rounded"><a class="nav-link bg-info" th:href="@{/planning(viewMode='schedule', planId=*{id})}">Schedule</a></li>
+                                    <li class="nav-item border rounded">
+                                        <a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">
+                                            <i class="fas fa-clock" style="font-size: 32px;"></i>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item border rounded">
+                                        <a class="nav-link bg-info" th:href="@{/planning(viewMode='schedule', planId=*{id})}">
+                                            <i class="fa fa-users" style="font-size: 32px;"></i>
+                                        </a>
+                                    </li>
                                 </ul>
                                 <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
                                 <input th:field="*{id}" type="hidden">
@@ -159,6 +170,11 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="form-group text-center">
+                                <button class="btn btn-primary btn-block" type="submit">
+                                    <i class="far fa-save" style="font-size: 32px;"></i>
+                                </button>
+                            </div>
                         </div>
                         <div th:if="${viewMode.equals('schedule')}">
                             <input th:field="*{maxCarFuel}" type="hidden">
@@ -166,12 +182,6 @@
                             <input th:field="*{sessionStartTime}" type="hidden">
                             <input th:field="*{todStartTime}" type="hidden">
                             <input th:field="*{avgLapTime}" type="hidden">
-<!--                            <div class="form-row">-->
-<!--                                <div class="col">-->
-<!--                                    <div class="form-group"><label>Driver count</label>-->
-<!--                                        <input class="form-control" type="number" name="driverCount" value="3"></div>-->
-<!--                                </div>-->
-<!--                            </div>-->
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group">
@@ -181,41 +191,94 @@
                                     </div>
                                 </div>
                             </div>
-                            <div th:each="driver, driverStat : *{allDrivers}">
-                                <div class="form-row" th:each="scheduleEntry : ${selectedPlan.getDriverSchedule(driver.getId())}">
-                                    <div class="col">
-                                        <div class="form-group"><label th:text="${driver.getName() + ' schedule from'}">Nominal lap time</label>
-                                            <input class="form-control" type="time" th:value="${scheduleEntry.fromTime}">
+                            <div class="form-group text-center">
+                                <button class="btn btn-primary btn-block" type="submit">
+                                    <i class="fas fa-user-check" style="font-size: 32px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <form th:if="${viewMode.equals('schedule')}" method="post" th:action="@{/updateSchedule(viewMode=${viewMode})}" th:object="${teamSchedule}">
+                        <input th:field="*{planId}" type="hidden">
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                        <div th:each="driverSchedule, scheduleStat : *{teamSchedule}">
+                                            <input th:field="*{teamSchedule[__${scheduleStat.index}__].driverName}" type="hidden">
+                                            <input th:field="*{teamSchedule[__${scheduleStat.index}__].driverId}" type="hidden">
+                                            <input th:field="*{teamSchedule[__${scheduleStat.index}__].validated}" type="hidden">
+                                            <tr>
+                                                <td colspan="3" th:text="${driverSchedule.driverName}">Dave</td>
+                                            </tr>
+                                            <tr th:each="entry, entryStat : ${driverSchedule.scheduleEntries}">
+                                                <td>
+                                                    <input type="hidden" th:field="*{teamSchedule[__${scheduleStat.index}__].scheduleEntries[__${entryStat.index}__].validFromDate}">
+                                                    <input type="time"  class="form-control"
+                                                            th:field="*{teamSchedule[__${scheduleStat.index}__].scheduleEntries[__${entryStat.index}__].validFromTime}"
+                                                            th:readonly="${entryStat.index == 0}"/>
+                                                </td>
+                                                <td>
+                                                    <select th:field="*{teamSchedule[__${scheduleStat.index}__].scheduleEntries[__${entryStat.index}__].status}" th:class="${entry.status.cssClassName() + ' form-control'}" th:onchange="'this.className = this.value.concat(&quot; form-control&quot;)'">
+                                                        <option value="bg-success" class="bg-success" th:selected="entry.status == 'bg-success'">OPEN</option>
+                                                        <option value="bg-warning" class="bg-warning" th:selected="entry.status == 'bg-warning'">TENTATIVE</option>
+                                                        <option value="bg-danger" class="bg-danger" th:selected="entry.status == 'bg-danger'">BLOCKED</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <a th:if="${entryStat.index != 0}" th:href="@{/deleteScheduleEntry(driverId=${driverSchedule.driverId}, timeslot=${entry.validFromTime}, viewMode=${viewMode}, planId=${selectedPlan.id})}">
+                                                        <button type="button" class="btn btn-primary">
+                                                            <i class="far fa-calendar-times" style="font-size: 20px;"></i>
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                            </tr>
                                         </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="form-group"><label>Availability</label>
-                                            <select class="form-control" th:value="${scheduleEntry.status.cssClassName()}" type="select" th:class="${scheduleEntry.status.cssClassName()}" th:onchange="'this.className = this.value'">
-                                                <option value="bg-success" class="bg-success">OPEN</option>
-                                                <option value="bg-warning" class="bg-warning">TENTATIVE</option>
-                                                <option value="bg-danger" class="bg-danger">BLOCKED</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="form-row" th:each="estimation : ${selectedPlan.getDriverEstimations(driver.getId())}">
-                                    <div class="col">
-                                        <div class="form-group"><label th:text="${driver.getName() + ' estimation from'}"></label>
-                                            <input class="form-control" type="time" th:value="${estimation.todTime}">
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="form-group"><label>Avg. lap time</label>
-                                            <input class="form-control" type="text" th:value="${estimation.avgLapTime}">
-                                        </div>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                         <div class="form-group text-center">
-                            <button class="btn btn-primary btn-block" type="submit">Save</button>
+                            <button class="btn btn-primary btn-block" type="submit">
+                                <i class="far fa-save" style="font-size: 32px;"></i>
+                            </button>
                         </div>
                     </form>
+                    <form th:if="${viewMode.equals('schedule')}" method="post" th:action="@{/addScheduleEntry(viewMode=${viewMode})}" th:object="${newScheduleEntry}">
+                        <input th:field="*{planId}" type="hidden">
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <select th:field="*{driverId}" class="form-control" name="car" readonly="" style="margin-top: 5px;">
+                                        <option th:each="driver : ${selectedPlan.allDrivers}" th:value="${driver.id}" th:text="${driver.name}">Dave</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><input th:field="*{timeFrom}" class="form-control" type="time" required=""></div>
+                            </div>
+                            <div class="col">
+                                <select th:field="*{status}" th:class="*{status.cssClassName() + ' form-control'}" th:onchange="'this.className = this.value.concat(&quot; form-control&quot;)'">
+                                    <option value="bg-success" class="bg-success" th:selected="entry.status == 'bg-success'">OPEN</option>
+                                    <option value="bg-warning" class="bg-warning" th:selected="entry.status == 'bg-warning'">TENTATIVE</option>
+                                    <option value="bg-danger" class="bg-danger" th:selected="entry.status == 'bg-danger'">BLOCKED</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <div class="form-group text-center">
+                                    <button class="btn btn-primary btn-block" type="submit">
+                                        <i class="far fa-calendar-check" style="font-size: 20px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
                 </div>
             </div>
         </div>
