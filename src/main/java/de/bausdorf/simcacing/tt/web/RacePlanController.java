@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +57,19 @@ public class RacePlanController extends BaseController {
     public static final String TEAM_SCHEDULE = "teamSchedule";
     public static final String NEW_SCHEDULE_ENTRY = "newScheduleEntry";
     public static final String STINT_DRIVERS = "stintDriverView";
+
+    private static final String[] DRIVER_COLORS = {
+            "background-color: rgb(235,100,100);color: rgb(249,246,246);",
+            "background-color: rgb(100,235,100);",
+            "background-color: rgb(59,59,255);color: rgb(249,246,246);",
+            "background-color: rgb(230,100,220);color: rgb(249,246,246);",
+            "background-color: rgb(255,182,141);",
+            "background-color: rgb(225,217,29);",
+            "background-color: rgb(29,225,213);",
+            "background-color: rgb(29,225,178);",
+            "background-color: rgb(116,119,118);",
+            "background-color: rgb(181,204,196);",
+    };
 
     TrackRepository trackRepository;
     CarRepository carRepository;
@@ -398,13 +412,21 @@ public class RacePlanController extends BaseController {
             model.addAttribute(NEW_SCHEDULE_ENTRY, new NewScheduleEntryView(racePlanParameters.getId()));
         }
         if (PlanningViewModeType.time == viewModeFromModel(model)) {
-            model.addAttribute(STINT_DRIVERS, new StintDriverView(
+            StintDriverView driverView = new StintDriverView(
                     racePlanParameters.getId(),
                     racePlanParameters.getStints().stream()
-                        .map(Stint::getDriverName)
-                        .collect(Collectors.toList())
-                    )
+                            .map(Stint::getDriverName)
+                            .collect(Collectors.toList())
             );
+            int colorIndex = 0;
+            Map<String, String> driverColors = new HashMap<>();
+            for (IRacingDriver driver : racePlanParameters.getAllDrivers()) {
+                driverColors.put(driver.getName(), DRIVER_COLORS[colorIndex++ % 9]);
+            }
+            for(String name : driverView.getStintDrivers()) {
+                driverView.getStyles().add(driverColors.get(name));
+            }
+            model.addAttribute(STINT_DRIVERS, driverView);
         }
     }
 

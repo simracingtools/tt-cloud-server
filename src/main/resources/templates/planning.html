@@ -20,7 +20,7 @@
                             </thead>
                             <tbody>
                             <tr th:each="stint, stintStat: ${selectedPlan.getStints()}">
-                                <td th:text="${stintStat.index}">1</td>
+                                <td th:text="${stintStat.index + 1}">1</td>
                                 <td th:text="${stint.getStartTimeString()}">00:04:53</td>
                                 <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
                                 <td th:each="driver : ${selectedPlan.getAllDrivers()}"
@@ -52,13 +52,14 @@
                                 </thead>
                                 <tbody>
                                 <tr th:each="stint, stintStat: ${selectedPlan.getStints()}" class="text-center">
-                                    <td th:text="${stintStat.index}">1</td>
+                                    <td th:text="${stintStat.index + 1}">1</td>
                                     <td>
-                                        <select th:field="*{stintDrivers[__${stintStat.index}__]}" th:value="*{stintDrivers[__${stintStat.index}__]}">
+                                        <select th:field="*{stintDrivers[__${stintStat.index}__]}" th:value="*{stintDrivers[__${stintStat.index}__]}" th:style="*{styles[__${stintStat.index}__]}">
                                             <option th:each="driver, driverStat : ${selectedPlan.getAvailableDrivers(stint.getEndTime())}"
                                                     th:value="${driver.name}"
                                                     th:selected="*{stintDrivers[__${stintStat.index}__]} == ${driver.name}"
-                                                    th:text="${driver.name}">Dave</option>
+                                                    th:text="${driver.name}"
+                                                    th:class="${selectedPlan.getDriverStatusAt(driver.id, stint.getEndTime()).cssClassName()}">Dave</option>
                                             <option th:selected="*{stintDrivers[__${stintStat.index}__].equals('N.N.')}" value="N.N.">unassigned</option>
                                         </select>
                                     </td>
