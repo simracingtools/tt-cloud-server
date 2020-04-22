@@ -34,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PrincipalExtractor githubPrincipalExtractor() {
+    public PrincipalExtractor principalExtractor() {
         return new GooglePrincipalExtractor(userService);
     }
 

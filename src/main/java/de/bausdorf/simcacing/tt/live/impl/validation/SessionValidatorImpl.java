@@ -25,7 +25,7 @@ public class SessionValidatorImpl extends MessageValidator<SessionData> {
         String sessionTime = (String)sessionMessage.getPayload().get("sessionTime");
         String sessionLaps = (String)sessionMessage.getPayload().get("sessionLaps");
 
-        if( sessionTime == null | sessionLaps == null ) {
+        if( sessionTime == null || sessionLaps == null ) {
             throw new InvalidClientMessageException("sessionLaps or sessionTime has to be present");
         }
 

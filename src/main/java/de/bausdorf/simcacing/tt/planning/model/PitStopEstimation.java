@@ -1,8 +1,7 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
-import java.time.LocalTime;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -24,7 +23,7 @@ public class PitStopEstimation {
 				.leavePits(Duration.ofSeconds(5))
 				.build();
 
-		Map<PitStopServiceType, Duration> defaultServiceDurations = new HashMap<>();
+		EnumMap<PitStopServiceType, Duration> defaultServiceDurations = new EnumMap<>(PitStopServiceType.class);
 		defaultServiceDurations.put(PitStopServiceType.WS, Duration.ofSeconds(2));
 		defaultServiceDurations.put(PitStopServiceType.TYRES, Duration.ofSeconds(20));
 		defaultServiceDurations.put(PitStopServiceType.FUEL, Duration.ofSeconds(25));

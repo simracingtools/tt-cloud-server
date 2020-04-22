@@ -36,6 +36,7 @@ public class LogReplay {
             }
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage(), e);
+            Thread.currentThread().interrupt();
         }
 
     }

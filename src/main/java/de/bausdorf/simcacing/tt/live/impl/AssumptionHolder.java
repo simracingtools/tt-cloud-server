@@ -46,14 +46,14 @@ public class AssumptionHolder {
     }
 
     public Assumption getAssumption(@NonNull String track, @NonNull String car, String driver, double carMaxFuel) {
-        Optional<DriverAssumption> driverAssumption = assumptions.findByName(track, car, driver);
+        final Optional<DriverAssumption> driverAssumption = assumptions.findByName(track, car, driver);
         if (!driverAssumption.isPresent()) {
             return null;
         }
-        double avgFuelPerLap = Double.parseDouble(driverAssumption.get().getAvgFuelPerLap().get());
-        Duration avgLapTime = TimeTools.durationFromPattern(driverAssumption.get().getAvgLapTime().get(), DURATION_PATTERN);
-        Duration avgPitstopTime = TimeTools.durationFromPattern(driverAssumption.get().getAvgPitstopTime().get(), DURATION_PATTERN);
-        double carFuel = driverAssumption.get().getCarFuel().isPresent() ? Double.parseDouble(driverAssumption.get().getCarFuel().get()) : carMaxFuel;
+        double avgFuelPerLap = Double.parseDouble(driverAssumption.get().getAvgFuelPerLap().orElse("0.000"));
+        Duration avgLapTime = TimeTools.durationFromPattern(driverAssumption.get().getAvgLapTime().orElse("00:00.000"), DURATION_PATTERN);
+        Duration avgPitstopTime = TimeTools.durationFromPattern(driverAssumption.get().getAvgPitstopTime().orElse("00:00.000"), DURATION_PATTERN);
+        double carFuel = driverAssumption.get().getCarFuel().isPresent() ? Double.parseDouble(driverAssumption.get().getCarFuel().orElse("0.000")) : carMaxFuel;
         return Assumption.builder()
                 .avgFuelPerLap(Optional.of(avgFuelPerLap))
                 .avgLapTime(Optional.of(avgLapTime))

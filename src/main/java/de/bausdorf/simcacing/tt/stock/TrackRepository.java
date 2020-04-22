@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import de.bausdorf.simcacing.tt.util.CacheEntry;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
@@ -52,7 +52,7 @@ public class TrackRepository extends CachedRepository<IRacingTrack> {
 	public List<IRacingTrack> loadAll(boolean fromCache) {
 		if (fromCache && !cache.isEmpty() ) {
 			return cache.values().stream()
-					.map(s -> s.getContent())
+					.map(CacheEntry::getContent)
 					.sorted(Comparator.comparing(IRacingTrack::getName))
 					.collect(Collectors.toList());
 		}

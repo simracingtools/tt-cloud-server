@@ -13,7 +13,7 @@ import lombok.Getter;
 @Builder
 public class SessionData implements ClientData {
 
-	private final static String UNLIMITED = "unlimited";
+	private static final String UNLIMITED = "unlimited";
 
 	private SessionIdentifier sessionId;
 	private String teamName;

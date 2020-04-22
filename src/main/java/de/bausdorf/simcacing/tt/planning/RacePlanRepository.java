@@ -135,8 +135,8 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         SortedMap<Integer, Stint> stints = new TreeMap<>();
         try {
             Map<String, Object> stintsMap = (Map<String, Object>) data.get(key);
-            for( String stintKey : stintsMap.keySet() ) {
-                Map<String, Object> stintMap = (Map<String, Object>)stintsMap.get(stintKey);
+            for( Map.Entry<String, Object> stintEntry : stintsMap.entrySet() ) {
+                Map<String, Object> stintMap = (Map<String, Object>)stintEntry.getValue();
                 Stint stint = Stint.builder()
                         .driverName(stringFromMap(Stint.DRIVER_NAME, stintMap))
                         .startTime(dateTimeFromMap(Stint.START_TIME, stintMap))
@@ -155,7 +155,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                     stint.setPitStop(Optional.of(pitstop));
                 }
 
-                stints.put(Integer.parseInt(stintKey), stint);
+                stints.put(Integer.parseInt(stintEntry.getKey()), stint);
             }
         } catch( Exception e ) {
             log.warn(e.getMessage());

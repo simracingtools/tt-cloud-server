@@ -1,10 +1,7 @@
 package de.bausdorf.simcacing.tt.web.model;
 
-import java.sql.Time;
 import java.text.ParseException;
 import java.time.Duration;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import org.springframework.format.Formatter;

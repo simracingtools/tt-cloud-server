@@ -27,6 +27,7 @@ public class Stint {
 	public static final String REFUEL_AMOUNT = "refuelAmount";
 	public static final String LAPS = "laps";
 	public static final String PITSTOP_SERVICE = "pitstopService";
+	public static final String HH_MM_SS = "HH:mm:ss";
 
 	private String driverName;
 	private LocalDateTime todStartTime;
@@ -52,15 +53,15 @@ public class Stint {
 	}
 
 	public String getStartTimeString() {
-		return getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		return getStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
 	}
 
 	public String getTodStartTimeString() {
-		return getTodStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		return getTodStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
 	}
 
 	public String getEndTimeString() {
-		return getEndTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		return getEndTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
 	}
 
 	public Map<String, Object> toMap() {
@@ -73,7 +74,7 @@ public class Stint {
 		map.put(REFUEL_AMOUNT, refuelAmount);
 		map.put(LAPS, laps);
 		map.put(PITSTOP_SERVICE, pitStop.isPresent()
-				? pitStop.get().getService().stream().map(s -> s.name()).collect(Collectors.toList())
+				? pitStop.get().getService().stream().map(Enum::name).collect(Collectors.toList())
 				: null
 		);
 

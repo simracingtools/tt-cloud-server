@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import de.bausdorf.simcacing.tt.util.CacheEntry;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
@@ -52,7 +53,7 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 	public List<IRacingCar> loadAll(boolean fromCache) {
 		if (fromCache && !cache.isEmpty() ) {
 			return cache.values().stream()
-					.map(s -> s.getContent())
+					.map(CacheEntry::getContent)
 					.sorted(Comparator.comparing(IRacingCar::getName))
 					.collect(Collectors.toList());
 		}

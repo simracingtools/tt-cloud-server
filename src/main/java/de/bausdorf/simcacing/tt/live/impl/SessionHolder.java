@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,14 +27,14 @@ public class SessionHolder implements MessageProcessor {
 
 	private Map<SessionKey, SessionController> data;
 
-	private Map<MessageType, MessageValidator> validators;
+	private EnumMap<MessageType, MessageValidator> validators;
 
 	private AssumptionHolder assumptionHolder;
 
 	public SessionHolder(@Autowired AssumptionHolder assumptionHolder) {
 		this.assumptionHolder = assumptionHolder;
 		this.data = new HashMap<>();
-		this.validators = new HashMap<>();
+		this.validators = new EnumMap<>(MessageType.class);
 	}
 
 	@Override

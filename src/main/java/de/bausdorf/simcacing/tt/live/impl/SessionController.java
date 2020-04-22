@@ -82,7 +82,7 @@ public class SessionController {
                         .filter(s -> s.getStint() == stintNo)
                         .filter(s -> !s.getLapTime().isZero())
                         .filter(s -> s.getLastLapFuelUsage() > 0.0)
-                        .mapToDouble(s -> s.getLastLapFuelUsage())
+                        .mapToDouble(LapData::getLastLapFuelUsage)
                         .average().getAsDouble()
                 );
             } catch (NoSuchElementException e) {
@@ -145,22 +145,18 @@ public class SessionController {
                 towTimeLeft = eventData.getTowingTime();
                 break;
             case ONTRACK:
-                if (!pitstops.isEmpty()) {
-                    if (pitstops.get(pitstops.lastKey()).update(eventData)) {
-                        log.debug("Pitstop completed: {}", pitstops.get(pitstops.lastKey()));
-                        Optional<LapData> lastRecordedLap = getLastRecordedLap();
-                        if( lastRecordedLap.isPresent() ) {
-                            log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
-                            lastRecordedLap.get().setPitStop(true);
-                        }
-                        Optional<Stint> lastStint = getLastStint();
-                        if( lastStint.isPresent() ) {
-                            stints.put(lastStint.get().getNo() + 1, Stint.builder()
-                                    .no(lastStint.get().getNo() + 1)
-                                    .build()
-                            );
-                        }
+                if (!pitstops.isEmpty() && pitstops.get(pitstops.lastKey()).update(eventData)) {
+                    log.debug("Pitstop completed: {}", pitstops.get(pitstops.lastKey()));
+                    Optional<LapData> lastRecordedLap = getLastRecordedLap();
+                    if( lastRecordedLap.isPresent() ) {
+                        log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
+                        lastRecordedLap.get().setPitStop(true);
                     }
+                    Optional<Stint> lastStint = getLastStint();
+                    lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
+                            .no(stint.getNo() + 1)
+                            .build()
+                    ));
                 }
                 break;
             case OFF_WORLD:
@@ -176,11 +172,12 @@ public class SessionController {
     }
 
     public Duration getRemainingSessionTime() {
-        if (sessionData.getSessionDuration().isPresent()) {
+        Optional<LocalTime> sessionDuration = sessionData.getSessionDuration();
+        if (sessionDuration.isPresent()) {
             if (greenFlagTime != null) {
-                return Duration.between(runData.getSessionTime(), sessionData.getSessionDuration().get().plusSeconds(greenFlagTime.toSecondOfDay()));
+                return Duration.between(runData.getSessionTime(), sessionDuration.get().plusSeconds(greenFlagTime.toSecondOfDay()));
             }
-            return Duration.between(runData.getSessionTime(), sessionData.getSessionDuration().get());
+            return Duration.between(runData.getSessionTime(), sessionDuration.get());
         }
         return Duration.ZERO;
     }
@@ -234,8 +231,7 @@ public class SessionController {
                 log.warn("No avgLapFuelPerLap assumption found for {} in {} on {}", stint.getDriver(), sessionData.getCarName(), sessionData.getTrackName());
                 return;
             } else {
-                avgLapFuelUsage = assumption.getAvgFuelPerLap().isPresent()
-                        ? assumption.getAvgFuelPerLap().get() : stint.getAvgFuelPerLap();
+                avgLapFuelUsage = assumption.getAvgFuelPerLap().orElse(stint.getAvgFuelPerLap());
                 carFuel = assumption.getCarFuel();
             }
         }
@@ -249,8 +245,7 @@ public class SessionController {
 
         if (avgLapTime.isZero()) {
             if (assumption != null) {
-                avgLapTime = assumption.getAvgLapTime().isPresent() ?
-                        assumption.getAvgLapTime().get() : Duration.ZERO;
+                avgLapTime = assumption.getAvgLapTime().orElse(Duration.ZERO);
             } else {
                 log.warn("No avgLapTime assumption found for {} in {} on {}", stint.getDriver(), sessionData.getCarName(), sessionData.getTrackName());
             }
