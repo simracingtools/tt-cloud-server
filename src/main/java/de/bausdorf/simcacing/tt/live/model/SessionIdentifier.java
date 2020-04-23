@@ -10,6 +10,9 @@ import lombok.Getter;
 @Builder
 @EqualsAndHashCode
 public class SessionIdentifier {
+
+    public static final String IS_NOT_A_VALID_SESSION_IDENTIFIER = " is not a valid session identifier";
+
     private String teamName;
     private String sessionId;
     private String subSessionId;
@@ -23,5 +26,32 @@ public class SessionIdentifier {
                 .append(subSessionId).append('#')
                 .append(sessionNum)
                 .toString();
+    }
+
+    public static SessionIdentifier parse(String s) {
+        if (s == null || s.isEmpty()) {
+            return null;
+        }
+        String[] teamAndSession = s.split("@");
+        if (teamAndSession.length != 2) {
+            throw new IllegalArgumentException(s + IS_NOT_A_VALID_SESSION_IDENTIFIER);
+        }
+        SessionIdentifierBuilder sessionIdentifierBuilder = SessionIdentifier.builder();
+        sessionIdentifierBuilder = sessionIdentifierBuilder.teamName(teamAndSession[0]);
+
+        String[] sessionIdComponents = teamAndSession[1].split("#");
+        if (sessionIdComponents.length != 3) {
+            throw new IllegalArgumentException(s + IS_NOT_A_VALID_SESSION_IDENTIFIER);
+        }
+        try {
+            sessionIdentifierBuilder
+                    .sessionId(sessionIdComponents[0])
+                    .subSessionId(sessionIdComponents[1])
+                    .sessionNum(Integer.parseInt(sessionIdComponents[2]));
+        } catch (Exception e) {
+            throw new IllegalArgumentException(s + IS_NOT_A_VALID_SESSION_IDENTIFIER);
+        }
+
+        return sessionIdentifierBuilder.build();
     }
 }

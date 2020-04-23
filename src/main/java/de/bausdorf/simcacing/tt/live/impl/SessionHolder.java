@@ -16,15 +16,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class SessionHolder implements MessageProcessor {
 
-	@Data
-	@AllArgsConstructor
-	@EqualsAndHashCode
-	@ToString
-	public class SessionKey {
-		private SessionIdentifier sessionId;
-		private String teamId;
-	}
-
 	private Map<SessionKey, SessionController> data;
 
 	private EnumMap<MessageType, MessageValidator> validators;
@@ -47,7 +38,7 @@ public class SessionHolder implements MessageProcessor {
 	public void processMessage(ClientMessage message) {
 		ClientData clientData = validateAndConvert(message);
 		SessionKey sessionKey = new SessionKey(
-				ModelFactory.parseClientSessionId(message.getSessionId()), message.getTeamId());
+				message.getTeamId(), ModelFactory.parseClientSessionId(message.getSessionId()));
 		SessionController controller;
 		switch(message.getType()) {
 			case LAP:

@@ -97,11 +97,7 @@ public class RacePlanController extends BaseController {
 
     @GetMapping("/newraceplan")
     public String viewNewRacePlan(Model model) {
-        model.addAttribute(RACEPLAN, new PlanParametersView());
-        model.addAttribute("plans", planRepository.findByTeamIds(getMyTeams().stream()
-                .map(IRacingTeam::getId)
-                .collect(Collectors.toList()))
-        );
+        prepareNewRacePlanView(model);
         return NEWRACEPLAN_VIEW;
     }
 
@@ -153,7 +149,7 @@ public class RacePlanController extends BaseController {
             @RequestParam("planId") Optional<String> planId,
             Model model) {
         if((planView == null || planView.getId() == null) && !planId.isPresent()) {
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+            prepareNewRacePlanView(model);
             return NEWRACEPLAN_VIEW;
         }
         prepareViewMode(mode, model);
@@ -175,23 +171,21 @@ public class RacePlanController extends BaseController {
             @ModelAttribute(TEAM_SCHEDULE) TeamScheduleView teamScheduleView,
             @RequestParam(VIEW_MODE) Optional<String> mode,
             Model model) {
-        Optional<RacePlanParameters> repoPlanParameters = planRepository.findById(viewPlanParameters.getId());
-        if (!repoPlanParameters.isPresent()) {
-            addError("Race plan id " + viewPlanParameters.getId() + NOT_FOUND, model);
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+        RacePlanParameters repoPlanParameters = loadRacePlan(viewPlanParameters.getId(), model);
+        if (repoPlanParameters == null) {
             return NEWRACEPLAN_VIEW;
         }
         prepareViewMode(mode, model);
 
-        repoPlanParameters.get().updateData(viewPlanParameters);
-        repoPlanParameters.get().updateDrivers(driverRepository);
-        updateDriverSchedule(repoPlanParameters.get(), teamScheduleView);
-        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters.get());
-        repoPlanParameters.get().setStints(racePlan.getCurrentRacePlan());
+        repoPlanParameters.updateData(viewPlanParameters);
+        repoPlanParameters.updateDrivers(driverRepository);
+        updateDriverSchedule(repoPlanParameters, teamScheduleView);
+        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters);
+        repoPlanParameters.setStints(racePlan.getCurrentRacePlan());
 
-        planRepository.save(repoPlanParameters.get());
+        planRepository.save(repoPlanParameters);
 
-        prepareModel(repoPlanParameters.get(), model);
+        prepareModel(repoPlanParameters, model);
         return PLANNING_VIEW;
     }
 
@@ -199,21 +193,19 @@ public class RacePlanController extends BaseController {
     public String updateSchedule(@ModelAttribute(TEAM_SCHEDULE) TeamScheduleView teamScheduleView,
             @RequestParam(VIEW_MODE) Optional<String> mode,
             Model model) {
-        Optional<RacePlanParameters> repoPlanParameters = planRepository.findById(teamScheduleView.getPlanId());
-        if (!repoPlanParameters.isPresent()) {
-            addError("Race plan id " + teamScheduleView.getPlanId() + NOT_FOUND, model);
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+        RacePlanParameters repoPlanParameters = loadRacePlan(teamScheduleView.getPlanId(), model);
+        if (repoPlanParameters == null) {
             return NEWRACEPLAN_VIEW;
         }
         prepareViewMode(mode, model);
 
-        updateDriverSchedule(repoPlanParameters.get(), teamScheduleView);
-        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters.get());
-        repoPlanParameters.get().setStints(racePlan.getCurrentRacePlan());
+        updateDriverSchedule(repoPlanParameters, teamScheduleView);
+        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters);
+        repoPlanParameters.setStints(racePlan.getCurrentRacePlan());
 
-        planRepository.save(repoPlanParameters.get());
+        planRepository.save(repoPlanParameters);
 
-        prepareModel(repoPlanParameters.get(), model);
+        prepareModel(repoPlanParameters, model);
         return PLANNING_VIEW;
     }
 
@@ -244,7 +236,7 @@ public class RacePlanController extends BaseController {
             @RequestParam("planId") String planId,
             Model model) {
         if (planId == null || planId.isEmpty()) {
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+            prepareNewRacePlanView(model);
             return NEWRACEPLAN_VIEW;
         }
         RacePlanParameters planParameters = loadRacePlan(planId, model);
@@ -277,7 +269,7 @@ public class RacePlanController extends BaseController {
             @RequestParam("planId") String planId,
             Model model) {
         if (planId == null || planId.isEmpty()) {
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+            prepareNewRacePlanView(model);
             return NEWRACEPLAN_VIEW;
         }
         RacePlanParameters planParameters = loadRacePlan(planId, model);
@@ -380,7 +372,6 @@ public class RacePlanController extends BaseController {
         prepareViewMode(viewMode, model);
         RacePlanParameters planParameters = loadRacePlan(driverView.getPlanId(), model);
         if (planParameters == null) {
-            model.addAttribute(RACEPLAN, new PlanParametersView());
             return NEWRACEPLAN_VIEW;
         }
         for (int i = 0; i < planParameters.getStints().size(); i++) {
@@ -551,10 +542,18 @@ public class RacePlanController extends BaseController {
         }
         if( racePlanId == null ) {
             addError("Unable to identify race plan - no id", model);
-            model.addAttribute(RACEPLAN, new PlanParametersView());
+            prepareNewRacePlanView(model);
             return null;
         }
         return loadRacePlan(racePlanId, model);
+    }
+
+    private void prepareNewRacePlanView(Model model) {
+        model.addAttribute(RACEPLAN, new PlanParametersView());
+        model.addAttribute("plans", planRepository.findByTeamIds(getMyTeams().stream()
+                .map(IRacingTeam::getId)
+                .collect(Collectors.toList()))
+        );
     }
 
     private PlanningViewModeType prepareViewMode(Optional<String> mode, Model model) {
