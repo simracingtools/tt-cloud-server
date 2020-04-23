@@ -75,7 +75,7 @@ public class RacePlanParameters {
 		map.put(MAX_CAR_FUEL, maxCarFuel);
 		map.put(TOD_START_TIME, todStartTime.toString());
 		map.put(GREEN_FLAG_OFFSET_TIME, greenFlagOffsetTime.toString());
-		if (!stints.isEmpty()) {
+		if (stints != null && !stints.isEmpty()) {
 			Map<String, Object> stintMap = new HashMap<>();
 			stints.stream().forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
 			map.put(STINTS, stintMap);

@@ -1,5 +1,8 @@
 package de.bausdorf.simcacing.tt.web.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +18,7 @@ public class PlanParametersView {
     private String carId;
     private String teamId;
     private String planName;
-    private String raceDuration;
-    private String startTime;
+    private Duration raceDuration;
+    private LocalDateTime startTime;
+    private LocalDateTime todStartTime;
 }

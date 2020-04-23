@@ -21,6 +21,7 @@ import de.bausdorf.simcacing.tt.web.model.DriverScheduleView;
 import de.bausdorf.simcacing.tt.web.model.EstimationView;
 import de.bausdorf.simcacing.tt.web.model.NewEstimationEntryView;
 import de.bausdorf.simcacing.tt.web.model.NewScheduleEntryView;
+import de.bausdorf.simcacing.tt.web.model.PlanDescriptionView;
 import de.bausdorf.simcacing.tt.web.model.PlanParametersView;
 import de.bausdorf.simcacing.tt.web.model.PlanningViewModeType;
 import de.bausdorf.simcacing.tt.web.model.ScheduleView;
@@ -40,7 +41,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,23 +123,28 @@ public class RacePlanController extends BaseController {
         }
 
         String planId = UUID.randomUUID().toString();
-        planRepository.save(RacePlanParameters.builder()
+        RacePlanParameters planParameters = RacePlanParameters.builder()
                 .id(planId)
                 .carId(planView.getCarId())
                 .trackId(planView.getTrackId())
                 .teamId(planView.getTeamId())
-                .sessionStartTime(LocalDateTime.parse(planView.getStartTime(), DateTimeFormatter.ofPattern("HH:mm")))
-                .raceDuration(TimeTools.durationFromPattern(planView.getRaceDuration(), "HH:mm"))
+                .sessionStartTime(planView.getStartTime())
+                .todStartTime(planView.getTodStartTime() == null ? planView.getStartTime() : planView.getTodStartTime())
+                .raceDuration(planView.getRaceDuration())
                 .name(planView.getPlanName())
                 .avgPitStopTime(Duration.ofMinutes(1))
                 .avgLapTime(TimeTools.durationFromString(track.get().getNominalLapTime()))
                 .maxCarFuel(car.get().getMaxFuel())
                 .avgFuelPerLap(0.0D)
-                .build());
+                .greenFlagOffsetTime(LocalTime.MIN)
+                .stints(new ArrayList<>())
+                .roster(new Roster())
+                .build();
 
-        planView.setId(planId);
-        model.addAttribute(SELECTED_PLAN, planView);
+        planRepository.save(planParameters);
 
+        model.addAttribute(VIEW_MODE, PlanningViewModeType.time.name());
+        prepareModel(planParameters, model);
         return PLANNING_VIEW;
     }
 
@@ -552,7 +557,17 @@ public class RacePlanController extends BaseController {
         model.addAttribute(RACEPLAN, new PlanParametersView());
         model.addAttribute("plans", planRepository.findByTeamIds(getMyTeams().stream()
                 .map(IRacingTeam::getId)
-                .collect(Collectors.toList()))
+                .collect(Collectors.toList())).stream()
+                        .map(s -> PlanDescriptionView.builder()
+                                    .id(s.getId())
+                                    .name(s.getName())
+                                    .team(teamRepository.findById(s.getTeamId()).orElse(IRacingTeam.builder()
+                                            .name("Team not found")
+                                            .build()).getName()
+                                    )
+                                    .build()
+                        )
+                        .collect(Collectors.toList())
         );
     }
 

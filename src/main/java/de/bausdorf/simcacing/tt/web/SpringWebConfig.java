@@ -8,6 +8,7 @@ import de.bausdorf.simcacing.tt.web.model.DoubleFormatter;
 import de.bausdorf.simcacing.tt.web.model.DurationFormatter;
 import de.bausdorf.simcacing.tt.web.model.IntegerFormatter;
 import de.bausdorf.simcacing.tt.web.model.LocalDateFormatter;
+import de.bausdorf.simcacing.tt.web.model.LocalDateTimeFormatter;
 import de.bausdorf.simcacing.tt.web.model.LocalTimeFormatter;
 import de.bausdorf.simcacing.tt.web.model.ScheduleDriverOptionTypeFormatter;
 
@@ -22,5 +23,6 @@ public class SpringWebConfig implements WebMvcConfigurer {
 		registry.addFormatter(new IntegerFormatter());
 		registry.addFormatter(new LocalDateFormatter());
 		registry.addFormatter(new ScheduleDriverOptionTypeFormatter());
+		registry.addFormatter(new LocalDateTimeFormatter());
 	}
 }
