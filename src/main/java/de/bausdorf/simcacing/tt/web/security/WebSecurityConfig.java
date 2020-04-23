@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.Principal
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService;
@@ -39,9 +40,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/clientmessage", "/_ah/start", "/_ah/health");
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-    			.antMatchers("/clientmessage").permitAll()
+    			.antMatchers("/clientmessage", "/_ah/start", "/_ah/health").permitAll()
                 .anyRequest().authenticated()
 				.and()
 //                .userDetailsService(userService)
