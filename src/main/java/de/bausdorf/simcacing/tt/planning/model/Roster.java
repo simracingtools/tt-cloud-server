@@ -221,7 +221,7 @@ public class Roster {
 		Estimation last = null;
 		for (Estimation estimation : estimationList) {
 			if (estimation.getTodFrom().isAfter(todDateTime)) {
-				return last;
+				break;
 			}
 			last = estimation;
 		}

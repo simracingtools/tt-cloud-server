@@ -1,6 +1,7 @@
 package de.bausdorf.simcacing.tt.web;
 
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
+import de.bausdorf.simcacing.tt.planning.model.Estimation;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Roster;
@@ -15,12 +16,16 @@ import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
 import de.bausdorf.simcacing.tt.util.TimeTools;
+import de.bausdorf.simcacing.tt.web.model.DriverEstimationView;
 import de.bausdorf.simcacing.tt.web.model.DriverScheduleView;
+import de.bausdorf.simcacing.tt.web.model.EstimationView;
+import de.bausdorf.simcacing.tt.web.model.NewEstimationEntryView;
 import de.bausdorf.simcacing.tt.web.model.NewScheduleEntryView;
 import de.bausdorf.simcacing.tt.web.model.PlanParametersView;
 import de.bausdorf.simcacing.tt.web.model.PlanningViewModeType;
 import de.bausdorf.simcacing.tt.web.model.ScheduleView;
 import de.bausdorf.simcacing.tt.web.model.StintDriverView;
+import de.bausdorf.simcacing.tt.web.model.TeamEstimationView;
 import de.bausdorf.simcacing.tt.web.model.TeamScheduleView;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +75,8 @@ public class RacePlanController extends BaseController {
             "background-color: rgb(116,119,118);",
             "background-color: rgb(181,204,196);",
     };
+    public static final String TEAM_ESTIMATIONS = "teamEstimations";
+    public static final String NEW_ESTIMATION_ENTRY = "newEstimationEntry";
 
     TrackRepository trackRepository;
     CarRepository carRepository;
@@ -210,6 +217,26 @@ public class RacePlanController extends BaseController {
         return PLANNING_VIEW;
     }
 
+    @PostMapping("/updateEstimations")
+    public String updateEstimations(@ModelAttribute(TEAM_ESTIMATIONS) TeamEstimationView teamEstimationView,
+            @RequestParam(VIEW_MODE) Optional<String> mode,
+            Model model) {
+        RacePlanParameters repoPlanParameters = loadRacePlan(teamEstimationView.getPlanId(), model);
+        if (repoPlanParameters == null ) {
+            return NEWRACEPLAN_VIEW;
+        }
+        prepareViewMode(mode, model);
+
+        updateDriverEstimations(repoPlanParameters, teamEstimationView);
+        RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters);
+        repoPlanParameters.setStints(racePlan.getCurrentRacePlan());
+
+        planRepository.save(repoPlanParameters);
+
+        prepareModel(repoPlanParameters, model);
+        return PLANNING_VIEW;
+    }
+
     @GetMapping("/deleteScheduleEntry")
     public String deleteScheduleEntry(@RequestParam("driverId") String driverId,
             @RequestParam("viewMode") Optional<String> viewMode,
@@ -243,6 +270,39 @@ public class RacePlanController extends BaseController {
         return PLANNING_VIEW;
     }
 
+    @GetMapping("/deleteEstimationEntry")
+    public String deleteEstimationEntry(@RequestParam("driverId") String driverId,
+            @RequestParam("viewMode") Optional<String> viewMode,
+            @RequestParam("timeslot") String timeslot,
+            @RequestParam("planId") String planId,
+            Model model) {
+        if (planId == null || planId.isEmpty()) {
+            model.addAttribute(RACEPLAN, new PlanParametersView());
+            return NEWRACEPLAN_VIEW;
+        }
+        RacePlanParameters planParameters = loadRacePlan(planId, model);
+        if (planParameters == null) {
+            return NEWRACEPLAN_VIEW;
+        }
+        prepareViewMode(viewMode, model);
+
+        List<Estimation> driverEstimation = planParameters.getRoster().getDriverEstimations().get(driverId);
+        Estimation toDelete = null;
+        for (Estimation entry : driverEstimation) {
+            if (entry.getTodTime().equals(LocalTime.parse(timeslot))) {
+                toDelete = entry;
+            }
+        }
+        if (toDelete != null) {
+            planParameters.getRoster().getDriverEstimations().get(driverId).remove(toDelete);
+        }
+
+        planRepository.save(planParameters);
+
+        prepareModel(planParameters, model);
+        return PLANNING_VIEW;
+    }
+
     @PostMapping("/addScheduleEntry")
     public String addScheduleEntry(@RequestParam(VIEW_MODE) Optional<String> viewMode,
             @ModelAttribute(NEW_SCHEDULE_ENTRY) NewScheduleEntryView newScheduleEntryView,
@@ -257,7 +317,8 @@ public class RacePlanController extends BaseController {
             LocalDateTime sessionStartTime = planParameters.getSessionStartTime();
             LocalDateTime dateTime;
             LocalDate raceDate = sessionStartTime.toLocalDate();
-            if (newScheduleEntryView.getTimeFrom().isAfter(sessionStartTime.toLocalTime())) {
+            if (newScheduleEntryView.getTimeFrom().isAfter(sessionStartTime.toLocalTime())
+                    || newScheduleEntryView.getTimeFrom().equals(sessionStartTime.toLocalTime())) {
                 dateTime = LocalDateTime.of(raceDate, newScheduleEntryView.getTimeFrom());
             } else {
                 dateTime = LocalDateTime.of(raceDate.plusDays(1), newScheduleEntryView.getTimeFrom());
@@ -267,6 +328,43 @@ public class RacePlanController extends BaseController {
                     .status(newScheduleEntryView.getStatus())
                     .from(dateTime)
                     .build());
+
+            planRepository.save(planParameters);
+        }
+
+        prepareModel(planParameters, model);
+        return PLANNING_VIEW;
+    }
+
+    @PostMapping("/addEstimationEntry")
+    public String addEstimationEntry(@RequestParam(VIEW_MODE) Optional<String> viewMode,
+            @ModelAttribute(NEW_ESTIMATION_ENTRY) NewEstimationEntryView newEstimationEntryView,
+            Model model) {
+        prepareViewMode(viewMode, model);
+        RacePlanParameters planParameters = loadRacePlan(newEstimationEntryView.getPlanId(), model);
+        if (planParameters == null) {
+            return NEWRACEPLAN_VIEW;
+        }
+        Optional<IRacingDriver> driver = driverRepository.findById(newEstimationEntryView.getDriverId());
+        if (driver.isPresent()) {
+            LocalDateTime todStartTime = planParameters.getTodStartTime();
+            LocalDateTime dateTime;
+            LocalDate raceDate = todStartTime.toLocalDate();
+            if (newEstimationEntryView.getTimeFrom().isAfter(todStartTime.toLocalTime())
+                    || newEstimationEntryView.getTimeFrom().equals(todStartTime.toLocalTime())) {
+                dateTime = LocalDateTime.of(raceDate, newEstimationEntryView.getTimeFrom());
+            } else {
+                dateTime = LocalDateTime.of(raceDate.plusDays(1), newEstimationEntryView.getTimeFrom());
+            }
+            planParameters.getRoster().addEstimation(Estimation.builder()
+                    .driver(driver.get())
+                    .todFrom(dateTime)
+                    .avgFuelPerLap(newEstimationEntryView.getAvgFuelPerLap())
+                    .avgLapTime(newEstimationEntryView.getAvgLapTime())
+                    .build());
+
+            RacePlan racePlan = RacePlan.createRacePlanTemplate(planParameters);
+            planParameters.setStints(racePlan.getCurrentRacePlan());
 
             planRepository.save(planParameters);
         }
@@ -349,6 +447,29 @@ public class RacePlanController extends BaseController {
         return teamScheduleView;
     }
 
+    private TeamEstimationView createTeamEstimationView(RacePlanParameters planParameters) {
+        Map<String, List<Estimation>> estimationMap = planParameters.getRoster().getDriverEstimations();
+        TeamEstimationView teamEstimationView = new TeamEstimationView(planParameters.getId());
+
+        for (List<Estimation> driverEstimation : estimationMap.values()) {
+            if (driverEstimation != null && !driverEstimation.isEmpty()) {
+                DriverEstimationView driverEstimationView = new DriverEstimationView();
+                for (Estimation estimation : driverEstimation) {
+                    driverEstimationView.setDriverId(estimation.getDriver().getId());
+                    driverEstimationView.setDriverName(estimation.getDriverName());
+                    driverEstimationView.setValidated(estimation.getDriver().isValidated());
+                    driverEstimationView.getEstimationEntries().add(EstimationView.builder()
+                            .validFrom(estimation.getTodFrom())
+                            .avgLapTime(estimation.getAvgLapTime())
+                            .avgFuelPerLap(estimation.getAvgFuelPerLap())
+                            .build());
+                }
+                teamEstimationView.getTeamEstimations().add(driverEstimationView);
+            }
+        }
+        return teamEstimationView;
+    }
+
     private void updateDriverSchedule(RacePlanParameters planParameters, TeamScheduleView teamScheduleView) {
         if (teamScheduleView == null) {
             return;
@@ -369,6 +490,47 @@ public class RacePlanController extends BaseController {
                         .build());
             }
         }
+    }
+
+    private void updateDriverEstimations(RacePlanParameters planParameters, TeamEstimationView teamEstimationView) {
+        if (teamEstimationView == null) {
+            return;
+        }
+        Roster roster = planParameters.getRoster();
+        for (DriverEstimationView driverEstimationView : teamEstimationView.getTeamEstimations()) {
+            roster.getDriverEstimations().get(driverEstimationView.getDriverId()).clear();
+            IRacingDriver driver = IRacingDriver.builder()
+                    .id(driverEstimationView.getDriverId())
+                    .name(driverEstimationView.getDriverName())
+                    .validated(driverEstimationView.isValidated())
+                    .build();
+            for (EstimationView estimationView : driverEstimationView.getEstimationEntries()) {
+                roster.addEstimation(Estimation.builder()
+                        .driver(driver)
+                        .todFrom(estimationView.getValidFrom())
+                        .avgLapTime(estimationView.getAvgLapTime())
+                        .avgFuelPerLap(estimationView.getAvgFuelPerLap())
+                        .build());
+            }
+        }
+    }
+
+    private StintDriverView createStintDriverView(RacePlanParameters planParameters) {
+        StintDriverView driverView = new StintDriverView(
+                planParameters.getId(),
+                planParameters.getStints().stream()
+                        .map(Stint::getDriverName)
+                        .collect(Collectors.toList())
+        );
+        int colorIndex = 0;
+        Map<String, String> driverColors = new HashMap<>();
+        for (IRacingDriver driver : planParameters.getAllDrivers()) {
+            driverColors.put(driver.getName(), DRIVER_COLORS[colorIndex++ % 9]);
+        }
+        for(String name : driverView.getStintDrivers()) {
+            driverView.getStyles().add(driverColors.get(name));
+        }
+        return driverView;
     }
 
     private RacePlanParameters loadRacePlan(String planId, Model model) {
@@ -407,26 +569,17 @@ public class RacePlanController extends BaseController {
     private void prepareModel(RacePlanParameters racePlanParameters, Model model) {
         model.addAttribute(AUTHORIZED_DRIVERS, getAuthorizedDrivers(racePlanParameters.getTeamId()));
         model.addAttribute(SELECTED_PLAN, racePlanParameters);
-        if (PlanningViewModeType.schedule == viewModeFromModel(model)) {
+        final PlanningViewModeType modelViewMode = viewModeFromModel(model);
+        if (PlanningViewModeType.time == modelViewMode || PlanningViewModeType.variation == modelViewMode) {
+            model.addAttribute(STINT_DRIVERS, createStintDriverView(racePlanParameters));
+        }
+        if (PlanningViewModeType.schedule == modelViewMode) {
             model.addAttribute(TEAM_SCHEDULE, createTeamScheduleView(racePlanParameters));
             model.addAttribute(NEW_SCHEDULE_ENTRY, new NewScheduleEntryView(racePlanParameters.getId()));
         }
-        if (PlanningViewModeType.time == viewModeFromModel(model)) {
-            StintDriverView driverView = new StintDriverView(
-                    racePlanParameters.getId(),
-                    racePlanParameters.getStints().stream()
-                            .map(Stint::getDriverName)
-                            .collect(Collectors.toList())
-            );
-            int colorIndex = 0;
-            Map<String, String> driverColors = new HashMap<>();
-            for (IRacingDriver driver : racePlanParameters.getAllDrivers()) {
-                driverColors.put(driver.getName(), DRIVER_COLORS[colorIndex++ % 9]);
-            }
-            for(String name : driverView.getStintDrivers()) {
-                driverView.getStyles().add(driverColors.get(name));
-            }
-            model.addAttribute(STINT_DRIVERS, driverView);
+        if (PlanningViewModeType.variation == modelViewMode) {
+            model.addAttribute(TEAM_ESTIMATIONS, createTeamEstimationView(racePlanParameters));
+            model.addAttribute(NEW_ESTIMATION_ENTRY, new NewEstimationEntryView(racePlanParameters.getId()));
         }
     }
 

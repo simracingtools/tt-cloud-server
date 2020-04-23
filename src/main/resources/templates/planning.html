@@ -32,7 +32,7 @@
                         </table>
                     </div>
 
-                    <div th:if="${viewMode.equals('time')}" th:fragment="stint-table" class="table-responsive">
+                    <div th:if="${viewMode.equals('time') || viewMode.equals('variation')}" th:fragment="stint-table" class="table-responsive">
                         <form method="post" th:object="${stintDriverView}"  th:action="@{/updateStintDrivers(viewMode=${viewMode})}">
                             <input th:field="*{planId}" type="hidden">
                             <table class="table table-striped">
@@ -79,7 +79,7 @@
                     <form method="post" th:action="@{/planning(viewMode=${viewMode})}" th:object="${selectedPlan}">
                         <div class="form-row">
                             <div class="col">
-                                <ul class="nav nav-tabs border rounded shadow">
+                                <ul class="nav nav-tabs">
                                     <li class="nav-item border rounded">
                                         <a class="nav-link active bg-warning" th:href="@{/planning(viewMode='time', planId=*{id})}">
                                             <i class="fas fa-clock" style="font-size: 32px;"></i>
@@ -90,8 +90,12 @@
                                             <i class="fa fa-users" style="font-size: 32px;"></i>
                                         </a>
                                     </li>
+                                    <li class="nav-item border rounded">
+                                        <a class="nav-link bg-primary" th:href="@{/planning(viewMode='variation', planId=*{id})}">
+                                            <i class="fas fa-road" style="font-size: 32px;color: white;"></i>
+                                        </a>
+                                    </li>
                                 </ul>
-                                <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
                                 <input th:field="*{id}" type="hidden">
                             </div>
                         </div>
@@ -99,6 +103,7 @@
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group">
+                                        <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
                                         <select th:field="*{trackId}" class="form-control" name="track" required="">
                                             <option th:each="track : ${tracks}" th:value="${track.id}" th:text="${track.name}">Nürburgring Combined 24</option>
                                         </select>
@@ -178,11 +183,11 @@
                             </div>
                         </div>
                         <div th:if="${viewMode.equals('schedule')}">
-                            <input th:field="*{maxCarFuel}" type="hidden">
-                            <input th:field="*{avgFuelPerLap}" type="hidden">
-                            <input th:field="*{sessionStartTime}" type="hidden">
-                            <input th:field="*{todStartTime}" type="hidden">
-                            <input th:field="*{avgLapTime}" type="hidden">
+<!--                            <input th:field="*{maxCarFuel}" type="hidden">-->
+<!--                            <input th:field="*{avgFuelPerLap}" type="hidden">-->
+<!--                            <input th:field="*{sessionStartTime}" type="hidden">-->
+<!--                            <input th:field="*{todStartTime}" type="hidden">-->
+<!--                            <input th:field="*{avgLapTime}" type="hidden">-->
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group">
@@ -252,6 +257,11 @@
                         <input th:field="*{planId}" type="hidden">
                         <div class="form-row">
                             <div class="col">
+                                <strong>Add new schedule entry for</strong>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
                                 <div class="form-group">
                                     <select th:field="*{driverId}" class="form-control" name="car" readonly="" style="margin-top: 5px;">
                                         <option th:each="driver : ${selectedPlan.allDrivers}" th:value="${driver.id}" th:text="${driver.name}">Dave</option>
@@ -275,6 +285,102 @@
                                     <button class="btn btn-primary btn-block" type="submit">
                                         <i class="far fa-calendar-check" style="font-size: 20px;"></i>
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <form th:if="${viewMode.equals('variation')}" method="post" th:action="@{/updateEstimations(viewMode=${viewMode})}" th:object="${teamEstimations}">
+                        <input th:field="*{planId}" type="hidden">
+                        <div  th:each="driverEstimation, estimationStat : *{teamEstimations}">
+                            <input th:field="*{teamEstimations[__${estimationStat.index}__].driverName}" type="hidden">
+                            <input th:field="*{teamEstimations[__${estimationStat.index}__].driverId}" type="hidden">
+                            <input th:field="*{teamEstimations[__${estimationStat.index}__].validated}" type="hidden">
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-row">
+                                        <h4 th:text="${driverEstimation.driverName}">Dave</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:each="entry, entryStat : ${driverEstimation.estimationEntries}">
+                                <input type="hidden" th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].validFromDate}">
+                                <div class="border rounded"  style="margin-bottom: 15px;padding-top: 5px;padding-left: 5px;padding-right: 5px;">
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <input type="time"  class="form-control"
+                                                       th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].validFromTime}"/>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <a th:href="@{/deleteEstimationEntry(driverId=${driverEstimation.driverId}, timeslot=${entry.validFromTime}, viewMode=${viewMode}, planId=${selectedPlan.id})}">
+                                                    <button type="button" class="btn btn-primary">
+                                                        <i class="far fa-calendar-times" style="font-size: 20px;"></i>
+                                                    </button>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <div class="form-group"><label>Avg. lap time</label>
+                                                <input type="text" th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].avgLapTime}" class="form-control"/>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group"><label>Avg. fuel per lap</label>
+                                                <input type="text" th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].avgFuelPerLap}" class="form-control"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="*{teamEstimations.size() > 0}" class="form-row">
+                            <div class="col">
+                                <div class="form-group text-center">
+                                    <button class="btn btn-primary btn-block" type="submit">
+                                        <i class="far fa-save" style="font-size: 32px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <form th:if="${viewMode.equals('variation')}" method="post" th:action="@{/addEstimationEntry(viewMode=${viewMode})}" th:object="${newEstimationEntry}">
+                        <input th:field="*{planId}" type="hidden">
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <select th:field="*{driverId}" class="form-control" name="car" readonly="" style="margin-top: 5px;">
+                                        <option th:each="driver : ${selectedPlan.allDrivers}" th:value="${driver.id}" th:text="${driver.name}">Dave</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label>Time of day</label>
+                                    <input th:field="*{timeFrom}" class="form-control" type="time" required="">
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group text-center"><label>Add new estimation</label>
+                                    <button class="btn btn-primary btn-block" type="submit">
+                                        <i class="fas fa-user-clock" style="font-size: 20px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group"><label>Avg. lap time</label>
+                                    <input type="text" th:field="*{avgLapTime}" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group"><label>Avg. fuel per lap</label>
+                                    <input type="text" th:field="*{avgFuelPerLap}" class="form-control" required>
                                 </div>
                             </div>
                         </div>
