@@ -19,12 +19,12 @@
         <header th:fragment="header" style="height: 10%;">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-3 row-cols-xl-3 text-nowrap text-truncate justify-content-center align-items-center" style="background-color: #a2b5f8;">
                 <div class="col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1 d-block align-self-center" style="padding-left: 0px;">
-                    <a class="btn btn-block d-lg-flex" role="button" style="padding-left: 0px;background-image: url(&quot;assets/img/be-logo.png&quot;);background-size: cover;background-repeat: no-repeat;height: 70px;width: 70px" href="/"></a>
+                    <a class="btn btn-block d-lg-flex" role="button" style="padding-left: 0px;background-image: url('assets/img/be-logo.png');background-size: cover;background-repeat: no-repeat;height: 70px;width: 70px" href="/"></a>
                 </div>
-                <div class="col-8 col-sm-7 col-md-8 col-lg-8 col-xl-7 flex-grow-1 flex-shrink-0 flex-fill">
+                <div class="col-8 col-sm-7 col-md-8 col-lg-8 col-xl-8 flex-grow-1 flex-shrink-0 flex-fill">
                     <h1 style="font-style: italic;font-size: 32px;font-family: 'Coda Caption', sans-serif;color: rgb(255,255,255);">iRacing TeamTactics</h1>
                     <div class="clearfix"></div><span>Endurance race planning and live race tactics</span></div>
-                <div class="col-2 col-sm-3 col-md-2 col-lg-1 col-xl-2 flex-shrink-1">
+                <div class="col-2 col-sm-3 col-md-2 col-lg-1 col-xl-2 text-right flex-shrink-1">
                     <a class="avatar-bg btn" role="button" th:style="'width: 70px;height: 70px;background-image: url('+ ${user.imageUrl} +');background-size: contain;background-repeat: no-repeat;'" href="/profile"></a>
                 </div>
             </div>
