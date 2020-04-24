@@ -2,6 +2,7 @@ package de.bausdorf.simcacing.tt.web;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import de.bausdorf.simcacing.tt.web.model.DoubleFormatter;
@@ -24,5 +25,11 @@ public class SpringWebConfig implements WebMvcConfigurer {
 		registry.addFormatter(new LocalDateFormatter());
 		registry.addFormatter(new ScheduleDriverOptionTypeFormatter());
 		registry.addFormatter(new LocalDateTimeFormatter());
+	}
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/webjars/**")
+				.addResourceLocations("classpath:/META-INF/resources/webjars/");
 	}
 }

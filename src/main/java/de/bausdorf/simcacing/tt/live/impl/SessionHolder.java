@@ -1,15 +1,18 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.model.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,6 +24,8 @@ public class SessionHolder implements MessageProcessor {
 	private EnumMap<MessageType, MessageValidator> validators;
 
 	private AssumptionHolder assumptionHolder;
+
+	private Queue<DataMessage> liveClientQueue;
 
 	public SessionHolder(@Autowired AssumptionHolder assumptionHolder) {
 		this.assumptionHolder = assumptionHolder;
