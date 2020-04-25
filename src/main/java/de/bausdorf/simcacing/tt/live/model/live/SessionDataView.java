@@ -1,13 +1,10 @@
-package de.bausdorf.simcacing.tt.live.model;
+package de.bausdorf.simcacing.tt.live.model.live;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalTime;
-import java.util.Optional;
 
 @Getter
 @AllArgsConstructor

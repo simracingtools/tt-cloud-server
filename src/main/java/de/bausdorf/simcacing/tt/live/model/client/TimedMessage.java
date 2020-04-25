@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.model;
+package de.bausdorf.simcacing.tt.live.model.client;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
 import lombok.AllArgsConstructor;

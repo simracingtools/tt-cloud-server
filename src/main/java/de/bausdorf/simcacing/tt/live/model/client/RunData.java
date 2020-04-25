@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.model;
+package de.bausdorf.simcacing.tt.live.model.client;
 
 import java.time.Duration;
 import java.time.LocalTime;

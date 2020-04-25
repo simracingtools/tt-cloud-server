@@ -1,7 +1,7 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants;
-import de.bausdorf.simcacing.tt.live.model.*;
+import de.bausdorf.simcacing.tt.live.model.client.*;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -15,7 +15,7 @@ public class ModelFactory {
     }
 
     public static LapData fromLapMessage(Map<String, Object> messagePayload) {
-        return de.bausdorf.simcacing.tt.live.model.LapData.builder()
+        return LapData.builder()
                 .driver((String)messagePayload.get(MessageConstants.LapData.DRIVER))
                 .fuelLevel(((Double)messagePayload.get(MessageConstants.LapData.FUEL_LEVEL)))
                 .lapTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.LAP_TIME)))
@@ -51,8 +51,8 @@ public class ModelFactory {
                 .carName((String)messagePayload.get(MessageConstants.SessionData.CAR_NAME))
                 .maxCarFuel((Double)messagePayload.get(MessageConstants.SessionData.MAX_FUEL))
                 .sessionId(getFromClientString(messagePayload.get(MessageConstants.SessionData.SESSION_ID)))
-                .sessionLaps((String)messagePayload.get(MessageConstants.SessionData.SESSION_LAPS))
-                .sessionTime((String)messagePayload.get(MessageConstants.SessionData.SESSION_DURATION))
+                .sessionLaps(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.SESSION_LAPS)))
+                .sessionTime(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.SESSION_DURATION)))
                 .sessionType((String)messagePayload.get(MessageConstants.SessionData.SESSION_TYPE))
                 .teamName((String)messagePayload.get(MessageConstants.SessionData.TEAM_NAME))
                 .trackName((String)messagePayload.get(MessageConstants.SessionData.TRACK_NAME))
@@ -81,6 +81,19 @@ public class ModelFactory {
         }
     }
 
+    public static String stringOfNumberOrString(Object o) {
+        if (o instanceof Double) {
+            return ((Double)o).toString();
+        }
+        if (o instanceof Integer) {
+            return ((Integer)o).toString();
+        }
+        if (o instanceof Long) {
+            return ((Long)o).toString();
+        }
+        return (String)o;
+    }
+
     private static LocalTime getFromIracingSessionTime(Object iRacingSessionTime) {
         // iRacing session time is seconds as double
         return LocalTime.ofNanoOfDay((long)((Double)iRacingSessionTime * 1000000000));
@@ -94,5 +107,4 @@ public class ModelFactory {
     private static SessionIdentifier getFromClientString(Object clientSessionId) {
         return parseClientSessionId((String)clientSessionId);
     }
-
 }

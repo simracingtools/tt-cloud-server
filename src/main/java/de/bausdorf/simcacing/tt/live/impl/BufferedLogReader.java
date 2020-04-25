@@ -2,7 +2,7 @@ package de.bausdorf.simcacing.tt.live.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
-import de.bausdorf.simcacing.tt.live.model.TimedMessage;
+import de.bausdorf.simcacing.tt.live.model.client.TimedMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +23,6 @@ public class BufferedLogReader extends BufferedReader {
     public String readLine() throws IOException {
         String line = super.readLine();
         line = line.replaceAll("\\\\", "");
-//        line = line.replaceAll("\\$\"", "$");
         return line.substring(0, line.length() -1);
     }
 

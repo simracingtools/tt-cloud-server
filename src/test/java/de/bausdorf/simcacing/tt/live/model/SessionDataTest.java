@@ -2,6 +2,7 @@ package de.bausdorf.simcacing.tt.live.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import de.bausdorf.simcacing.tt.live.model.client.SessionData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

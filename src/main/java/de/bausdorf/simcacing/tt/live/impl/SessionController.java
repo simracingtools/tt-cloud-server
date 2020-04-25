@@ -1,7 +1,7 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
 import de.bausdorf.simcacing.tt.live.clientapi.DuplicateLapException;
-import de.bausdorf.simcacing.tt.live.model.*;
+import de.bausdorf.simcacing.tt.live.model.client.*;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

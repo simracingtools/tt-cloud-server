@@ -25,7 +25,7 @@ public enum MessageType {
 		if( key == null ) {
 			throw new IllegalArgumentException("Invalid message type null");
 		}
-		switch(key.toLowerCase()) {
+		switch(key) {
 			case MessageConstants.MessageType.LAPDATA_NAME: return LAP;
 			case MessageConstants.MessageType.SESSION_INFO_NAME: return SESSION_INFO;
 			case MessageConstants.MessageType.RUN_DATA_NAME: return RUN_DATA;

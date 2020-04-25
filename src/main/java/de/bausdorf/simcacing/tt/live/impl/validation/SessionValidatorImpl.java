@@ -2,7 +2,7 @@ package de.bausdorf.simcacing.tt.live.impl.validation;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.impl.ModelFactory;
-import de.bausdorf.simcacing.tt.live.model.SessionData;
+import de.bausdorf.simcacing.tt.live.model.client.SessionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
@@ -22,8 +22,10 @@ public class SessionValidatorImpl extends MessageValidator<SessionData> {
     @Override
     public SessionData validate(ClientMessage sessionMessage) {
 
-        String sessionTime = (String)sessionMessage.getPayload().get("sessionTime");
-        String sessionLaps = (String)sessionMessage.getPayload().get("sessionLaps");
+        String sessionTime = ModelFactory.stringOfNumberOrString(
+                sessionMessage.getPayload().get(MessageConstants.SessionData.SESSION_DURATION));
+        String sessionLaps = ModelFactory.stringOfNumberOrString(
+                sessionMessage.getPayload().get(MessageConstants.SessionData.SESSION_LAPS));
 
         if( sessionTime == null || sessionLaps == null ) {
             throw new InvalidClientMessageException("sessionLaps or sessionTime has to be present");

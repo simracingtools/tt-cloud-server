@@ -1,6 +1,6 @@
 package de.bausdorf.simcacing.tt.web.model;
 
-import de.bausdorf.simcacing.tt.live.model.SessionIdentifier;
+import de.bausdorf.simcacing.tt.live.model.client.SessionIdentifier;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

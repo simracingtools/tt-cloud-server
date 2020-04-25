@@ -1,30 +1,32 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
-import de.bausdorf.simcacing.tt.live.model.ClientAck;
-import de.bausdorf.simcacing.tt.live.model.LiveClientMessage;
-import de.bausdorf.simcacing.tt.live.model.SessionDataView;
+import de.bausdorf.simcacing.tt.live.model.live.ClientAck;
+import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
+import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-@Component
+@Controller
+@Slf4j
 public class TeamTacticsBroadcaster {
 
     public static final String LIVE_PREFIX = "/live/";
 
     @Setter
     private MessageBrokerRegistry brokerRegistry;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     private Map<String, String> liveTopics;
 
@@ -33,13 +35,14 @@ public class TeamTacticsBroadcaster {
     }
 
     @SendTo("/live/{teamId}/sessionData")
-    public SessionDataView sendSessionData(SessionDataView message, @DestinationVariable String teamId) throws Exception {
+    public SessionDataView sendSessionData(SessionDataView message, @DestinationVariable String teamId) {
         return message;
     }
 
     @MessageMapping("/liveclient")
     @SendTo("/live/client-ack")
     public ClientAck respondAck(LiveClientMessage message) {
+        log.info("Connect message from {}: {}", message.getTeamId(), message.getText());
         String teamId = message.getText();
         if (!liveTopics.containsKey(teamId)) {
             liveTopics.put(teamId, LIVE_PREFIX + teamId);

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,8 +28,10 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 
 	@Override
 	@PostMapping("/clientmessage")
-	public void receiveClientData(Map<String, Object> clientMessage) {
-		processor.processMessage(this.validateClientMessage(clientMessage));
+	public String receiveClientData(@RequestBody Map<String, Object> clientMessage) {
+		ClientMessage msg = this.validateClientMessage(clientMessage);
+		processor.processMessage(msg);
+		return msg.getType().name();
 	}
 
 	private ClientMessage validateClientMessage(Map<String, Object> clientMessage) {

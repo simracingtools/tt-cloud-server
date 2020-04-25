@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class SessionView {
 
-	private int selectedSessionIndex;
+	private Integer selectedSessionIndex;
 	private List<SessionIdentifierView> sessions;
 
 	public SessionView() {

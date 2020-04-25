@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.model;
+package de.bausdorf.simcacing.tt.live.model.live;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

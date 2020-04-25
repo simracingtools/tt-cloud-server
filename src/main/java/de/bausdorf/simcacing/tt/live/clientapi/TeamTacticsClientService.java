@@ -4,6 +4,6 @@ import java.util.Map;
 
 public interface TeamTacticsClientService {
 
-    void receiveClientData(Map<String, Object> clientMessage);
+    String receiveClientData(Map<String, Object> clientMessage);
 
 }

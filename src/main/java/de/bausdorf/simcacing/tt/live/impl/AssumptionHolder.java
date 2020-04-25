@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.bausdorf.simcacing.tt.live.impl.assumptions.Assumptions;
 import de.bausdorf.simcacing.tt.live.impl.assumptions.DriverAssumption;
-import de.bausdorf.simcacing.tt.live.model.Assumption;
+import de.bausdorf.simcacing.tt.live.model.client.Assumption;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.*;

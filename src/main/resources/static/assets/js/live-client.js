@@ -18,18 +18,21 @@ function connect() {
     stompClient.connect({}, function (frame) {
         // setConnected(true);
         console.log('Connected: ' + frame);
-        sendTeamId();
         stompClient.subscribe('/live/client-ack', function(message) {
             console.log(JSON.parse(message.body).content);
         });
         stompClient.subscribe('/live/' + $("#teamId").val() + '/sesiondata', function (message) {
-            showSessionData();
+            showSessionData(JSON.parse(message.body).content);
         });
         stompClient.subscribe('/live/' + $("#teamId").val() + '/rundata', function (message) {
             showRunData(JSON.parse(message.body).content);
         });
+        sendTeamId();
+    }, function (frame) {
+        console.log('Error: ' + frame);
     });
 }
+
 
 function disconnect() {
     if (stompClient !== null) {

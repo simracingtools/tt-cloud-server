@@ -1,6 +1,6 @@
 package de.bausdorf.simcacing.tt.util;
 
-import de.bausdorf.simcacing.tt.live.model.LapData;
+import de.bausdorf.simcacing.tt.live.model.client.LapData;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.*;
@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class TimeTools {
 
-    private static List<String> TIME_PATTERNS = new ArrayList<>();
+    private static final List<String> TIME_PATTERNS = new ArrayList<>();
 
     static {
         TIME_PATTERNS.add("HH:mm:ss");

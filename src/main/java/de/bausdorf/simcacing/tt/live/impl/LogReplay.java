@@ -1,6 +1,6 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
-import de.bausdorf.simcacing.tt.live.model.TimedMessage;
+import de.bausdorf.simcacing.tt.live.model.client.TimedMessage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

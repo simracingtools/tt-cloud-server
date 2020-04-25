@@ -3,16 +3,9 @@ package de.bausdorf.simcacing.tt.live.impl;
 import java.util.*;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
-import de.bausdorf.simcacing.tt.live.model.*;
-import lombok.*;
+import de.bausdorf.simcacing.tt.live.model.client.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,12 +18,13 @@ public class SessionHolder implements MessageProcessor {
 
 	private AssumptionHolder assumptionHolder;
 
-	private Queue<DataMessage> liveClientQueue;
+	private Map<String, SessionKey> lastTeamSessions;
 
 	public SessionHolder(@Autowired AssumptionHolder assumptionHolder) {
 		this.assumptionHolder = assumptionHolder;
 		this.data = new HashMap<>();
 		this.validators = new EnumMap<>(MessageType.class);
+		this.lastTeamSessions = new HashMap<>();
 	}
 
 	@Override
@@ -43,7 +37,8 @@ public class SessionHolder implements MessageProcessor {
 	public void processMessage(ClientMessage message) {
 		ClientData clientData = validateAndConvert(message);
 		SessionKey sessionKey = new SessionKey(
-				message.getTeamId(), ModelFactory.parseClientSessionId(message.getSessionId()));
+				message.getTeamId(),
+				ModelFactory.parseClientSessionId(message.getSessionId()));
 		SessionController controller;
 		switch(message.getType()) {
 			case LAP:
@@ -73,8 +68,11 @@ public class SessionHolder implements MessageProcessor {
 				break;
 			case SESSION_INFO:
 				SessionData sessionData = (SessionData)clientData;
-				if( !addSession(sessionKey, sessionData))
+				if( !addSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
+				} else {
+					lastTeamSessions.put(sessionKey.getTeamId(), sessionKey);
+				}
 				break;
 			default:
 				break;
@@ -100,6 +98,14 @@ public class SessionHolder implements MessageProcessor {
 			return data.get(key);
 		}
 		throw new IllegalArgumentException("No session " + key.getSessionId() + " for team " + key.getTeamId());
+	}
+
+	public Optional<SessionController> getLastTeamSession(String teamId) {
+		SessionKey key = lastTeamSessions.get(teamId);
+		if (key == null) {
+			return Optional.empty();
+		}
+		return Optional.of(data.get(key));
 	}
 
 	public Set<SessionKey> getAvailableSessions() {

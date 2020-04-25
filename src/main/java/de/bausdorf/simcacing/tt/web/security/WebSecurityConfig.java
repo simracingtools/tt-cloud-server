@@ -26,13 +26,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/clientmessage", "/_ah/**", "/live/**", "/liveclient");
+        web.ignoring().antMatchers("/clientmessage", "/_ah/**", "/live/**", "/app/**", "/liveclient");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-    			.antMatchers("!/_ah", "!/clientmessage", "!/live/**", "!/liveclient")
+    			.antMatchers("!/_ah", "!/clientmessage", "!/live/**", "!/app/**", "!/liveclient")
                 .permitAll()
                 .anyRequest().authenticated()
 				.and()

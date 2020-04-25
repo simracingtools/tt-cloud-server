@@ -28,7 +28,7 @@
         <h1 style="font-style: italic;font-size: 32px;font-family: 'Coda Caption', sans-serif;color: rgb(255,255,255);">
             iRacing TeamTactics</h1>
         <div class="clearfix"></div>
-        <input id="teamId" th:value="${sessionData.teamId}"/>
+        <input id="teamId" th:value="${sessionData.teamId}" type="hidden"/>
         <span id="teamName" style="padding-right: 50px;" th:text="${sessionData.teamName}">FBP Racing BLUE</span>
         <span style="padding-right: 5px;padding-left: 5px;">Temp:&nbsp;</span>
         <span id="trackTemp"style="padding-right: 5px;padding-left: 5px;">23.5°C</span>
@@ -36,7 +36,7 @@
         <span id="flag" class="float-right" style="padding-right: 5px;padding-left: 5px;">SERVICABLE<br></span>
     </div>
     <div class="col-2 col-sm-3 col-md-2 col-lg-1 col-xl-2 flex-shrink-1">
-        <a class="btn" role="button" th:style="'width: 70px;height: 70px;background-image: url(' ${user.imageUrl} + ');background-size: contain;background-repeat: no-repeat;'" href="/profile"></a>
+        <a class="btn" role="button" th:style="'width: 70px;height: 70px;background-image: url(' + ${user.imageUrl} + ');background-size: contain;background-repeat: no-repeat;'" href="/profile"></a>
     </div>
 </div>
 <div class="row" style="margin-left: 0;">

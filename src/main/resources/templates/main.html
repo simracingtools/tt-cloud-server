@@ -8,18 +8,14 @@
           <button class="btn btn-primary" type="button">Plan a new race or change existing race planning</button>
         </a>
         <div class="clearfix"></div>
-        <form method="post" th:object="${sessionView}" th:action="@{/live}">
+        <form method="post" th:object="${sessionView}" th:action="@{/racing}">
           <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
             <select th:field="*{selectedSessionIndex}" class="form-control">
               <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>
-              <div th:each="session, sessionStat : *{sessions}">
-                <input type="hidden" th:field="*{sessions[__sessionStat.index__].teamId}">
-                <input type="hidden" th:field="*{sessions[__sessionStat.index__].teamName}">
-                <input type="hidden" th:field="*{sessions[__sessionStat.index__].sessionId}">
-                <option th:value="${sessionStat.index}"
-                        th:text="${session.teamName}"
-                        th:selected="*{selectedSessionIndex} == ${sessionStat.index}">FBP Racing RED - 24Nos</option>
-              </div>
+              <option th:each="liveSession, sessionStat : *{sessions}"
+                      th:value="${sessionStat.index}"
+                      th:text="${liveSession.teamName}"
+                      th:selected="*{selectedSessionIndex} == ${sessionStat.index}">FBP Racing RED - 24Nos</option>
             </select>
           </div>
           <div class="form-group text-center">

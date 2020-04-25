@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.bausdorf.simcacing.tt.live.impl.ModelFactory;
-import de.bausdorf.simcacing.tt.live.model.SessionData;
+import de.bausdorf.simcacing.tt.live.model.client.SessionData;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
