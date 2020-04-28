@@ -17,13 +17,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         this.userService = userService;
     }
 
-//    @Bean
-//    @ConditionalOnMissingBean
-//    public OAuth2AuthorizedClientService authorizedClientService(
-//            ClientRegistrationRepository clientRegistrationRepository) {
-//        return new InMemoryOAuth2AuthorizedClientService(clientRegistrationRepository);
-//    }
-
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/clientmessage", "/_ah/**", "/live/**", "/app/**", "/liveclient");
