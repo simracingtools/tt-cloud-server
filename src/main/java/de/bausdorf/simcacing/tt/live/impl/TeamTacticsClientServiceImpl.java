@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 
 	public static final String KEY_TYPE = "type";
@@ -30,7 +33,11 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	@PostMapping("/clientmessage")
 	public String receiveClientData(@RequestBody Map<String, Object> clientMessage) {
 		ClientMessage msg = this.validateClientMessage(clientMessage);
-		processor.processMessage(msg);
+		try {
+			processor.processMessage(msg);
+		} catch (Exception e) {
+			log.error("{}: {}", e.getMessage(), msg);
+		}
 		return msg.getType().name();
 	}
 
