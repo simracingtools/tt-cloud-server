@@ -40,8 +40,9 @@ public class MessageConstants {
         public static final String FLAGS = "flags";
         public static final String SESSION_TIME = "sessionTime";
         public static final String EST_LAP_TIME = "estLaptime";
+		public static final String CLIENT_ID = "clientId";
 
-        private RunData() {}
+		private RunData() {}
     }
     
     public static class EventData {

@@ -30,8 +30,8 @@ public class ModelFactory {
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
-//                .flags(FlagType.fromIrBitmask((Long)messagePayload.get(MessageConstants.RunData.FLAGS)))
                 .flags((List<FlagType>)messagePayload.get(MessageConstants.RunData.FLAGS))
+                .clientId((String)messagePayload.get(MessageConstants.RunData.CLIENT_ID))
                 .build();
     }
 
