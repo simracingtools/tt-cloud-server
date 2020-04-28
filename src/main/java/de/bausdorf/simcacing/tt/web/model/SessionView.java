@@ -10,6 +10,7 @@ import lombok.Data;
 public class SessionView {
 
 	private Integer selectedSessionIndex;
+	private String selectedPlanId;
 	private List<SessionIdentifierView> sessions;
 
 	public SessionView() {

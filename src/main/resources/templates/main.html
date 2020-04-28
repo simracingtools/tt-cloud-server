@@ -14,8 +14,15 @@
               <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>
               <option th:each="liveSession, sessionStat : *{sessions}"
                       th:value="${sessionStat.index}"
-                      th:text="${liveSession.teamName}"
+                      th:text="${liveSession.sessionId}"
                       th:selected="*{selectedSessionIndex} == ${sessionStat.index}">FBP Racing RED - 24Nos</option>
+            </select>
+          </div>
+          <div class="form-group text-center">
+            <label>Select race planning</label>
+            <select th:field="*{selectedPlanId}" class="form-control">
+              <option value="None">None</option>
+              <option th:each="plan : ${plans}" th:value="${plan.id}" th:text="${plan.team} + ' - ' + ${plan.name}" selected="">My race Plan</option>
             </select>
           </div>
           <div class="form-group text-center">
