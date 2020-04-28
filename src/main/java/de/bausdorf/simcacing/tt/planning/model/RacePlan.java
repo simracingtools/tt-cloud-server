@@ -35,7 +35,6 @@ public class RacePlan {
 	public void calculateStints() {
 		List<Stint> oldRacePlan = prepareOldRacePlan();
 
-		Estimation genericEstimation = planParameters.getGenericEstimation();
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = planParameters.getTodStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
@@ -45,11 +44,9 @@ public class RacePlan {
 			if( oldRacePlan.size() > stintCount) {
 				currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
 			}
-			Estimation driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
-			if( driverEstimation == null ) {
-				driverEstimation = genericEstimation;
-			}
-			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver, planParameters.getMaxCarFuel(), driverEstimation);
+			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
+					planParameters.getMaxCarFuel(),
+					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			currentRacePlan.add(nextStint);
 			stintCount++;
 
@@ -61,11 +58,9 @@ public class RacePlan {
 				if( oldRacePlan.size() >= stintCount) {
 					currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
 				}
-				driverEstimation = planParameters.getDriverNameEstimationAt(currentDriver, todClock);
-				if( driverEstimation == null ) {
-					driverEstimation = genericEstimation;
-				}
-				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver, Duration.between(raceClock, sessionEndTime), driverEstimation);
+				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
+						Duration.between(raceClock, sessionEndTime),
+						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 				currentRacePlan.add(lastStint);
 				break;
 			}

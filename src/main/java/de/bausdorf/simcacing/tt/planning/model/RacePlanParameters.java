@@ -183,7 +183,7 @@ public class RacePlanParameters {
 			IRacingDriver driver = roster.getDriverByName(driverName);
 			return driver != null ? roster.getDriverEstimationAt(driver, todDateTime) : null;
 		}
-		return null;
+		return getGenericEstimation();
 	}
 
 	public LocalDate getSessionStartDate() {
