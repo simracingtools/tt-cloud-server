@@ -12,17 +12,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class SessionHolder implements MessageProcessor {
 
-	private Map<SessionKey, SessionController> data;
+	private SessionMap data;
 
 	private EnumMap<MessageType, MessageValidator> validators;
 
-	private AssumptionHolder assumptionHolder;
-
 	private Map<String, SessionKey> lastTeamSessions;
 
-	public SessionHolder(@Autowired AssumptionHolder assumptionHolder) {
-		this.assumptionHolder = assumptionHolder;
-		this.data = new HashMap<>();
+	public SessionHolder() {
+		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
 		this.lastTeamSessions = new HashMap<>();
 	}
@@ -81,18 +78,14 @@ public class SessionHolder implements MessageProcessor {
 
 	public boolean addSession(SessionKey sessionKey, SessionData sessionData) {
 		if( data == null ) {
-			data = new HashMap<>();
+			data = new SessionMap();
 		}
-		if( !data.containsKey(sessionKey)) {
-			data.put(sessionKey, new SessionController(sessionData, assumptionHolder));
-			return true;
-		}
-		return false;
+		return data.putSession(sessionKey, sessionData);
 	}
 
 	public SessionController getSessionController(SessionKey key) {
 		if( data == null ) {
-			data = new HashMap<>();
+			data = new SessionMap();
 		}
 		if( data.containsKey(key) ) {
 			return data.get(key);

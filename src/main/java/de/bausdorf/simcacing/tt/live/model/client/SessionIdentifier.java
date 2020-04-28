@@ -28,6 +28,15 @@ public class SessionIdentifier {
                 .toString();
     }
 
+    public boolean equalsWithoutSessionNum(SessionIdentifier other) {
+        if (other == null) {
+            return false;
+        }
+        return teamName.equalsIgnoreCase(other.getTeamName())
+                && sessionId.equalsIgnoreCase(other.getSessionId())
+                && subSessionId.equalsIgnoreCase(other.getSubSessionId());
+    }
+
     public static SessionIdentifier parse(String s) {
         if (s == null || s.isEmpty()) {
             return null;
