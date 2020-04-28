@@ -2,11 +2,16 @@ package de.bausdorf.simcacing.tt.live.impl;
 
 import de.bausdorf.simcacing.tt.live.clientapi.DuplicateLapException;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.planning.model.Estimation;
+import de.bausdorf.simcacing.tt.planning.model.RacePlan;
+import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -14,12 +19,13 @@ import java.util.*;
 @Getter
 public class SessionController {
     private SessionData sessionData;
-    private AssumptionHolder assumptions;
+    @Setter
+    private RacePlan racePlan;
 
     private LocalTime greenFlagTime;
     private SortedMap<Integer, Stint> stints = new TreeMap<>();
     private SortedMap<Integer, LapData> laps = new TreeMap<>();
-    private SortedMap<Integer, Pitstop> pitstops = new TreeMap<>();
+    private SortedMap<Integer, Pitstop> pitStops = new TreeMap<>();
     private Map<String, SyncData> heartbeats = new HashMap<>();
     private RunData runData;
 
@@ -30,9 +36,8 @@ public class SessionController {
     private Duration optRepairTimeLeft;
     private Duration towTimeLeft;
 
-    public SessionController(SessionData sessionData, AssumptionHolder assumptions) {
+    public SessionController(SessionData sessionData) {
         this.sessionData = sessionData;
-        this.assumptions = assumptions;
         log.info("Created session controller for {}", sessionData.getSessionId());
     }
 
@@ -100,11 +105,10 @@ public class SessionController {
             }
             currentStint.addStintDuration(newLap.getLapTime());
         }
-        Assumption assumption = assumptions.getAssumption(
-                sessionData.getTrackName(),
-                sessionData.getCarName(),
-                newLap.getDriver(),
-                sessionData.getMaxCarFuel());
+        Assumption assumption = getAssumptionFromRacePlan(
+                runData == null ? "" : runData.getClientId(),
+                racePlan == null ? null : racePlan.getPlanParameters().getTodStartTime().plusSeconds(
+                        (runData == null ? 0 : runData.getSessionTime().toSecondOfDay())));
         calculateStintLaps(currentStint, runData.getFuelLevel(), assumption);
         calculateExpectedStintDuration(currentStint, assumption);
         log.debug("Current stint: {}", currentStint);
@@ -126,27 +130,27 @@ public class SessionController {
 
         switch (eventData.getTrackLocationType()) {
             case APPROACHING_PITS:
-                if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitstops.isEmpty()) {
+                if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
                     log.debug("Starting from box");
                     return;
                 }
                 Pitstop newPitStop = getOrCreateNextPitstop();
                 newPitStop.update(eventData);
-                pitstops.put(newPitStop.getStint(), newPitStop);
+                pitStops.put(newPitStop.getStint(), newPitStop);
                 break;
             case PIT_STALL:
-                if (pitstops.isEmpty()) {
+                if (pitStops.isEmpty()) {
                     log.warn("No pitstop while in pit stall");
                 } else {
-                    pitstops.get(pitstops.lastKey()).update(eventData);
+                    pitStops.get(pitStops.lastKey()).update(eventData);
                 }
                 repairTimeLeft = eventData.getRepairTime();
                 optRepairTimeLeft = eventData.getOptRepairTime();
                 towTimeLeft = eventData.getTowingTime();
                 break;
             case ONTRACK:
-                if (!pitstops.isEmpty() && pitstops.get(pitstops.lastKey()).update(eventData)) {
-                    log.debug("Pitstop completed: {}", pitstops.get(pitstops.lastKey()));
+                if (!pitStops.isEmpty() && pitStops.get(pitStops.lastKey()).update(eventData)) {
+                    log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
                     Optional<LapData> lastRecordedLap = getLastRecordedLap();
                     if( lastRecordedLap.isPresent() ) {
                         log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
@@ -164,7 +168,7 @@ public class SessionController {
                 if (!eventData.getTowingTime().isZero()) {
                     Pitstop towPitStop = getOrCreateNextPitstop();
                     towPitStop.update(eventData);
-                    pitstops.put(towPitStop.getStint(), towPitStop);
+                    pitStops.put(towPitStop.getStint(), towPitStop);
                 }
                 towTimeLeft = eventData.getTowingTime();
         }
@@ -256,13 +260,13 @@ public class SessionController {
 
     private Pitstop getOrCreateNextPitstop() {
         try {
-            Integer lastPitStopKey = pitstops.lastKey();
-            Pitstop lastPitStop = pitstops.get(lastPitStopKey);
+            Integer lastPitStopKey = pitStops.lastKey();
+            Pitstop lastPitStop = pitStops.get(lastPitStopKey);
             if (!lastPitStop.isComplete()) {
                 return lastPitStop;
             } else {
                 return Pitstop.builder()
-                        .stint(pitstops.get(lastPitStopKey).getStint() + 1)
+                        .stint(pitStops.get(lastPitStopKey).getStint() + 1)
                         .driver(currentDriverName)
                         .lap(currentLapNo)
                         .build();
@@ -275,5 +279,16 @@ public class SessionController {
                     .build();
 
         }
+    }
+
+    private Assumption getAssumptionFromRacePlan(String currentDriverId, LocalDateTime atTod) {
+    Estimation estimation = racePlan == null ? null : racePlan.getPlanParameters()
+            .getDriverEstimationAt(IRacingDriver.builder().id(currentDriverId).build(), atTod);
+    return Assumption.builder()
+            .avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))
+            .avgLapTime(Optional.ofNullable(estimation == null ? null : estimation.getAvgLapTime()))
+            .carFuel(racePlan == null ? 0.0D : racePlan.getPlanParameters().getMaxCarFuel())
+            .avgPitStopTime(Optional.ofNullable(racePlan == null ? null : racePlan.getPlanParameters().getAvgPitStopTime()))
+            .build();
     }
 }
