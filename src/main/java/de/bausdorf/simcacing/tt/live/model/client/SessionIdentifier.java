@@ -37,6 +37,13 @@ public class SessionIdentifier {
                 && subSessionId.equalsIgnoreCase(other.getSubSessionId());
     }
 
+    public String getSubscriptionId() {
+        return new StringBuilder(teamName.replace(" ", ""))
+                .append('-').append(sessionId)
+                .append('-').append(subSessionId)
+                .toString();
+    }
+
     public static SessionIdentifier parse(String s) {
         if (s == null || s.isEmpty()) {
             return null;

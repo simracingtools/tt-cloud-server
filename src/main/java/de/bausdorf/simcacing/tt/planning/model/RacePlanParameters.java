@@ -181,7 +181,10 @@ public class RacePlanParameters {
 	public Estimation getDriverNameEstimationAt(String driverName, LocalDateTime todDateTime) {
 		if (roster != null) {
 			IRacingDriver driver = roster.getDriverByName(driverName);
-			return driver != null ? roster.getDriverEstimationAt(driver, todDateTime) : null;
+			if (driver != null) {
+				Estimation estimation = roster.getDriverEstimationAt(driver, todDateTime);
+				return estimation != null ? estimation : getGenericEstimation();
+			}
 		}
 		return getGenericEstimation();
 	}

@@ -19,13 +19,19 @@ function connect() {
         // setConnected(true);
         console.log('Connected: ' + frame);
         stompClient.subscribe('/live/client-ack', function(message) {
-            console.log(JSON.parse(message.body).content);
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showSessionData(jsonMessage);
         });
         stompClient.subscribe('/live/' + $("#teamId").val() + '/sesiondata', function (message) {
-            showSessionData(JSON.parse(message.body).content);
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showSessionData(jsonMessage);
         });
         stompClient.subscribe('/live/' + $("#teamId").val() + '/rundata', function (message) {
-            showRunData(JSON.parse(message.body).content);
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showRunData(jsonMessage);
         });
         sendTeamId();
     }, function (frame) {
@@ -47,12 +53,16 @@ function sendTeamId() {
 }
 
 function showSessionData(message) {
-    // $("#greetings").append("<tr><td>" + message + "</td></tr>");
-    $("#sessionType").val(message.sessionType);
+    $("#sessionType").text(message.sessionType);
+    $("#teamName").text(message.teamName);
+    $("#maxCarFuel").val(message.maxCarFuel);
 }
 
 function showRunData(message) {
-    console.log(message);
+    $("#fuelLevel").text(message.fuelLevelStr);
+    $("#driverName").text(message.driverName);
+    $("#flag").text(message.flags[0]);
+    
 }
 
 // $(function () {

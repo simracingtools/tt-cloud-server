@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ModelFactory {
 
@@ -30,7 +31,9 @@ public class ModelFactory {
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
-                .flags((List<FlagType>)messagePayload.get(MessageConstants.RunData.FLAGS))
+                .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
+                        .map(FlagType::valueOf)
+                        .collect(Collectors.toList()))
                 .clientId((String)messagePayload.get(MessageConstants.RunData.CLIENT_ID))
                 .build();
     }

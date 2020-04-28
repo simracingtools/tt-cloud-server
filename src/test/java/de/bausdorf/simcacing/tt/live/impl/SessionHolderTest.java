@@ -3,6 +3,7 @@ package de.bausdorf.simcacing.tt.live.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.common.routine.AbstractRoutines;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,7 @@ public class SessionHolderTest {
     private SessionHolder holder;
 
     @Configuration
-    static class TestConfig {
+    class TestConfig {
         @Bean
         @ConditionalOnMissingBean
         SessionHolder getSessionHolder() {

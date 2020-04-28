@@ -1,6 +1,5 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -11,17 +10,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private TeamTacticsBroadcaster broadcaster;
-
-    public WebSocketConfig(@Autowired TeamTacticsBroadcaster broadcaster) {
-        this.broadcaster = broadcaster;
-    }
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/live");
         config.setApplicationDestinationPrefixes("/app");
-        broadcaster.setBrokerRegistry(config);
     }
 
     @Override

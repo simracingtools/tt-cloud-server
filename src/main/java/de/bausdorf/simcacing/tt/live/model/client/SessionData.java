@@ -28,7 +28,8 @@ public class SessionData implements ClientData {
 		if( UNLIMITED.equalsIgnoreCase(sessionTime) ) {
 			return Optional.empty();
 		}
-		return Optional.of(LocalTime.ofSecondOfDay(Long.parseLong(sessionTime)));
+		Double iRacingSecondOfDay = Double.parseDouble(sessionTime);
+		return Optional.of(LocalTime.ofSecondOfDay(iRacingSecondOfDay.longValue()));
 	}
 
 	public Optional<Integer> getSessionMaxLaps() {

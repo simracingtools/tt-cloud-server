@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 public class SessionDataView implements ClientData {
 	private String sessionId;
 	private String teamName;
-	private String teamId;
 	private String carName;
 	private String sessionDuration;
 	private String maxCarFuel;

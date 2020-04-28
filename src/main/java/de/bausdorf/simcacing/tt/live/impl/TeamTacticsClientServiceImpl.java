@@ -37,6 +37,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 			processor.processMessage(msg);
 		} catch (Exception e) {
 			log.error("{}: {}", e.getMessage(), msg);
+			log.error(e.getMessage(), e);
 		}
 		return msg.getType().name();
 	}

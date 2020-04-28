@@ -12,8 +12,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class RunDataView {
+    private String driverName;
     private String sessionTime;
     private double fuelLevel;
-    private double fuelLevelStr;
+    private String fuelLevelStr;
     private List<String> flags;
 }

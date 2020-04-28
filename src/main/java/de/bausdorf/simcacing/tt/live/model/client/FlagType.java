@@ -24,6 +24,7 @@ public enum FlagType {
     BLACK,
     DQ,
     SERVICEABLE,
+    SERVICIBLE, // error - to be fixed in TT-Client
     FURLED,
     REPAIR,
     START_HIDDEN,

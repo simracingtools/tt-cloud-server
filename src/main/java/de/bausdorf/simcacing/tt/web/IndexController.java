@@ -52,7 +52,7 @@ public class IndexController extends BaseController {
                     .getSessions().get(sessionView.getSelectedSessionIndex());
             if (selectedView != null) {
                 SessionKey sessionKey = SessionKey.builder()
-                        .sessionId(SessionIdentifier.parse(selectedView.getSessionId()))
+                        .sessionId(SessionIdentifier.parse(selectedView.getSessionKey()))
                         .teamId(selectedView.getTeamId())
                         .build();
 

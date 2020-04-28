@@ -1,27 +1,45 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
+import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
+import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
+import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
 
-@Component
+@Controller
 @Slf4j
 public class SessionHolder implements MessageProcessor {
+	public static final String LIVE_PREFIX = "/live/";
 
 	private SessionMap data;
 
 	private EnumMap<MessageType, MessageValidator> validators;
 
-	private Map<String, SessionKey> lastTeamSessions;
+	private Map<String, String> liveTopics;
+
+	@Autowired
+	private SimpMessagingTemplate messagingTemplate;
+
+	@Autowired
+	DriverRepository driverRepository;
 
 	public SessionHolder() {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
-		this.lastTeamSessions = new HashMap<>();
+		this.liveTopics = new HashMap<>();
 	}
 
 	@Override
@@ -54,6 +72,8 @@ public class SessionHolder implements MessageProcessor {
 						.sessionTime(((RunData)clientData).getSessionTime())
 						.clientId(message.getClientId())
 						.build());
+
+				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
@@ -67,9 +87,8 @@ public class SessionHolder implements MessageProcessor {
 				SessionData sessionData = (SessionData)clientData;
 				if( !addSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
-				} else {
-					lastTeamSessions.put(sessionKey.getTeamId(), sessionKey);
 				}
+				sendSessionData(sessionData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			default:
 				break;
@@ -77,32 +96,104 @@ public class SessionHolder implements MessageProcessor {
 	}
 
 	public boolean addSession(SessionKey sessionKey, SessionData sessionData) {
-		if( data == null ) {
-			data = new SessionMap();
-		}
 		return data.putSession(sessionKey, sessionData);
 	}
 
 	public SessionController getSessionController(SessionKey key) {
-		if( data == null ) {
-			data = new SessionMap();
-		}
 		if( data.containsKey(key) ) {
 			return data.get(key);
 		}
 		throw new IllegalArgumentException("No session " + key.getSessionId() + " for team " + key.getTeamId());
 	}
 
-	public Optional<SessionController> getLastTeamSession(String teamId) {
-		SessionKey key = lastTeamSessions.get(teamId);
-		if (key == null) {
-			return Optional.empty();
+	public SessionController getSessionControllerBySubscriptionId(String subscriptionId) {
+		for (Map.Entry<SessionKey, SessionController> entry : data.entrySet()) {
+			if (entry.getKey().getSessionId().getSubscriptionId().equalsIgnoreCase(subscriptionId)) {
+				return entry.getValue();
+			}
 		}
-		return Optional.of(data.get(key));
+		return null;
 	}
 
 	public Set<SessionKey> getAvailableSessions() {
 		return data.keySet();
+	}
+
+	public void sendSessionData(SessionData sessionData, String teamId) {
+		if (liveTopics.containsKey(teamId)) {
+			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/sessiondata", SessionDataView.builder()
+					.carName(sessionData.getCarName())
+					.trackName(sessionData.getTrackName())
+					.sessionDuration(sessionData.getSessionDuration().orElse(LocalTime.MIN)
+							.format(DateTimeFormatter.ofPattern("HH:mm")))
+					.sessionType(sessionData.getSessionType())
+					.teamName(sessionData.getTeamName())
+					.sessionId(teamId)
+					.maxCarFuel(String.format("%.3f", sessionData.getMaxCarFuel()))
+					.build());
+		}
+	}
+
+	public void sendRunData(RunData runData, String teamId) {
+		if (liveTopics.containsKey(teamId)) {
+			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/rundata", RunDataView.builder()
+					.fuelLevel(runData.getFuelLevel())
+					.fuelLevelStr(String.format("%.3f", runData.getFuelLevel()))
+					.sessionTime(runData.getSessionTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+					.flags(runData.getFlags().stream()
+							.map(FlagType::name)
+							.collect(Collectors.toList()))
+					.driverName(driverRepository.findById(runData.getClientId())
+							.orElse(IRacingDriver.builder()
+									.name("N.N.")
+									.id(runData.getClientId())
+									.validated(false)
+									.build())
+							.getName())
+					.build());
+		}
+	}
+
+	@MessageMapping("/liveclient")
+	@SendTo("/live/client-ack")
+	public SessionDataView respondAck(LiveClientMessage message) {
+		log.info("Connect message from {}: {}", message.getTeamId(), message.getText());
+		String teamId = message.getTeamId();
+		if (!liveTopics.containsKey(teamId)) {
+			liveTopics.put(teamId, LIVE_PREFIX + teamId);
+		}
+		SessionDataView sessionDataView = getSessionDataView(teamId);
+		if (sessionDataView != null) {
+			return sessionDataView;
+		} else {
+			log.warn("No session controller matching subscriptionId {}", teamId);
+		}
+		return SessionDataView.builder()
+				.maxCarFuel("-.---")
+				.sessionId("unknown session")
+				.teamName("---")
+				.sessionType("---")
+				.sessionDuration("--.--.--")
+				.trackName("---")
+				.carName("---")
+				.build();
+	}
+
+	private SessionDataView getSessionDataView(String subscriptionId) {
+		SessionController controller = getSessionControllerBySubscriptionId(subscriptionId);
+		if (controller != null) {
+			return SessionDataView.builder()
+					.carName(controller.getSessionData().getCarName())
+					.trackName(controller.getSessionData().getTrackName())
+					.sessionDuration(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN)
+							.format(DateTimeFormatter.ofPattern("HH:mm")))
+					.sessionType(controller.getSessionData().getSessionType())
+					.teamName(controller.getSessionData().getTeamName())
+					.sessionId(subscriptionId)
+					.maxCarFuel(String.format("%.3f", controller.getSessionData().getMaxCarFuel()))
+					.build();
+		}
+		return null;
 	}
 
 	private ClientData validateAndConvert(ClientMessage message) {

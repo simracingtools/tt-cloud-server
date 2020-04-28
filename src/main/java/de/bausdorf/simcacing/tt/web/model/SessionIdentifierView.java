@@ -12,11 +12,13 @@ public class SessionIdentifierView {
 
 	private String teamName;
 	private String sessionId;
+	private String sessionKey;
 	private String teamId;
 
 	public SessionIdentifierView(String teamId, SessionIdentifier identifier) {
 		this.teamId = teamId;
 		this.teamName = identifier.getTeamName();
-		this.sessionId = identifier.toString();
+		this.sessionId = identifier.getSubscriptionId();
+		this.sessionKey = identifier.toString();
 	}
 }
