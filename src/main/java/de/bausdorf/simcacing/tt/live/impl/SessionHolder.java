@@ -68,19 +68,19 @@ public class SessionHolder implements MessageProcessor {
 				break;
 			case RUN_DATA:
 				controller = getSessionController(sessionKey);
-				controller.updateRunData((RunData)clientData);
-				controller.updateSyncData(SyncData.builder()
-						.isInCar(true)
-						.sessionTime(((RunData)clientData).getSessionTime())
-						.clientId(message.getClientId())
-						.build());
-
 				IRacingDriver driver = driverRepository.findById(message.getClientId())
 						.orElse(IRacingDriver.builder()
 								.id("unknown")
 								.name("N.N.")
 								.validated(false)
 								.build());
+				controller.setCurrentDriver(driver);
+				controller.updateRunData((RunData)clientData);
+				controller.updateSyncData(SyncData.builder()
+						.isInCar(true)
+						.sessionTime(((RunData)clientData).getSessionTime())
+						.clientId(message.getClientId())
+						.build());
 
 				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId(), driver);
 				break;
