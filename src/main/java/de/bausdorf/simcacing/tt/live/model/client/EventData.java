@@ -14,6 +14,7 @@ import java.util.List;
 @ToString
 public class EventData implements ClientData {
     private LocalTime sessionTime;
+    private LocalTime sessionToD;
     private TrackLocationType trackLocationType;
     private List<FlagType> flags;
     private Duration towingTime;

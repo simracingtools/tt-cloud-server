@@ -14,6 +14,7 @@ import lombok.*;
 public class RunData implements ClientData {
 
 	private LocalTime sessionTime;
+	private LocalTime sessionToD;
 	private double fuelLevel;
 	private List<FlagType> flags;
 	private Duration estLapTime;

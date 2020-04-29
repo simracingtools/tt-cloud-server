@@ -31,6 +31,7 @@ public class ModelFactory {
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
+                .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
                         .map(FlagType::valueOf)
                         .collect(Collectors.toList()))
@@ -42,6 +43,7 @@ public class ModelFactory {
                 .flags(FlagType.fromIrBitmask((Integer)messagePayload.get(MessageConstants.EventData.FLAGS)))
                 .trackLocationType(TrackLocationType.forIrCode((Integer)messagePayload.get(MessageConstants.EventData.TRACK_LOCATION)))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
+                .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .optRepairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.OPT_REPAIR_TIME)))
                 .repairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.REPAIR_TIME)))
                 .towingTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.TOW_TIME)))
@@ -51,6 +53,7 @@ public class ModelFactory {
     public static SessionData getFromSessionMessage(Map<String, Object> messagePayload) {
         return SessionData.builder()
                 .carName((String)messagePayload.get(MessageConstants.SessionData.CAR_NAME))
+                .carId((String)messagePayload.get(MessageConstants.SessionData.CAR_ID))
                 .maxCarFuel((Double)messagePayload.get(MessageConstants.SessionData.MAX_FUEL))
                 .sessionId(getFromClientString(messagePayload.get(MessageConstants.SessionData.SESSION_ID)))
                 .sessionLaps(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.SESSION_LAPS)))
@@ -58,6 +61,7 @@ public class ModelFactory {
                 .sessionType((String)messagePayload.get(MessageConstants.SessionData.SESSION_TYPE))
                 .teamName((String)messagePayload.get(MessageConstants.SessionData.TEAM_NAME))
                 .trackName((String)messagePayload.get(MessageConstants.SessionData.TRACK_NAME))
+                .trackId((String)messagePayload.get(MessageConstants.SessionData.TRACK_ID))
                 .build();
     }
 
@@ -85,7 +89,7 @@ public class ModelFactory {
 
     public static String stringOfNumberOrString(Object o) {
         if (o instanceof Double) {
-            return ((Double)o).toString();
+            return o.toString();
         }
         if (o instanceof Integer) {
             return ((Integer)o).toString();

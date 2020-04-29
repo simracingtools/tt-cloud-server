@@ -23,11 +23,13 @@ import org.springframework.stereotype.Controller;
 @Controller
 @Slf4j
 public class SessionHolder implements MessageProcessor {
-	public static final String LIVE_PREFIX = "/live/";
+	private static final String LIVE_PREFIX = "/live/";
 
 	private final SessionMap data;
 
 	private final EnumMap<MessageType, MessageValidator> validators;
+
+	private final Map<String, MessageTransformer> transformers;
 
 	private final Map<String, String> liveTopics;
 
@@ -39,6 +41,7 @@ public class SessionHolder implements MessageProcessor {
 			@Autowired DriverRepository driverRepository) {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
+		this.transformers = new HashMap<>();
 		this.liveTopics = new HashMap<>();
 		this.messagingTemplate = messagingTemplate;
 		this.driverRepository = driverRepository;
@@ -51,8 +54,14 @@ public class SessionHolder implements MessageProcessor {
 	}
 
 	@Override
+	public void registerMessageTransformer(MessageTransformer transformer) {
+		log.info("Register transformer for version " + transformer.supportedMessageVersion());
+		transformers.put(transformer.supportedMessageVersion(), transformer);
+	}
+
+	@Override
 	public void processMessage(ClientMessage message) {
-		ClientData clientData = validateAndConvert(message);
+		ClientData clientData = validateAndConvert(transform(message));
 		SessionKey sessionKey = new SessionKey(
 				message.getTeamId(),
 				ModelFactory.parseClientSessionId(message.getSessionId()));
@@ -230,6 +239,14 @@ public class SessionHolder implements MessageProcessor {
 			case SYNC: return ModelFactory.getFromSyncMessage(message.getPayload());
 			default: throw new InvalidClientMessageException("Unknown ClientMessage type");
 		}
+	}
+
+	private ClientMessage transform(ClientMessage message) {
+		MessageTransformer transformer = transformers.get(message.getVersion());
+		if (transformer != null) {
+			return transformer.transform(message);
+		}
+		return message;
 	}
 
 	private static String getSyncState(LocalTime lastSync, LocalTime currentSync) {

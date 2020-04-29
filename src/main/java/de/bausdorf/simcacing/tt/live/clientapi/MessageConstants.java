@@ -39,14 +39,15 @@ public class MessageConstants {
         public static final String FUEL_LEVEL = "fuelLevel";
         public static final String FLAGS = "flags";
         public static final String SESSION_TIME = "sessionTime";
+        public static final String SESSION_TOD = "sessionToD";
         public static final String EST_LAP_TIME = "estLaptime";
-		public static final String CLIENT_ID = "clientId";
 
 		private RunData() {}
     }
     
     public static class EventData {
         public static final String SESSION_TIME = "sessionTime";
+        public static final String SESSION_TOD = "sessionToD";
         public static final String TRACK_LOCATION = "trackLocation";
         public static final String FLAGS = "flags";
         public static final String TOW_TIME = "towingTime";
@@ -58,12 +59,14 @@ public class MessageConstants {
     
     public static class SessionData {
         public static final String TRACK_NAME = "track";
+        public static final String TRACK_ID = "trackId";
         public static final String SESSION_ID = "sessionId";
         public static final String SESSION_LAPS = "sessionLaps";
         public static final String SESSION_DURATION = "sessionTime";
         public static final String SESSION_TYPE = "sessionType";
         public static final String TEAM_NAME = "teamName";
         public static final String CAR_NAME = "car";
+        public static final String CAR_ID = "carId";
         public static final String MAX_FUEL = "maxFuel";
 
         private SessionData() {}

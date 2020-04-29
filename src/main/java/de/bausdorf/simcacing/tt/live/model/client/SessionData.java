@@ -18,10 +18,12 @@ public class SessionData implements ClientData {
 	private SessionIdentifier sessionId;
 	private String teamName;
 	private String carName;
+	private String carId;
 	private String sessionLaps;
 	private String sessionTime;
 	private double maxCarFuel;
 	private String trackName;
+	private String trackId;
 	private String sessionType;
 
 	public Optional<LocalTime> getSessionDuration() {

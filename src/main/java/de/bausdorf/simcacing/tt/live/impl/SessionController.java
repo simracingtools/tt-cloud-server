@@ -36,6 +36,7 @@ public class SessionController {
     private Duration repairTimeLeft;
     private Duration optRepairTimeLeft;
     private Duration towTimeLeft;
+    private LocalTime sessionToD;
 
     public SessionController(SessionData sessionData) {
         this.sessionData = sessionData;
@@ -85,6 +86,7 @@ public class SessionController {
 
     public void updateRunData(RunData runData) {
         this.runData = runData;
+        this.sessionToD = runData.getSessionToD();
         if (greenFlagTime == null && runData.getFlags().contains(FlagType.GREEN)) {
             greenFlagTime = runData.getSessionTime();
         }
@@ -141,6 +143,7 @@ public class SessionController {
                 }
                 towTimeLeft = eventData.getTowingTime();
         }
+        sessionToD = eventData.getSessionToD();
         currentTrackLocation = eventData.getTrackLocationType();
     }
 
@@ -293,7 +296,7 @@ public class SessionController {
     private Assumption getAssumptionFromRacePlan() {
     LocalDateTime atTod = racePlan == null ? null : racePlan.getTodRaceTime(getCurrentSessionTime());
     Estimation estimation = racePlan == null ? null : racePlan.getPlanParameters()
-            .getDriverEstimationAt(currentDriver, atTod);
+            .getDriverEstimationAt(currentDriver, LocalDateTime.of(atTod.toLocalDate(), sessionToD));
     return Assumption.builder()
             .avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))
             .avgLapTime(Optional.ofNullable(estimation == null ? null : estimation.getAvgLapTime()))

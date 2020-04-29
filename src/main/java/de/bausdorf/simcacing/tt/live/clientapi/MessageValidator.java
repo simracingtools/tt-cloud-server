@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationListener;
 
 public abstract class MessageValidator<T extends ClientData> implements ApplicationListener<ApplicationReadyEvent> {
 
-    private MessageProcessor processor;
+    private final MessageProcessor processor;
 
     public MessageValidator(MessageProcessor processor) {
         this.processor = processor;
