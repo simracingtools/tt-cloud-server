@@ -32,7 +32,7 @@ public enum FlagType {
 
     long bitFlag;
 
-    private FlagType(long flag) {
+    FlagType(long flag) {
         this.bitFlag = flag;
     }
 

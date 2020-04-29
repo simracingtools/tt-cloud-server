@@ -413,9 +413,7 @@ public class RacePlanController extends BaseController {
         if (team.isPresent()) {
             for (String driverId : team.get().getAuthorizedDriverIds()) {
                 Optional<IRacingDriver> driver = driverRepository.findById(driverId);
-                if (driver.isPresent()) {
-                    authorizedDrivers.add(driver.get());
-                }
+                driver.ifPresent(authorizedDrivers::add);
             }
         }
         return authorizedDrivers;
