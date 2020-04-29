@@ -23,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class IndexController extends BaseController {
@@ -41,22 +42,42 @@ public class IndexController extends BaseController {
     }
 
     @GetMapping({"/", "/index", "index.html"})
-    public String index(Model model) {
+    public String index() {
+        return "index";
+    }
+
+    @GetMapping("/racing")
+    public String getLive(@RequestParam("subscriptionId") Optional<String> subscriptionId,
+            @RequestParam Optional<String> planId, Model model) {
+        if (!subscriptionId.isPresent()) {
+            addError("No racing session selected", model);
+            return "index";
+        }
+        SessionIdentifierView selectedView = getSelectedSession(subscriptionId.get());
+        if (selectedView != null) {
+            if (prepareModel(selectedView, planId.orElse(null), model)) {
+                return "racing";
+            }
+        } else {
+            addWarning("No session selected", model);
+        }
         return "index";
     }
 
     @PostMapping("/racing")
-    public String goLive(@ModelAttribute("SessionView") SessionView sessionView, Model model) {
+    public String postLive(@ModelAttribute("SessionView") SessionView sessionView, Model model) {
         if (sessionView != null) {
-            SessionIdentifierView selectedView = availableSessionKeys()
-                    .getSessions().get(sessionView.getSelectedSessionIndex());
-            if (selectedView != null) {
-                if (prepareModel(selectedView, sessionView.getSelectedPlanId(), model)) {
-                    return "racing";
-                }
-            } else {
-                addWarning("No session selected", model);
-            }
+            return "redirect:racing?subscriptionId=" + sessionView.getSelectedSession()
+                    + "&planId=" + sessionView.getSelectedPlanId();
+//            SessionIdentifierView selectedView = getSelectedSession(sessionView.getSelectedSession());
+//            if (selectedView != null) {
+//                if (prepareModel(selectedView, sessionView.getSelectedPlanId(), model)) {
+//                    return "redirect:racing?subscriptionId=" + sessionView.getSelectedSession()
+//                            + "&planId=" + sessionView.getSelectedPlanId();
+//                }
+//            } else {
+//                addWarning("No session selected", model);
+//            }
         }
         return "index";
     }
@@ -103,13 +124,23 @@ public class IndexController extends BaseController {
         if (controller != null) {
             if (selectedPlanId != null) {
                 Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
-                if (planParameters.isPresent()) {
-                    controller.setRacePlan(RacePlan.createRacePlanTemplate(planParameters.get()));
-                }
+                planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
             model.addAttribute("sessionData", selectedView);
             return true;
         }
         return false;
+    }
+
+    private SessionIdentifierView getSelectedSession(String subscriptionId) {
+        if (subscriptionId == null) {
+            return null;
+        }
+        for (SessionKey sessionKey : sessionHolder.getAvailableSessions()) {
+            if (sessionKey.getSessionId().getSubscriptionId().equalsIgnoreCase(subscriptionId)) {
+                return new SessionIdentifierView(sessionKey.getTeamId(), sessionKey.getSessionId());
+            }
+        }
+        return null;
     }
 }

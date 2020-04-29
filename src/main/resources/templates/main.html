@@ -10,12 +10,12 @@
         <div class="clearfix"></div>
         <form method="post" th:object="${sessionView}" th:action="@{/racing}">
           <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
-            <select th:field="*{selectedSessionIndex}" class="form-control">
+            <select th:field="*{selectedSession}" class="form-control">
               <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>
               <option th:each="liveSession, sessionStat : *{sessions}"
-                      th:value="${sessionStat.index}"
+                      th:value="${liveSession.sessionId}"
                       th:text="${liveSession.sessionId}"
-                      th:selected="*{selectedSessionIndex} == ${sessionStat.index}">FBP Racing RED - 24Nos</option>
+                      th:selected="*{selectedSession} == ${liveSession.sessionId}">FBP Racing RED - 24Nos</option>
             </select>
           </div>
           <div class="form-group text-center">
