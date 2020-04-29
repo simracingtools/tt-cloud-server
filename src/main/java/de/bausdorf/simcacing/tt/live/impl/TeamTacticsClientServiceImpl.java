@@ -23,7 +23,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 		acceptedVersions.add("1.20");
 	}
 
-	private MessageProcessor processor;
+	private final MessageProcessor processor;
 
 	public TeamTacticsClientServiceImpl(MessageProcessor processor) {
 		this.processor = processor;
@@ -35,8 +35,11 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 		ClientMessage msg = this.validateClientMessage(clientMessage);
 		try {
 			processor.processMessage(msg);
-		} catch (Exception e) {
+		} catch (IllegalArgumentException e) {
 			log.error("{}: {}", e.getMessage(), msg);
+			StackTraceElement[] trace = e.getStackTrace();
+			log.error("{}({}:{})", trace[0].getMethodName(), trace[0].getClassName(), trace[0].getLineNumber());
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 		return msg.getType().name();
