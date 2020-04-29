@@ -2,6 +2,7 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,11 +33,17 @@ public class RacePlan {
 		return newRacePlan;
 	}
 
+	public LocalDateTime getTodRaceTime(LocalTime sessionTime) {
+		return planParameters.getTodStartTime()
+				.plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay())
+				.plusSeconds(sessionTime.toSecondOfDay());
+	}
+
 	public void calculateStints() {
 		List<Stint> oldRacePlan = prepareOldRacePlan();
 
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
-		LocalDateTime todClock = planParameters.getTodStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		int stintCount = 1;
 		while( raceClock.isBefore(sessionEndTime) ) {

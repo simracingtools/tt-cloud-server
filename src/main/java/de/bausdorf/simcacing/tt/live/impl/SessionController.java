@@ -18,19 +18,20 @@ import java.util.*;
 @Slf4j
 @Getter
 public class SessionController {
-    private SessionData sessionData;
+    private final SessionData sessionData;
     @Setter
     private RacePlan racePlan;
 
     private LocalTime greenFlagTime;
-    private SortedMap<Integer, Stint> stints = new TreeMap<>();
-    private SortedMap<Integer, LapData> laps = new TreeMap<>();
-    private SortedMap<Integer, Pitstop> pitStops = new TreeMap<>();
-    private Map<String, SyncData> heartbeats = new HashMap<>();
+    private final SortedMap<Integer, Stint> stints = new TreeMap<>();
+    private final SortedMap<Integer, LapData> laps = new TreeMap<>();
+    private final SortedMap<Integer, Pitstop> pitStops = new TreeMap<>();
+    private final Map<String, SyncData> heartbeats = new HashMap<>();
     private RunData runData;
 
     private int currentLapNo;
-    private String currentDriverName;
+    @Setter
+    private IRacingDriver currentDriver;
     private TrackLocationType currentTrackLocation;
     private Duration repairTimeLeft;
     private Duration optRepairTimeLeft;
@@ -56,7 +57,6 @@ public class SessionController {
 
         log.debug("New Lap: {}", newLap);
         currentLapNo = newLap.getNo();
-        currentDriverName = newLap.getDriver();
         laps.put(currentLapNo, newLap);
 
         Stint currentStint = stints.get(newLap.getStint());
@@ -74,41 +74,10 @@ public class SessionController {
             log.debug("New Stint: {}", currentStint);
             stints.put(currentStint.getNo(), currentStint);
         } else {
-            final int stintNo = currentStint.getNo();
-            if( currentStint.getDriver() == null ) {
-                currentStint.setDriver(newLap.getDriver());
-            }
-            currentStint.increaseLapCount();
-            currentStint.setLastLaptime(newLap.getLapTime().isZero() ? Duration.ofSeconds(0) : newLap.getLapTime());
-            currentStint.setLastLapFuel(newLap.getLastLapFuelUsage() > 0.0
-                    ? newLap.getLastLapFuelUsage() : 0.0);
-            try {
-                currentStint.setAvgFuelPerLap(laps.values().stream()
-                        .filter(s -> s.getStint() == stintNo)
-                        .filter(s -> !s.getLapTime().isZero())
-                        .filter(s -> s.getLastLapFuelUsage() > 0.0)
-                        .mapToDouble(LapData::getLastLapFuelUsage)
-                        .average().getAsDouble()
-                );
-            } catch (NoSuchElementException e) {
-                currentStint.setAvgFuelPerLap(newLap.getLastLapFuelUsage() > 0.0
-                        ? newLap.getLastLapFuelUsage() : 0.0);
-            }
-            try {
-                currentStint.setAvgLapTime(TimeTools.getAverageLapDuration(
-                        laps.values().stream()
-                                .filter(s -> s.getStint() == stintNo)
-                                .filter(s -> !s.getLapTime().isZero())
-                ));
-            } catch (NoSuchElementException e) {
-                currentStint.setAvgLapTime(newLap.getLapTime());
-            }
-            currentStint.addStintDuration(newLap.getLapTime());
+            updateStint(currentStint, newLap);
         }
-        Assumption assumption = getAssumptionFromRacePlan(
-                runData == null ? "" : runData.getClientId(),
-                racePlan == null ? null : racePlan.getPlanParameters().getTodStartTime().plusSeconds(
-                        (runData == null ? 0 : runData.getSessionTime().toSecondOfDay())));
+
+        Assumption assumption = getAssumptionFromRacePlan();
         calculateStintLaps(currentStint, runData.getFuelLevel(), assumption);
         calculateExpectedStintDuration(currentStint, assumption);
         log.debug("Current stint: {}", currentStint);
@@ -186,6 +155,10 @@ public class SessionController {
         return Duration.ZERO;
     }
 
+    public LocalTime getCurrentSessionTime() {
+        return runData == null ? LocalTime.MIN : runData.getSessionTime();
+    }
+
     private Optional<LapData> getPreviousLap(int currentLapNo) {
         if (laps.isEmpty() || currentLapNo <= 1) {
             return Optional.empty();
@@ -224,6 +197,42 @@ public class SessionController {
                 newLap.setStintLap(1);
             }
         }
+    }
+
+    private void updateStint(Stint currentStint, LapData newLap) {
+        final int stintNo = currentStint.getNo();
+        if( currentStint.getDriver() == null ) {
+            currentStint.setDriver(newLap.getDriver());
+        }
+        currentStint.increaseLapCount();
+        currentStint.setLastLaptime(newLap.getLapTime().isZero() ? Duration.ofSeconds(0) : newLap.getLapTime());
+        currentStint.setLastLapFuel(newLap.getLastLapFuelUsage() > 0.0
+                ? newLap.getLastLapFuelUsage() : 0.0);
+        try {
+            currentStint.setAvgFuelPerLap(calculateAvgFuelPerLap(stintNo));
+        } catch (NoSuchElementException e) {
+            currentStint.setAvgFuelPerLap(newLap.getLastLapFuelUsage() > 0.0
+                    ? newLap.getLastLapFuelUsage() : 0.0);
+        }
+        try {
+            currentStint.setAvgLapTime(TimeTools.getAverageLapDuration(
+                    laps.values().stream()
+                            .filter(s -> s.getStint() == stintNo)
+                            .filter(s -> !s.getLapTime().isZero())
+            ));
+        } catch (NoSuchElementException e) {
+            currentStint.setAvgLapTime(newLap.getLapTime());
+        }
+        currentStint.addStintDuration(newLap.getLapTime());
+    }
+
+    private double calculateAvgFuelPerLap(int stintNo) {
+        return laps.values().stream()
+                .filter(s -> s.getStint() == stintNo)
+                .filter(s -> !s.getLapTime().isZero())
+                .filter(s -> s.getLastLapFuelUsage() > 0.0)
+                .mapToDouble(LapData::getLastLapFuelUsage)
+                .average().orElse(0.001D);
     }
 
     private void calculateStintLaps(Stint stint, double currentFuelLevel, Assumption assumption) {
@@ -267,23 +276,24 @@ public class SessionController {
             } else {
                 return Pitstop.builder()
                         .stint(pitStops.get(lastPitStopKey).getStint() + 1)
-                        .driver(currentDriverName)
+                        .driver(currentDriver.getName())
                         .lap(currentLapNo)
                         .build();
             }
         } catch (NoSuchElementException e) {
             return Pitstop.builder()
                     .stint(1)
-                    .driver(currentDriverName)
+                    .driver(currentDriver.getName())
                     .lap(currentLapNo)
                     .build();
 
         }
     }
 
-    private Assumption getAssumptionFromRacePlan(String currentDriverId, LocalDateTime atTod) {
+    private Assumption getAssumptionFromRacePlan() {
+    LocalDateTime atTod = racePlan == null ? null : racePlan.getTodRaceTime(getCurrentSessionTime());
     Estimation estimation = racePlan == null ? null : racePlan.getPlanParameters()
-            .getDriverEstimationAt(IRacingDriver.builder().id(currentDriverId).build(), atTod);
+            .getDriverEstimationAt(currentDriver, atTod);
     return Assumption.builder()
             .avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))
             .avgLapTime(Optional.ofNullable(estimation == null ? null : estimation.getAvgLapTime()))

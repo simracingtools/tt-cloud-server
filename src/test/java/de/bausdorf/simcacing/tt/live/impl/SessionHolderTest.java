@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.common.routine.AbstractRoutines;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -21,17 +22,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 @SpringBootTest
 @Slf4j
 public class SessionHolderTest {
+
     @Autowired
     private SessionHolder holder;
 
-    @Configuration
-    class TestConfig {
-        @Bean
-        @ConditionalOnMissingBean
-        SessionHolder getSessionHolder() {
-            return new SessionHolder();
-        }
-    }
+//    @Configuration
+//    class TestConfig {
+//        @Bean
+//        @ConditionalOnMissingBean
+//        SessionHolder getSessionHolder() {
+//            return new SessionHolder();
+//        }
+//    }
 
     @Test
     @Disabled

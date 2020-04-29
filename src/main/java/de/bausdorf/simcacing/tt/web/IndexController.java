@@ -51,20 +51,7 @@ public class IndexController extends BaseController {
             SessionIdentifierView selectedView = availableSessionKeys()
                     .getSessions().get(sessionView.getSelectedSessionIndex());
             if (selectedView != null) {
-                SessionKey sessionKey = SessionKey.builder()
-                        .sessionId(SessionIdentifier.parse(selectedView.getSessionKey()))
-                        .teamId(selectedView.getTeamId())
-                        .build();
-
-                SessionController controller = sessionHolder.getSessionController(sessionKey);
-                if (controller != null) {
-                    model.addAttribute("sessionData", selectedView);
-                    if (sessionView.getSelectedPlanId() != null) {
-                        Optional<RacePlanParameters> planParameters = planRepository.findById(sessionView.getSelectedPlanId());
-                        if (planParameters.isPresent()) {
-                            controller.setRacePlan(RacePlan.createRacePlanTemplate(planParameters.get()));
-                        }
-                    }
+                if (prepareModel(selectedView, sessionView.getSelectedPlanId(), model)) {
                     return "racing";
                 }
             } else {
@@ -104,5 +91,25 @@ public class IndexController extends BaseController {
                         .build()
                 )
                 .collect(Collectors.toList());
+    }
+
+    private boolean prepareModel(SessionIdentifierView selectedView, String selectedPlanId, Model model) {
+        SessionKey sessionKey = SessionKey.builder()
+                .sessionId(SessionIdentifier.parse(selectedView.getSessionKey()))
+                .teamId(selectedView.getTeamId())
+                .build();
+
+        SessionController controller = sessionHolder.getSessionController(sessionKey);
+        if (controller != null) {
+            if (selectedPlanId != null) {
+                Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
+                if (planParameters.isPresent()) {
+                    controller.setRacePlan(RacePlan.createRacePlanTemplate(planParameters.get()));
+                }
+            }
+            model.addAttribute("sessionData", selectedView);
+            return true;
+        }
+        return false;
     }
 }

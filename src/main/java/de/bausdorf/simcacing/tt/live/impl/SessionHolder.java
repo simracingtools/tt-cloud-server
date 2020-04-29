@@ -24,22 +24,23 @@ import org.springframework.stereotype.Controller;
 public class SessionHolder implements MessageProcessor {
 	public static final String LIVE_PREFIX = "/live/";
 
-	private SessionMap data;
+	private final SessionMap data;
 
-	private EnumMap<MessageType, MessageValidator> validators;
+	private final EnumMap<MessageType, MessageValidator> validators;
 
-	private Map<String, String> liveTopics;
+	private final Map<String, String> liveTopics;
 
-	@Autowired
-	private SimpMessagingTemplate messagingTemplate;
+	private final SimpMessagingTemplate messagingTemplate;
 
-	@Autowired
-	DriverRepository driverRepository;
+	final DriverRepository driverRepository;
 
-	public SessionHolder() {
+	public SessionHolder(@Autowired SimpMessagingTemplate messagingTemplate,
+			@Autowired DriverRepository driverRepository) {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
 		this.liveTopics = new HashMap<>();
+		this.messagingTemplate = messagingTemplate;
+		this.driverRepository = driverRepository;
 	}
 
 	@Override
@@ -54,11 +55,12 @@ public class SessionHolder implements MessageProcessor {
 		SessionKey sessionKey = new SessionKey(
 				message.getTeamId(),
 				ModelFactory.parseClientSessionId(message.getSessionId()));
+
 		SessionController controller;
 		switch(message.getType()) {
 			case LAP:
-				controller = getSessionController(sessionKey);
 				try {
+					controller = getSessionController(sessionKey);
 					controller.addLap((LapData) clientData);
 				} catch( DuplicateLapException e) {
 					log.warn(e.getMessage());
@@ -73,7 +75,14 @@ public class SessionHolder implements MessageProcessor {
 						.clientId(message.getClientId())
 						.build());
 
-				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId());
+				IRacingDriver driver = driverRepository.findById(message.getClientId())
+						.orElse(IRacingDriver.builder()
+								.id("unknown")
+								.name("N.N.")
+								.validated(false)
+								.build());
+
+				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId(), driver);
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
@@ -134,7 +143,7 @@ public class SessionHolder implements MessageProcessor {
 		}
 	}
 
-	public void sendRunData(RunData runData, String teamId) {
+	public void sendRunData(RunData runData, String teamId, IRacingDriver driver) {
 		if (liveTopics.containsKey(teamId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/rundata", RunDataView.builder()
 					.fuelLevel(runData.getFuelLevel())
@@ -143,13 +152,7 @@ public class SessionHolder implements MessageProcessor {
 					.flags(runData.getFlags().stream()
 							.map(FlagType::name)
 							.collect(Collectors.toList()))
-					.driverName(driverRepository.findById(runData.getClientId())
-							.orElse(IRacingDriver.builder()
-									.name("N.N.")
-									.id(runData.getClientId())
-									.validated(false)
-									.build())
-							.getName())
+					.driverName(driver.getName())
 					.build());
 		}
 	}

@@ -34,7 +34,6 @@ public class ModelFactory {
                 .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
                         .map(FlagType::valueOf)
                         .collect(Collectors.toList()))
-                .clientId((String)messagePayload.get(MessageConstants.RunData.CLIENT_ID))
                 .build();
     }
 

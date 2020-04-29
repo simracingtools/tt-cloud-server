@@ -13,7 +13,6 @@ import lombok.*;
 @Builder
 public class RunData implements ClientData {
 
-	private String clientId;
 	private LocalTime sessionTime;
 	private double fuelLevel;
 	private List<FlagType> flags;
