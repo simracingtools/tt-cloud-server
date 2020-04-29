@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class IndexController extends BaseController {
 
+    public static final String INDEX_VIEW = "index";
+    public static final String RACING_VIEW = "racing";
     SessionHolder sessionHolder;
 
     TeamRepository teamRepository;
@@ -43,7 +45,7 @@ public class IndexController extends BaseController {
 
     @GetMapping({"/", "/index", "index.html"})
     public String index() {
-        return "index";
+        return INDEX_VIEW;
     }
 
     @GetMapping("/racing")
@@ -51,17 +53,18 @@ public class IndexController extends BaseController {
             @RequestParam Optional<String> planId, Model model) {
         if (!subscriptionId.isPresent()) {
             addError("No racing session selected", model);
-            return "index";
+            return INDEX_VIEW;
         }
         SessionIdentifierView selectedView = getSelectedSession(subscriptionId.get());
         if (selectedView != null) {
             if (prepareModel(selectedView, planId.orElse(null), model)) {
-                return "racing";
+                return
+                        RACING_VIEW;
             }
         } else {
             addWarning("No session selected", model);
         }
-        return "index";
+        return INDEX_VIEW;
     }
 
     @PostMapping("/racing")
@@ -69,17 +72,10 @@ public class IndexController extends BaseController {
         if (sessionView != null) {
             return "redirect:racing?subscriptionId=" + sessionView.getSelectedSession()
                     + "&planId=" + sessionView.getSelectedPlanId();
-//            SessionIdentifierView selectedView = getSelectedSession(sessionView.getSelectedSession());
-//            if (selectedView != null) {
-//                if (prepareModel(selectedView, sessionView.getSelectedPlanId(), model)) {
-//                    return "redirect:racing?subscriptionId=" + sessionView.getSelectedSession()
-//                            + "&planId=" + sessionView.getSelectedPlanId();
-//                }
-//            } else {
-//                addWarning("No session selected", model);
-//            }
+        } else {
+            addError("No session selection data present", model);
         }
-        return "index";
+        return INDEX_VIEW;
     }
 
     @ModelAttribute("sessionView")
@@ -124,6 +120,7 @@ public class IndexController extends BaseController {
         if (controller != null) {
             if (selectedPlanId != null) {
                 Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
+                planParameters.ifPresent(racePlanParameters -> model.addAttribute("planParameters", racePlanParameters));
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
             model.addAttribute("sessionData", selectedView);

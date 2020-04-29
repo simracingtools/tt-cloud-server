@@ -10,13 +10,14 @@ import de.bausdorf.simcacing.tt.live.model.client.*;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
+import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -76,11 +77,13 @@ public class SessionHolder implements MessageProcessor {
 								.build());
 				controller.setCurrentDriver(driver);
 				controller.updateRunData((RunData)clientData);
-				controller.updateSyncData(SyncData.builder()
+				SyncData syncData = SyncData.builder()
 						.isInCar(true)
 						.sessionTime(((RunData)clientData).getSessionTime())
 						.clientId(message.getClientId())
-						.build());
+						.build();
+				controller.updateSyncData(syncData);
+				sendSyncData(syncData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
 
 				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId(), driver);
 				break;
@@ -91,6 +94,7 @@ public class SessionHolder implements MessageProcessor {
 			case SYNC:
 				controller = getSessionController(sessionKey);
 				controller.updateSyncData((SyncData)clientData);
+				sendSyncData((SyncData)clientData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case SESSION_INFO:
 				SessionData sessionData = (SessionData)clientData;
@@ -157,8 +161,21 @@ public class SessionHolder implements MessageProcessor {
 		}
 	}
 
+	public void sendSyncData(SyncData syncData, Collection<SyncData> teamSync, String teamId) {
+		List<SyncDataView> syncDataViews = new ArrayList<>();
+		for (SyncData sync : teamSync) {
+			syncDataViews.add(SyncDataView.builder()
+					.driverId(sync.getClientId())
+					.timestamp(sync.getSessionTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+					.stateCssClass(getSyncState(sync.getSessionTime(), syncData.getSessionTime()))
+					.inCarCssClass(sync.getClientId().equalsIgnoreCase(syncData.getClientId()) ? "table-info" : "")
+					.build());
+		}
+		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/syncdata", syncDataViews);
+	}
+
 	@MessageMapping("/liveclient")
-	@SendTo("/live/client-ack")
+	@SendToUser("/live/client-ack")
 	public SessionDataView respondAck(LiveClientMessage message) {
 		log.info("Connect message from {}: {}", message.getTeamId(), message.getText());
 		String teamId = message.getTeamId();
@@ -213,5 +230,14 @@ public class SessionHolder implements MessageProcessor {
 			case SYNC: return ModelFactory.getFromSyncMessage(message.getPayload());
 			default: throw new InvalidClientMessageException("Unknown ClientMessage type");
 		}
+	}
+
+	private static String getSyncState(LocalTime lastSync, LocalTime currentSync) {
+		if (lastSync.plusSeconds(10).isAfter(currentSync)) {
+			return "table-success";
+		} else if (lastSync.plusSeconds(30).isAfter(currentSync)) {
+			return "table-warning";
+		}
+		return "table-danger";
 	}
 }
