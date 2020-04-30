@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @RestController
 @Slf4j
 public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
@@ -36,17 +40,24 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 
 	private final Map<String, String> tokenCache;
 
+	private final ObjectMapper objectMapper;
+
 	public TeamTacticsClientServiceImpl(@Autowired MessageProcessor processor,
 			@Autowired TtClientRegistrationRepository clientRepository) {
 		this.clientRepository = clientRepository;
 		this.processor = processor;
 		this.tokenCache = new HashMap<>();
+		this.objectMapper = new ObjectMapper();
 	}
 
 	@Override
-	@PostMapping("/clientmessage")
-	public String receiveClientData(@RequestBody Map<String, Object> clientMessage,
+	@PostMapping(value = "/clientmessage")
+	public String receiveClientData(@RequestBody String clientString,
 			@RequestHeader("x-teamtactics-token") Optional<String> clientAccessToken) {
+
+		// Maybe Json is escaped - so remove escape characters
+		Map<String, Object> clientMessage = readClientMessage(clientString.replace("\\", ""));
+
 		if (!clientAccessToken.isPresent()) {
 			log.warn("No x-teamtactics-token header");
 			return "TOKEN_ERROR";
@@ -59,6 +70,20 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 			log.warn(e.getMessage());
 		}
 		return "VALIDATION_ERROR";
+	}
+
+	private Map<String, Object> readClientMessage(String clientString) {
+		try {
+			// Maybe json string is quoted - so remove quotes if present
+			if (clientString.startsWith("\"") && clientString.endsWith("\"")) {
+				clientString = clientString.substring(1, clientString.length() - 1);
+			}
+			TypeReference<HashMap<String, Object>> typeRef
+					= new TypeReference<HashMap<String, Object>>() {};
+			return objectMapper.readValue(clientString, typeRef);
+		} catch (JsonProcessingException e) {
+			throw new InvalidClientMessageException(e.getMessage());
+		}
 	}
 
 	private ClientMessage validateClientMessage(Map<String, Object> clientMessage, String accessToken) {

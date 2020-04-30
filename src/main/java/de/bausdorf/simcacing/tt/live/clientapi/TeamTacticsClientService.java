@@ -5,6 +5,6 @@ import java.util.Optional;
 
 public interface TeamTacticsClientService {
 
-    String receiveClientData(Map<String, Object> clientMessage, Optional<String> clientAccessToken);
+    String receiveClientData(String clientMessage, Optional<String> clientAccessToken);
 
 }

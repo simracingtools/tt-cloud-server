@@ -53,7 +53,7 @@ public class ModelFactory {
     public static SessionData getFromSessionMessage(Map<String, Object> messagePayload) {
         return SessionData.builder()
                 .carName((String)messagePayload.get(MessageConstants.SessionData.CAR_NAME))
-                .carId((String)messagePayload.get(MessageConstants.SessionData.CAR_ID))
+                .carId(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.CAR_ID)))
                 .maxCarFuel((Double)messagePayload.get(MessageConstants.SessionData.MAX_FUEL))
                 .sessionId(getFromClientString(messagePayload.get(MessageConstants.SessionData.SESSION_ID)))
                 .sessionLaps(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.SESSION_LAPS)))
@@ -61,7 +61,7 @@ public class ModelFactory {
                 .sessionType((String)messagePayload.get(MessageConstants.SessionData.SESSION_TYPE))
                 .teamName((String)messagePayload.get(MessageConstants.SessionData.TEAM_NAME))
                 .trackName((String)messagePayload.get(MessageConstants.SessionData.TRACK_NAME))
-                .trackId((String)messagePayload.get(MessageConstants.SessionData.TRACK_ID))
+                .trackId(stringOfNumberOrString(messagePayload.get(MessageConstants.SessionData.TRACK_ID)))
                 .build();
     }
 
