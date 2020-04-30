@@ -7,8 +7,11 @@
         <a href="/planning">
           <button class="btn btn-primary" type="button">Plan a new race or change existing race planning</button>
         </a>
+        <a class="d-block" href="/teams">
+          <button class="btn btn-primary" type="button" style="margin-top: 10px;">Manage Teams</button>
+        </a>
         <div class="clearfix"></div>
-        <form method="post" th:object="${sessionView}" th:action="@{/racing}">
+        <form method="post" th:object="${sessionView}" th:action="@{/racing}" class="border rounded" style="padding: 5px;margin-top: 10px;">
           <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
             <select th:field="*{selectedSession}" class="form-control">
               <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>

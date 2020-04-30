@@ -30,6 +30,7 @@ public class IndexController extends BaseController {
 
     public static final String INDEX_VIEW = "index";
     public static final String RACING_VIEW = "racing";
+    public static final String SETUP_VIEW = "setup";
     SessionHolder sessionHolder;
 
     TeamRepository teamRepository;
@@ -46,6 +47,11 @@ public class IndexController extends BaseController {
     @GetMapping({"/", "/index", "index.html"})
     public String index() {
         return INDEX_VIEW;
+    }
+
+    @GetMapping({"/setup"})
+    public String setup() {
+        return SETUP_VIEW;
     }
 
     @GetMapping("/racing")
