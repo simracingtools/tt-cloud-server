@@ -1,5 +1,6 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -7,12 +8,15 @@ import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.live.model.live.EventDataView;
+import de.bausdorf.simcacing.tt.live.model.live.LapDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -23,7 +27,9 @@ import org.springframework.stereotype.Controller;
 @Controller
 @Slf4j
 public class SessionHolder implements MessageProcessor {
+
 	private static final String LIVE_PREFIX = "/live/";
+	public static final String HH_MM_SS = "HH:mm:ss";
 
 	private final SessionMap data;
 
@@ -72,6 +78,7 @@ public class SessionHolder implements MessageProcessor {
 				try {
 					controller = getSessionController(sessionKey);
 					controller.addLap((LapData) clientData);
+					sendLapData((LapData)clientData, controller, sessionKey.getSessionId().getSubscriptionId());
 				} catch( DuplicateLapException e) {
 					log.warn(e.getMessage());
 				}
@@ -86,6 +93,8 @@ public class SessionHolder implements MessageProcessor {
 								.build());
 				controller.setCurrentDriver(driver);
 				controller.updateRunData((RunData)clientData);
+				sendRunData((RunData)clientData, controller, sessionKey.getSessionId().getSubscriptionId(), driver);
+
 				SyncData syncData = SyncData.builder()
 						.isInCar(true)
 						.sessionTime(((RunData)clientData).getSessionTime())
@@ -93,12 +102,11 @@ public class SessionHolder implements MessageProcessor {
 						.build();
 				controller.updateSyncData(syncData);
 				sendSyncData(syncData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
-
-				sendRunData((RunData)clientData, sessionKey.getSessionId().getSubscriptionId(), driver);
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
 				controller.processEventData((EventData)clientData);
+				sendEventData((EventData)clientData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case SYNC:
 				controller = getSessionController(sessionKey);
@@ -141,6 +149,37 @@ public class SessionHolder implements MessageProcessor {
 		return data.keySet();
 	}
 
+	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
+		if (liveTopics.containsKey(subscriptionId)) {
+			Optional<Stint> lastStint = controller.getLastStint();
+			Duration stintAvgLapTime = Duration.ZERO;
+			int stintLap = clientData.getNo();
+			double stintAvgFuel = 0.0D;
+			if (lastStint.isPresent()) {
+				stintAvgFuel = lastStint.get().getAvgFuelPerLap();
+				stintAvgLapTime = lastStint.get().getAvgLapTime();
+				stintLap = lastStint.get().getLaps();
+			}
+
+			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata", LapDataView.builder()
+					.lapNo(Integer.toUnsignedString(clientData.getNo()))
+					.lapsRemaining(Integer.toUnsignedString(controller.getRemainingLapCount()))
+					.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
+					.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
+					.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
+					.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
+					.stintAvgFuelPerLap(fuelString(stintAvgFuel))
+					.stintAvgFuelDelta(fuelString(stintAvgFuel - clientData.getLastLapFuelUsage()))
+					.stintAvgTimeDelta(TimeTools.longDurationString(stintAvgLapTime.minus(clientData.getLapTime())))
+					.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
+					.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
+					.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
+					.stintLap(Integer.toUnsignedString(stintLap))
+					.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
+					.build());
+		}
+	}
+
 	public void sendSessionData(SessionData sessionData, String teamId) {
 		if (liveTopics.containsKey(teamId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/sessiondata", SessionDataView.builder()
@@ -151,21 +190,45 @@ public class SessionHolder implements MessageProcessor {
 					.sessionType(sessionData.getSessionType())
 					.teamName(sessionData.getTeamName())
 					.sessionId(teamId)
-					.maxCarFuel(String.format("%.3f", sessionData.getMaxCarFuel()))
+					.maxCarFuel(fuelString(sessionData.getMaxCarFuel()).replace(",", "."))
 					.build());
 		}
 	}
 
-	public void sendRunData(RunData runData, String teamId, IRacingDriver driver) {
+	public void sendRunData(RunData runData, SessionController controller, String teamId, IRacingDriver driver) {
 		if (liveTopics.containsKey(teamId)) {
+			double availableLaps = controller.getAvailableLapsForFuelLevel(runData.getFuelLevel());
+			String lapsCssClass = "table-info";
+			if (availableLaps < 1.0D) {
+				lapsCssClass = "table-danger";
+			} else if (availableLaps < 3.0D) {
+				lapsCssClass = "table-warning";
+			}
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/rundata", RunDataView.builder()
 					.fuelLevel(runData.getFuelLevel())
-					.fuelLevelStr(String.format("%.3f", runData.getFuelLevel()))
-					.sessionTime(runData.getSessionTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+					.fuelLevelStr(fuelString(runData.getFuelLevel()).replace(",", "."))
+					.sessionTime(runData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
 					.flags(runData.getFlags().stream()
 							.map(FlagType::name)
 							.collect(Collectors.toList()))
 					.driverName(driver.getName())
+					.raceSessionTime(controller.getCurrentRaceSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.remainingSessionTime(TimeTools.shortDurationString(controller.getRemainingSessionTime()))
+					.availableLaps(String.format("%.2f", availableLaps))
+					.availableLapsCssClass(lapsCssClass)
+					.flagCssClass(runData.getFlags().get(0).cssClass())
+					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.build());
+		}
+	}
+
+	public void sendEventData(EventData eventData, String teamId) {
+		if (liveTopics.containsKey(teamId)) {
+			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/eventdata", EventDataView.builder()
+					.sessionTime(eventData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.timeOfDay(eventData.getSessionToD().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.trackLocation(eventData.getTrackLocationType().name())
+					.trackLocationCssClass(eventData.getTrackLocationType().getCssClass())
 					.build());
 		}
 	}
@@ -175,7 +238,7 @@ public class SessionHolder implements MessageProcessor {
 		for (SyncData sync : teamSync) {
 			syncDataViews.add(SyncDataView.builder()
 					.driverId(sync.getClientId())
-					.timestamp(sync.getSessionTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+					.timestamp(sync.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
 					.stateCssClass(getSyncState(sync.getSessionTime(), syncData.getSessionTime()))
 					.inCarCssClass(sync.getClientId().equalsIgnoreCase(syncData.getClientId()) ? "table-info" : "")
 					.build());
@@ -219,7 +282,7 @@ public class SessionHolder implements MessageProcessor {
 					.sessionType(controller.getSessionData().getSessionType())
 					.teamName(controller.getSessionData().getTeamName())
 					.sessionId(subscriptionId)
-					.maxCarFuel(String.format("%.3f", controller.getSessionData().getMaxCarFuel()))
+					.maxCarFuel(fuelString(controller.getSessionData().getMaxCarFuel()))
 					.build();
 		}
 		return null;
@@ -256,5 +319,9 @@ public class SessionHolder implements MessageProcessor {
 			return "table-warning";
 		}
 		return "table-danger";
+	}
+
+	private static String fuelString(double fuelAmount) {
+		return String.format("%.3f", fuelAmount).replace(",", ".");
 	}
 }

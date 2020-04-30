@@ -152,9 +152,12 @@ public class RacePlanParameters {
 
 	public Estimation getDriverEstimationAt(IRacingDriver driver, LocalDateTime todDateTime) {
 		if (roster != null) {
-			return roster.getDriverEstimationAt(driver, todDateTime);
+			Estimation estimation = roster.getDriverEstimationAt(driver, todDateTime);
+			if (estimation != null) {
+				return estimation;
+			}
 		}
-		return null;
+		return getGenericEstimation();
 	}
 
 	public List<Estimation> getDriverEstimations(String driverId) {
@@ -182,8 +185,7 @@ public class RacePlanParameters {
 		if (roster != null) {
 			IRacingDriver driver = roster.getDriverByName(driverName);
 			if (driver != null) {
-				Estimation estimation = roster.getDriverEstimationAt(driver, todDateTime);
-				return estimation != null ? estimation : getGenericEstimation();
+				return getDriverEstimationAt(driver, todDateTime);
 			}
 		}
 		return getGenericEstimation();
@@ -288,9 +290,7 @@ public class RacePlanParameters {
 		for (IRacingDriver driver : roster.getDrivers()) {
 			if (driver.getName() == null) {
 				Optional<IRacingDriver> repoDriver = driverRepository.findById(driver.getId());
-				if (repoDriver.isPresent()) {
-					roster.updateDriverData(repoDriver.get());
-				}
+				repoDriver.ifPresent(iRacingDriver -> roster.updateDriverData(iRacingDriver));
 			}
 		}
 	}

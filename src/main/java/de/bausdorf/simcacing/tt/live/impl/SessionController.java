@@ -162,6 +162,67 @@ public class SessionController {
         return runData == null ? LocalTime.MIN : runData.getSessionTime();
     }
 
+    public LocalTime getCurrentRaceSessionTime() {
+        if (runData == null) {
+            return LocalTime.MIN;
+        }
+        return runData.getSessionTime().minusSeconds(
+                greenFlagTime != null ? greenFlagTime.toSecondOfDay() : 0);
+    }
+
+    public double getAvailableLapsForFuelLevel(double currentFuelLevel) {
+        double avgFuelPerLap = getAssumptionFromRacePlan().getAvgFuelPerLap().orElse(0.0D);
+        if (avgFuelPerLap > 0.0D) {
+            return currentFuelLevel / avgFuelPerLap;
+        } else {
+            Optional<Stint> lastStint = getLastStint();
+            if (lastStint.isPresent()) {
+                return currentFuelLevel / lastStint.get().getAvgFuelPerLap();
+            }
+        }
+        return 0.0D;
+    }
+
+    public Optional<Stint> getLastStint() {
+        if( stints.isEmpty() ) {
+            return Optional.empty();
+        }
+        return Optional.of(stints.get(stints.lastKey()));
+    }
+
+    public Duration getCurrentStintTime() {
+        Optional<Stint> lastStint = getLastStint();
+        if (lastStint.isPresent()) {
+            return lastStint.get().getCurrentStintDuration();
+        }
+        return Duration.ZERO;
+    }
+
+    public Duration getRemainingStintTime() {
+        Optional<Stint> lastStint = getLastStint();
+        if (lastStint.isPresent()) {
+            return lastStint.get().getExpectedStintDuration().minus(lastStint.get().getCurrentStintDuration());
+        }
+        return Duration.ZERO;
+    }
+
+    public int getRemainingStintCount() {
+        if (racePlan != null) {
+            return racePlan.getCurrentRacePlan().size() - stints.size();
+        }
+        return 0;
+    }
+
+    public int getRemainingLapCount() {
+        if (racePlan != null) {
+            int lapCount = 0;
+            for (de.bausdorf.simcacing.tt.planning.model.Stint stint : racePlan.getCurrentRacePlan()) {
+                lapCount += stint.getLaps();
+            }
+            return lapCount - currentLapNo;
+        }
+        return 0;
+    }
     private Optional<LapData> getPreviousLap(int currentLapNo) {
         if (laps.isEmpty() || currentLapNo <= 1) {
             return Optional.empty();
@@ -176,13 +237,6 @@ public class SessionController {
         }
         Integer lastKey = laps.lastKey();
         return Optional.of(laps.get(lastKey));
-    }
-
-    private Optional<Stint> getLastStint() {
-        if( stints.isEmpty() ) {
-            return Optional.empty();
-        }
-        return Optional.of(stints.get(stints.lastKey()));
     }
 
     private void setStintValuesToLap(LapData newLap) {

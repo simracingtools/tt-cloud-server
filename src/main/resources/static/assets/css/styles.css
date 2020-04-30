@@ -17,3 +17,67 @@
   vertical-align: middle;
 }
 
+.flag-white {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+.flag-green {
+  background-color: #099f09;
+  color: #FFFFFF;
+}
+
+.flag-yellow {
+  background-color: #f5ec0a;
+  color: #000000;
+}
+
+.flag-red {
+  background-color: #f5180a;
+  color: #FFFFFF;
+}
+
+.flag-blue {
+  background-color: #0a30f5;
+  color: #FFFFFF;
+}
+
+.flag-black {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.flag-dq {
+  background-color: #000000;
+  color: #FF0000;
+}
+
+.flag-repair {
+  background-color: #000000;
+  color: #FF8800;
+}
+
+.loc-black {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+.loc-yellow {
+  background-color: #f5ec0a;
+  color: #000000;
+}
+
+.loc-blue {
+  background-color: #0a30f5;
+  color: #FFFFFF;
+}
+
+.loc-orange {
+  background-color: #FF8800;
+  color: #000000;
+}
+
+.loc-green {
+  background-color: #099f09;
+  color: #FFFFFF;
+}

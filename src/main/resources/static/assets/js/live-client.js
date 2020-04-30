@@ -18,7 +18,7 @@ function connect() {
     stompClient.connect({}, function (frame) {
         // setConnected(true);
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/live/client-ack', function(message) {
+        stompClient.subscribe('/user/live/client-ack', function(message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showSessionData(jsonMessage);
@@ -37,6 +37,16 @@ function connect() {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showSyncData(jsonMessage);
+        });
+        stompClient.subscribe('/live/' + $("#teamId").val() + '/lapdata', function (message) {
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showLapData(jsonMessage);
+        });
+        stompClient.subscribe('/live/' + $("#teamId").val() + '/eventdata', function (message) {
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showEventData(jsonMessage);
         });
         sendTeamId();
     }, function (frame) {
@@ -65,8 +75,25 @@ function showSessionData(message) {
 
 function showRunData(message) {
     $("#fuelLevel").text(message.fuelLevelStr);
+    $("#fuelAvailableLaps").text(message.availableLaps)
+        .removeClass("table-danger")
+        .removeClass("table-warning")
+        .removeClass("table-info")
+        .addClass(message.availableLapsCssClass);
     $("#driverName").text(message.driverName);
-    $("#flag").text(message.flags[0]);
+    $("#flag").text(message.flags[0])
+        .removeClass("flag-white")
+        .removeClass("flag-black")
+        .removeClass("flag-green")
+        .removeClass("flag-red")
+        .removeClass("flag-blue")
+        .removeClass("flag-yellow")
+        .removeClass("flag-dq")
+        .removeClass("flag-repair")
+        .addClass(message.flagCssClass);
+    $("#raceSessionTime").text(message.raceSessionTime);
+    $("#timeOfDay").text(message.timeOfDay)
+    $("#remainingSessionTime").text(message.remainingSessionTime);
 }
 
 function showSyncData(message) {
@@ -79,6 +106,35 @@ function showSyncData(message) {
         $("#syncTH-" + message[i].driverId).removeClass("table-info")
                 .addClass(message[i].inCarCssClass);
     }
+}
+
+function showLapData(message) {
+    $("#stintNo").text(message.stintNo);
+    $("#stintTime").text(message.stintClock);
+    $("#lapNo").text(message.lapNo);
+    $("#lapsRemaining").text(message.lapsRemaining);
+    $("#stintsRemaining").text(message.stintsRemaining);
+    $("#stintLap").text(message.stintLap);
+    $("#fuelLastLap").text(message.lastLapFuel);
+    $("#fuelStintAvg").text(message.stintAvgFuelPerLap);
+    $("#fuelStintDelta").text(message.stintAvgFuelDelta);
+    $("#lastLapTime").text(message.lastLapTime);
+    $("#stintAvgLapTime").text(message.stintAvgLapTime);
+    $("#stintAvgTimeDelta").text(message.stintAvgTimeDelta);
+    $("#stintRemainingTime").text(message.stintRemainingTime);
+    $("#trackTemp").text(message.trackTemp);
+}
+
+function showEventData(message) {
+    $("#raceSessionTime").text(message.raceSessionTime);
+    $("#timeOfDay").text(message.timeOfDay);
+    $("#trackLocation").text(message.trackLocation)
+            .removeClass("loc-black")
+            .removeClass("loc-blue")
+            .removeClass("loc-yellow")
+            .removeClass("loc-green")
+            .removeClass("loc-orange")
+            .addClass(message.trackLocationCssClass);
 }
 // $(function () {
 //     $("form").on('submit', function (e) {

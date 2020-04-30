@@ -3,16 +3,22 @@ package de.bausdorf.simcacing.tt.live.model.client;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
+
 @Getter
 public enum TrackLocationType {
-    OFF_WORLD(-1),
-    OFFTRACK(0),
-    PIT_STALL(1),
-    APPROACHING_PITS(2),
-    ONTRACK(3);
+    OFF_WORLD(-1, "loc-black"),
+    OFFTRACK(0, "loc-yellow"),
+    PIT_STALL(1, "loc-blue"),
+    APPROACHING_PITS(2, "loc-orange"),
+    ONTRACK(3, "loc-green");
+
+    TrackLocationType(int code, String cssClass) {
+        this.cssClass = cssClass;
+        this.irCode = code;
+    }
 
     private int irCode;
+    private String cssClass;
 
     public static TrackLocationType forIrCode(int code) {
         switch(code) {
