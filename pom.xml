@@ -18,7 +18,7 @@
     <spring-boot-admin.version>2.2.1</spring-boot-admin.version>
     <spring-cloud.version>Hoxton.SR3</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
-    <appengine.version>0.1.0</appengine.version>
+    <appengine.version>${project.version}</appengine.version>
     <maven.test.skip>true</maven.test.skip>
   </properties>
 
