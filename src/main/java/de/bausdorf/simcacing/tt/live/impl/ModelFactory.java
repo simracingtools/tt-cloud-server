@@ -35,6 +35,8 @@ public class ModelFactory {
                 .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
                         .map(FlagType::valueOf)
                         .collect(Collectors.toList()))
+                .lapNo((Integer)messagePayload.get(MessageConstants.RunData.LAP_NO))
+                .timeInLap(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.TIME_IN_LAP)))
                 .build();
     }
 

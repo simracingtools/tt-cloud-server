@@ -41,6 +41,8 @@ public class MessageConstants {
         public static final String SESSION_TIME = "sessionTime";
         public static final String SESSION_TOD = "sessionToD";
         public static final String EST_LAP_TIME = "estLaptime";
+        public static final String LAP_NO = "lapNo";
+        public static final String TIME_IN_LAP = "timeInLap";
 
 		private RunData() {}
     }

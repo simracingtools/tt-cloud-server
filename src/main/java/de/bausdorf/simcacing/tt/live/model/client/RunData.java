@@ -18,6 +18,8 @@ public class RunData implements ClientData {
 	private double fuelLevel;
 	private List<FlagType> flags;
 	private Duration estLapTime;
+	private int lapNo;
+	private Duration timeInLap;
 
 	public boolean isGreenFlag() {
 		return flags.contains(FlagType.GREEN);

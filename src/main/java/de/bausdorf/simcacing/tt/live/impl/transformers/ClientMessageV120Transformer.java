@@ -31,6 +31,8 @@ public class ClientMessageV120Transformer extends MessageTransformer {
 			message.getPayload().put(SessionData.TRACK_ID, "");
 		} else if (message.getType() == MessageType.RUN_DATA) {
 			message.getPayload().put(RunData.SESSION_TOD, 0.0D);
+			message.getPayload().put(RunData.LAP_NO, 0);
+			message.getPayload().put(RunData.TIME_IN_LAP, 0.0D);
 		} else if (message.getType() == MessageType.EVENT) {
 			message.getPayload().put(EventData.SESSION_TOD, 0.0D);
 		}
