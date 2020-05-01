@@ -18,8 +18,10 @@ public class LapDataView {
 	private String stintClock;
 	private String stintRemainingTime;
 	private String stintAvgTimeDelta;
+	private String stintAvgTimeDeltaCssClass;
 	private String lastLapFuel;
 	private String stintAvgFuelPerLap;
 	private String stintAvgFuelDelta;
+	private String stintAvgFuelDeltaCssClass;
 	private String trackTemp;
 }

@@ -266,6 +266,8 @@ public class SessionHolder implements MessageProcessor {
 			stintAvgLapTime = lastStint.get().getAvgLapTime();
 			stintLap = lastStint.get().getLaps();
 		}
+		double avgFuelDelta = stintAvgFuel - clientData.getLastLapFuelUsage();
+		String avgTimeDelta = TimeTools.longDurationDeltaString(stintAvgLapTime, clientData.getLapTime());
 		return LapDataView.builder()
 				.lapNo(Integer.toUnsignedString(clientData.getNo()))
 				.lapsRemaining(Integer.toUnsignedString(controller.getRemainingLapCount()))
@@ -274,8 +276,10 @@ public class SessionHolder implements MessageProcessor {
 				.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
 				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
 				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
-				.stintAvgFuelDelta(fuelString(stintAvgFuel - clientData.getLastLapFuelUsage()))
-				.stintAvgTimeDelta(TimeTools.longDurationString(stintAvgLapTime.minus(clientData.getLapTime())))
+				.stintAvgFuelDelta(fuelString(avgFuelDelta))
+				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? "table-danger" : "table-success")
+				.stintAvgTimeDelta(avgTimeDelta)
+				.stintAvgTimeDeltaCssClass(avgTimeDelta.startsWith("-") ? "table-danger" : "table-success")
 				.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
 				.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
 				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))

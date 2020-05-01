@@ -55,13 +55,8 @@ public class TimeTools {
 
     public static Duration getAverageLapDuration(Stream<LapData> stream) {
         return Duration.ofMillis(
-                (long)stream.mapToDouble(s -> s.getLapTime().toMillis()).average().getAsDouble()
+                (long)stream.mapToDouble(s -> s.getLapTime().toMillis()).average().orElse(0.0D)
         );
-    }
-
-    public static ZonedDateTime zonedDateTimeFromPattern(String timestring, String pattern) {
-        LocalDateTime localTime = LocalDateTime.parse(timestring, DateTimeFormatter.ofPattern(pattern));
-        return ZonedDateTime.of(localTime, ZoneId.of("CET"));
     }
 
     public static Duration durationFromPattern(String timestring, String pattern) {
@@ -73,7 +68,16 @@ public class TimeTools {
         long h = duration.toHours();
         long m = duration.toMinutes() - (h * 60);
         double S = ((double)duration.toMillis() / 1000) - (m * 60) - (h * 3600);
-        return String.format("%d:%02d:%06.3f", h, m, S + 0.0001);
+        if (S < 0) {
+            S = 0.0;
+        }
+        return String.format("%d:%02d:%06.3f", h, m, S);
+    }
+
+    public static String longDurationDeltaString(Duration d1, Duration d2) {
+        Duration delta = d1.minus(d2);
+        String prefix = delta.isNegative() ? "-" : "";
+        return prefix + longDurationString(delta);
     }
 
     public static String shortDurationString(Duration duration) {
@@ -98,10 +102,6 @@ public class TimeTools {
         }
         log.warn("Timestring {} could not be parsed", time);
         return LocalTime.MIN;
-    }
-
-    public static Duration durationFromTime(LocalTime time) {
-        return Duration.between(LocalTime.MIN, time);
     }
 
     public static Duration durationFromString(String timestring) {
@@ -139,9 +139,5 @@ public class TimeTools {
             result = result.replace(",", ".");
         }
         return result;
-    }
-
-    public static LocalDateTime updateDate(LocalDateTime dateTime, LocalDate date) {
-        return LocalDateTime.of(date, dateTime.toLocalTime());
     }
 }

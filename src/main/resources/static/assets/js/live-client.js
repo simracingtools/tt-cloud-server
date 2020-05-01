@@ -122,10 +122,16 @@ function showLapData(message) {
     $("#stintLap").text(message.stintLap);
     $("#fuelLastLap").text(message.lastLapFuel);
     $("#fuelStintAvg").text(message.stintAvgFuelPerLap);
-    $("#fuelStintDelta").text(message.stintAvgFuelDelta);
+    $("#fuelStintDelta").text(message.stintAvgFuelDelta)
+            .removeClass('table-success')
+            .removeClass('table-danger')
+            .addClass(message.stintAvgFuelDeltaCssClass);
     $("#lastLapTime").text(message.lastLapTime);
     $("#stintAvgLapTime").text(message.stintAvgLapTime);
-    $("#stintAvgTimeDelta").text(message.stintAvgTimeDelta);
+    $("#stintAvgTimeDelta").text(message.stintAvgTimeDelta)
+            .removeClass('table-success')
+            .removeClass('table-danger')
+            .addClass(message.stintAvgTimeDeltaCssClass);
     $("#stintRemainingTime").text(message.stintRemainingTime);
     $("#trackTemp").text(message.trackTemp);
 }
