@@ -225,20 +225,21 @@ public class SessionController {
         }
         return 0;
     }
+
+    public Optional<LapData> getLastRecordedLap() {
+        if (laps.isEmpty()) {
+            return Optional.empty();
+        }
+        Integer lastKey = laps.lastKey();
+        return Optional.of(laps.get(lastKey));
+    }
+
     private Optional<LapData> getPreviousLap(int currentLapNo) {
         if (laps.isEmpty() || currentLapNo <= 1) {
             return Optional.empty();
         }
 
         return Optional.of(laps.get(currentLapNo - 1));
-    }
-
-    private Optional<LapData> getLastRecordedLap() {
-        if (laps.isEmpty()) {
-            return Optional.empty();
-        }
-        Integer lastKey = laps.lastKey();
-        return Optional.of(laps.get(lastKey));
     }
 
     private void setStintValuesToLap(LapData newLap) {

@@ -71,6 +71,9 @@ function showSessionData(message) {
     $("#sessionType").text(message.sessionType);
     $("#teamName").text(message.teamName);
     $("#maxCarFuel").val(message.maxCarFuel);
+    if (message.lastLapData) {
+        showLapData(message.lastLapData)
+    }
 }
 
 function showRunData(message) {

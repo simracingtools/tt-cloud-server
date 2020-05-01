@@ -18,4 +18,5 @@ public class SessionDataView implements ClientData {
 	private String maxCarFuel;
 	private String trackName;
 	private String sessionType;
+	private LapDataView lastLapData;
 }

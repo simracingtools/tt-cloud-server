@@ -155,32 +155,8 @@ public class SessionHolder implements MessageProcessor {
 
 	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
 		if (liveTopics.containsKey(subscriptionId)) {
-			Optional<Stint> lastStint = controller.getLastStint();
-			Duration stintAvgLapTime = Duration.ZERO;
-			int stintLap = clientData.getNo();
-			double stintAvgFuel = 0.0D;
-			if (lastStint.isPresent()) {
-				stintAvgFuel = lastStint.get().getAvgFuelPerLap();
-				stintAvgLapTime = lastStint.get().getAvgLapTime();
-				stintLap = lastStint.get().getLaps();
-			}
-
-			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata", LapDataView.builder()
-					.lapNo(Integer.toUnsignedString(clientData.getNo()))
-					.lapsRemaining(Integer.toUnsignedString(controller.getRemainingLapCount()))
-					.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
-					.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
-					.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
-					.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
-					.stintAvgFuelPerLap(fuelString(stintAvgFuel))
-					.stintAvgFuelDelta(fuelString(stintAvgFuel - clientData.getLastLapFuelUsage()))
-					.stintAvgTimeDelta(TimeTools.longDurationString(stintAvgLapTime.minus(clientData.getLapTime())))
-					.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
-					.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
-					.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
-					.stintLap(Integer.toUnsignedString(stintLap))
-					.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
-					.build());
+			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
+					getLapDataView((LapData)clientData, controller));
 		}
 	}
 
@@ -277,6 +253,37 @@ public class SessionHolder implements MessageProcessor {
 				.build();
 	}
 
+	private LapDataView getLapDataView(LapData clientData, SessionController controller) {
+		if (clientData == null) {
+			return null;
+		}
+		Optional<Stint> lastStint = controller.getLastStint();
+		Duration stintAvgLapTime = Duration.ZERO;
+		int stintLap = clientData.getNo();
+		double stintAvgFuel = 0.0D;
+		if (lastStint.isPresent()) {
+			stintAvgFuel = lastStint.get().getAvgFuelPerLap();
+			stintAvgLapTime = lastStint.get().getAvgLapTime();
+			stintLap = lastStint.get().getLaps();
+		}
+		return LapDataView.builder()
+				.lapNo(Integer.toUnsignedString(clientData.getNo()))
+				.lapsRemaining(Integer.toUnsignedString(controller.getRemainingLapCount()))
+				.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
+				.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
+				.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
+				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
+				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
+				.stintAvgFuelDelta(fuelString(stintAvgFuel - clientData.getLastLapFuelUsage()))
+				.stintAvgTimeDelta(TimeTools.longDurationString(stintAvgLapTime.minus(clientData.getLapTime())))
+				.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
+				.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
+				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
+				.stintLap(Integer.toUnsignedString(stintLap))
+				.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
+				.build();
+	}
+
 	private SessionDataView getSessionDataView(String subscriptionId) {
 		SessionController controller = getSessionControllerBySubscriptionId(subscriptionId);
 		if (controller != null) {
@@ -289,6 +296,7 @@ public class SessionHolder implements MessageProcessor {
 					.teamName(controller.getSessionData().getTeamName())
 					.sessionId(subscriptionId)
 					.maxCarFuel(fuelString(controller.getSessionData().getMaxCarFuel()))
+					.lastLapData(getLapDataView(controller.getLastRecordedLap().orElse(null), controller))
 					.build();
 		}
 		return null;
