@@ -8,26 +8,21 @@
     <div class="row">
       <div class="col-lg-6 offset-lg-3 text-left" style="margin-top: 20px;">
         <h4 class="text-left">Setup TeamTactics</h4>
-        <h5 class="text-left">Step 1: Install TeamTactics client software</h5>
         <p class="text-left">Download and install the client software package on <strong>your iRacing computer</strong>.</p>
-        <div class="alert alert-warning text-left" role="alert" style="width: 550px;">
-          <h4 class="alert-heading"><i class="fas fa-exclamation-triangle" style="color: rgb(255,155,4);"></i></h4><span class="text-left"><strong>It's recommended to install the software just for your own user - not for all users on your computer.&nbsp;</strong></span></div>
-        <a
-            href="#"><button class="btn btn-primary" type="button"><i class="fas fa-cloud-download-alt"></i>&nbsp;Download</button></a>
-        <p><br/>The next step - configuration - is the last step in the installation procedure.<br>So <strong>do not finish</strong> your installation now!</p>
-        <h5 class="text-left">Step 2: Configure client software</h5>
-        <p>Go to your&nbsp;<a href="/profile">user profile</a>&nbsp;and obtain your <strong><em>TeamTactics client access token</em></strong>. <br>Configure it together with your iRacing ID:</p>
-        <div class="alert alert-info" role="alert" style="width: 550px;font-size: 12px;"><span><code>[DEFAULT]<br><br>[global]<br># Each team member has to configure its own iRacing ID here like<br># iracingId = 123456<br>iracingId = <strong><em><span style="text-decoration: underline;">Yor iRacing ID here</span></em>
-                        </strong><br><br># Proxy configuration. The given URL will be used as Proxy on both http and <br># https protocol<br>;proxy = <br><br># Generates additional debug output. All MQTT and serial communication will be <br># logged. Comment out or
-                        set to yes/True to enable<br>;debug = yes<br>logfile = irtactics.log<br># Uncomment to start the application using a data dump file from irsdk for <br># testing/development purposes. The dump file can be created by issuing the <br>#
-                        command 'irsdk --dump data.dmp'<br>;simulate = data/monzasunset.dump<br><br>[connect]<br># Fill in the client access token from your TeamTactics profile at<br># https://iracing-team-tactics.appspot.com/profile<br>clientAccessToken
-                        = <strong><em><span style="text-decoration: underline;">Your client access token here</span></em></strong><br><br># URL where the client send its messages to - usually no subject to change<br>postUrl&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-                        https://iracing-team-tactics.appspot.com/clientmessage<br></code>
-                        </span>
+        <div class="alert alert-warning text-left" role="alert" style="width: 490px;">
+          <h4 class="alert-heading">
+            <i class="fas fa-exclamation-triangle" style="color: rgb(255,155,4);"></i>
+          </h4>
+          <span class="text-left">
+            <strong>It's recommended to install the software just for your own user - not for all users on your computer.&nbsp;</strong>
+          </span>
         </div>
+        <a href="https://github.com/simracingtools/teamtactics/releases/download/V2.00/TeamTactics2Setup.exe"><button class="btn btn-primary" type="button">
+          <i class="fas fa-cloud-download-alt"></i>&nbsp;Download</button>
+        </a>
+        <p><br>During installation you will need your iRacing ID and your personal <br>client access token. The following values are saved in your&nbsp;<a href="/profile">profile</a>:<br><br>iRacing ID:&nbsp;<span th:text="${user.iRacingId}" style="font-family: 'Roboto Mono', monospace;">123456</span><br>Client access token:&nbsp;<span th:text="${user.clientMessageAccessToken}" style="font-family: 'Roboto Mono', monospace;">client access token</span><br></p>
         <p>You may now complete your software setup.</p>
-        <h5>Step 3: Go team racing</h5>
-        <p>Start the client software (There should be an Icon on your desktop) and go racing.<br/>Follow your team members data on the <a href="https://iracing-team-tactics.appspot.com" target="_blank">TeamTactics Server</a>.</p>
+        <p>Start the client software (There should be an Icon on your desktop) and go racing. Follow your team members data on the <a href="https://iracing-team-tactics.appspot.com" target="_blank">TeamTactics Server</a>.</p>
       </div>
     </div>
     <script src="assets/js/bs-init.js"></script>
