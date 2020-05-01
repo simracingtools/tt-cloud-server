@@ -25,8 +25,8 @@ public class UserContentController extends BaseController {
     }
 
     @PostMapping("/acknewuser")
-    public String showIndexAfterAck() {
-        return "index";
+    public String showProfileAfterAck() {
+        return "profile";
     }
 
     @GetMapping("/profile")
