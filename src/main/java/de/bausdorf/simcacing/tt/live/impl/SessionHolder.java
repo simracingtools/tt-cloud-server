@@ -218,6 +218,8 @@ public class SessionHolder implements MessageProcessor {
 					.availableLapsCssClass(lapsCssClass)
 					.flagCssClass(runData.getFlags().get(0).cssClass())
 					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.lapNo(Integer.toUnsignedString(runData.getLapNo()))
+					.timeInLap(TimeTools.longDurationString(runData.getTimeInLap()))
 					.build());
 		}
 	}

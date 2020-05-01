@@ -94,6 +94,8 @@ function showRunData(message) {
     $("#raceSessionTime").text(message.raceSessionTime);
     $("#timeOfDay").text(message.timeOfDay)
     $("#remainingSessionTime").text(message.remainingSessionTime);
+    $("#timeInLap").text(message.timeInLap)
+    $("#lapNo").text(message.lapNo);
 }
 
 function showSyncData(message) {

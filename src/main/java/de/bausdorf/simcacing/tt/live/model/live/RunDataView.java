@@ -23,4 +23,6 @@ public class RunDataView {
     private List<String> flags;
     private String flagCssClass;
     private String timeOfDay;
+    private String lapNo;
+    private String timeInLap;
 }
