@@ -73,7 +73,7 @@ public class TimeTools {
         long h = duration.toHours();
         long m = duration.toMinutes() - (h * 60);
         double S = ((double)duration.toMillis() / 1000) - (m * 60) - (h * 3600);
-        return String.format("%d:%02d:%02.3f", h, m, S);
+        return String.format("%d:%02d:%06.3f", h, m, S + 0.0001);
     }
 
     public static String shortDurationString(Duration duration) {
