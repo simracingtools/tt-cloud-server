@@ -16,12 +16,14 @@ import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -31,26 +33,24 @@ public class SessionHolder implements MessageProcessor {
 	private static final String LIVE_PREFIX = "/live/";
 	public static final String HH_MM_SS = "HH:mm:ss";
 
+	private final TeamtacticsServerProperties config;
 	private final SessionMap data;
-
 	private final EnumMap<MessageType, MessageValidator> validators;
-
 	private final Map<String, MessageTransformer> transformers;
-
 	private final Map<String, String> liveTopics;
-
 	private final SimpMessagingTemplate messagingTemplate;
-
 	final DriverRepository driverRepository;
 
 	public SessionHolder(@Autowired SimpMessagingTemplate messagingTemplate,
-			@Autowired DriverRepository driverRepository) {
+			@Autowired DriverRepository driverRepository,
+			@Autowired TeamtacticsServerProperties config) {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
 		this.transformers = new HashMap<>();
 		this.liveTopics = new HashMap<>();
 		this.messagingTemplate = messagingTemplate;
 		this.driverRepository = driverRepository;
+		this.config = config;
 	}
 
 	@Override
@@ -77,6 +77,7 @@ public class SessionHolder implements MessageProcessor {
 			case LAP:
 				try {
 					controller = getSessionController(sessionKey);
+					controller.setLastUpdate(System.currentTimeMillis());
 					controller.addLap((LapData) clientData);
 					sendLapData((LapData)clientData, controller, sessionKey.getSessionId().getSubscriptionId());
 				} catch( DuplicateLapException e) {
@@ -85,6 +86,7 @@ public class SessionHolder implements MessageProcessor {
 				break;
 			case RUN_DATA:
 				controller = getSessionController(sessionKey);
+				controller.setLastUpdate(System.currentTimeMillis());
 				IRacingDriver driver = driverRepository.findById(message.getClientId())
 						.orElse(IRacingDriver.builder()
 								.id("unknown")
@@ -105,11 +107,13 @@ public class SessionHolder implements MessageProcessor {
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
+				controller.setLastUpdate(System.currentTimeMillis());
 				controller.processEventData((EventData)clientData);
 				sendEventData((EventData)clientData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case SYNC:
 				controller = getSessionController(sessionKey);
+				controller.setLastUpdate(System.currentTimeMillis());
 				controller.updateSyncData((SyncData)clientData);
 				sendSyncData((SyncData)clientData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
 				break;
@@ -325,5 +329,23 @@ public class SessionHolder implements MessageProcessor {
 
 	private static String fuelString(double fuelAmount) {
 		return String.format("%.3f", fuelAmount).replace(",", ".");
+	}
+
+	@Scheduled(cron="0 0/30 * * * ?")
+	public void removeInactiveSessions() {
+		List<SessionKey> inactiveSessions = new ArrayList<>();
+		long timeoutMillis = config.getInactiveSessionTimeoutMinutes() * 60000;
+		for (Map.Entry<SessionKey, SessionController> activeSession : data.entrySet()) {
+			if (activeSession.getValue().getLastUpdate() + timeoutMillis < System.currentTimeMillis()) {
+				inactiveSessions.add(activeSession.getKey());
+			}
+		}
+		if (inactiveSessions.isEmpty()) {
+			log.info("No inactive sessions found");
+		}
+		for (SessionKey key : inactiveSessions) {
+			log.info("Removing inactive session " + key.getSessionId().toString());
+			data.remove(key);
+		}
 	}
 }

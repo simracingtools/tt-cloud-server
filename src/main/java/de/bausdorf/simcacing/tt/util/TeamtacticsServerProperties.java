@@ -18,4 +18,5 @@ public class TeamtacticsServerProperties {
     private Long driverRepositoryCacheMinutes;
     private Long teamRepositoryCacheMinutes;
     private Long userRepositoryCacheMinutes;
+    private Long inactiveSessionTimeoutMinutes;
 }

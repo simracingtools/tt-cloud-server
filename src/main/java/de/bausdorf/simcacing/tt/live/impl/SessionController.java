@@ -18,6 +18,8 @@ import java.util.*;
 @Slf4j
 @Getter
 public class SessionController {
+    @Setter
+    private long lastUpdate;
     private final SessionData sessionData;
     @Setter
     private RacePlan racePlan;
