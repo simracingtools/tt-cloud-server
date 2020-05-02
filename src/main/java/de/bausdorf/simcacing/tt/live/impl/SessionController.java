@@ -81,7 +81,7 @@ public class SessionController {
         }
 
         Assumption assumption = getAssumptionFromRacePlan();
-        calculateStintLaps(currentStint, runData.getFuelLevel(), assumption);
+        calculateStintLaps(currentStint, runData != null ? runData.getFuelLevel() : 0.0D, assumption);
         calculateExpectedStintDuration(currentStint, assumption);
         log.debug("Current stint: {}", currentStint);
     }
@@ -203,7 +203,11 @@ public class SessionController {
     public Duration getRemainingStintTime() {
         Optional<Stint> lastStint = getLastStint();
         if (lastStint.isPresent()) {
-            return lastStint.get().getExpectedStintDuration().minus(lastStint.get().getCurrentStintDuration());
+            Duration expectedStintDuration = lastStint.get().getExpectedStintDuration();
+            Duration currentStintDuration = lastStint.get().getCurrentStintDuration();
+            if (expectedStintDuration != null && currentStintDuration != null) {
+                return expectedStintDuration.minus(currentStintDuration);
+            }
         }
         return Duration.ZERO;
     }
