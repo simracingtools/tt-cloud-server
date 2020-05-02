@@ -41,6 +41,7 @@ public class SessionIdentifier {
         return new StringBuilder(teamName.replace(" ", ""))
                 .append('-').append(sessionId)
                 .append('-').append(subSessionId)
+                .append('-').append(sessionNum)
                 .toString();
     }
 

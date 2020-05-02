@@ -119,7 +119,7 @@ public class SessionHolder implements MessageProcessor {
 				break;
 			case SESSION_INFO:
 				SessionData sessionData = (SessionData)clientData;
-				if( !addSession(sessionKey, sessionData)) {
+				if( !data.putSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
 				}
 				sendSessionData(sessionData, sessionKey.getSessionId().getSubscriptionId());
@@ -127,10 +127,6 @@ public class SessionHolder implements MessageProcessor {
 			default:
 				break;
 		}
-	}
-
-	public boolean addSession(SessionKey sessionKey, SessionData sessionData) {
-		return data.putSession(sessionKey, sessionData);
 	}
 
 	public SessionController getSessionController(SessionKey key) {
