@@ -19,4 +19,6 @@ public class SessionDataView implements ClientData {
 	private String trackName;
 	private String sessionType;
 	private LapDataView lastLapData;
+	private String trackLocation;
+	private String trackLocationCssClass;
 }

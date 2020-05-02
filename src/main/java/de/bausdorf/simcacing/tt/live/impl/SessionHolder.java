@@ -32,6 +32,8 @@ public class SessionHolder implements MessageProcessor {
 
 	private static final String LIVE_PREFIX = "/live/";
 	public static final String HH_MM_SS = "HH:mm:ss";
+	public static final String TABLE_SUCCESS = "table-success";
+	public static final String TABLE_DANGER = "table-danger";
 
 	private final TeamtacticsServerProperties config;
 	private final SessionMap data;
@@ -122,7 +124,7 @@ public class SessionHolder implements MessageProcessor {
 				if( !data.putSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
 				}
-				sendSessionData(sessionData, sessionKey.getSessionId().getSubscriptionId());
+				sendSessionData(sessionData, getSessionController(sessionKey), sessionKey.getSessionId().getSubscriptionId());
 				break;
 			default:
 				break;
@@ -152,11 +154,11 @@ public class SessionHolder implements MessageProcessor {
 	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
 		if (liveTopics.containsKey(subscriptionId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
-					getLapDataView((LapData)clientData, controller));
+					getLapDataView(clientData, controller));
 		}
 	}
 
-	public void sendSessionData(SessionData sessionData, String teamId) {
+	public void sendSessionData(SessionData sessionData, SessionController controller, String teamId) {
 		if (liveTopics.containsKey(teamId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/sessiondata", SessionDataView.builder()
 					.carName(sessionData.getCarName())
@@ -167,6 +169,8 @@ public class SessionHolder implements MessageProcessor {
 					.teamName(sessionData.getTeamName())
 					.sessionId(teamId)
 					.maxCarFuel(fuelString(sessionData.getMaxCarFuel()).replace(",", "."))
+//					.trackLocation(controller.getCurrentTrackLocation().name())
+//					.trackLocationCssClass(controller.getCurrentTrackLocation().getCssClass())
 					.build());
 		}
 	}
@@ -176,7 +180,7 @@ public class SessionHolder implements MessageProcessor {
 			double availableLaps = controller.getAvailableLapsForFuelLevel(runData.getFuelLevel());
 			String lapsCssClass = "table-info";
 			if (availableLaps < 1.0D) {
-				lapsCssClass = "table-danger";
+				lapsCssClass = TABLE_DANGER;
 			} else if (availableLaps < 3.0D) {
 				lapsCssClass = "table-warning";
 			}
@@ -274,9 +278,9 @@ public class SessionHolder implements MessageProcessor {
 				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
 				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
 				.stintAvgFuelDelta(fuelString(avgFuelDelta))
-				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? "table-danger" : "table-success")
+				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? TABLE_DANGER : TABLE_SUCCESS)
 				.stintAvgTimeDelta(avgTimeDelta)
-				.stintAvgTimeDeltaCssClass(avgTimeDelta.startsWith("-") ? "table-danger" : "table-success")
+				.stintAvgTimeDeltaCssClass(avgTimeDelta.startsWith("-") ? TABLE_DANGER : TABLE_SUCCESS)
 				.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
 				.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
 				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
@@ -287,6 +291,8 @@ public class SessionHolder implements MessageProcessor {
 
 	private SessionDataView getSessionDataView(String subscriptionId) {
 		SessionController controller = getSessionControllerBySubscriptionId(subscriptionId);
+		TrackLocationType locationType = controller.getCurrentTrackLocation() == null
+				? TrackLocationType.OFF_WORLD : controller.getCurrentTrackLocation();
 		if (controller != null) {
 			return SessionDataView.builder()
 					.carName(controller.getSessionData().getCarName())
@@ -298,6 +304,8 @@ public class SessionHolder implements MessageProcessor {
 					.sessionId(subscriptionId)
 					.maxCarFuel(fuelString(controller.getSessionData().getMaxCarFuel()))
 					.lastLapData(getLapDataView(controller.getLastRecordedLap().orElse(null), controller))
+					.trackLocation(locationType.name())
+					.trackLocationCssClass(locationType.getCssClass())
 					.build();
 		}
 		return null;
@@ -329,11 +337,11 @@ public class SessionHolder implements MessageProcessor {
 
 	private static String getSyncState(LocalTime lastSync, LocalTime currentSync) {
 		if (lastSync.plusSeconds(10).isAfter(currentSync)) {
-			return "table-success";
+			return TABLE_SUCCESS;
 		} else if (lastSync.plusSeconds(30).isAfter(currentSync)) {
 			return "table-warning";
 		}
-		return "table-danger";
+		return TABLE_DANGER;
 	}
 
 	private static String fuelString(double fuelAmount) {

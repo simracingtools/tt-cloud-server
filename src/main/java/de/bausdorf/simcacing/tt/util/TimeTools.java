@@ -7,6 +7,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -71,7 +72,7 @@ public class TimeTools {
         if (S < 0) {
             S = 0.0;
         }
-        return String.format("%d:%02d:%06.3f", h, m, S);
+        return String.format(Locale.US,"%d:%02d:%06.3f", h, m, S);
     }
 
     public static String longDurationDeltaString(Duration d1, Duration d2) {
@@ -80,11 +81,17 @@ public class TimeTools {
         return prefix + longDurationString(delta.isNegative() ? d2.minus(d1) : delta);
     }
 
-    public static String shortDurationString(Duration duration) {
-        long h = duration.toHours();
-        long m = duration.toMinutes() - (h * 60);
-        long S = duration.getSeconds() - (m * 60) - (h * 3600);
-        return String.format("%d:%02d:%02d", h, m, S);
+    public static String shortDurationString(final Duration duration) {
+        String prefix = "";
+        Duration d = duration;
+        if (duration.isNegative()) {
+            d = duration.multipliedBy(-1);
+            prefix = "-";
+        }
+        long h = d.toHours();
+        long m = d.toMinutes() - (h * 60);
+        long S = d.getSeconds() - (m * 60) - (h * 3600);
+        return prefix + String.format("%d:%02d:%02d", h, m, S);
     }
 
     public static LocalTime timeFromString(String time) {

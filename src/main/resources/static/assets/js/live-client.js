@@ -71,6 +71,13 @@ function showSessionData(message) {
     $("#sessionType").text(message.sessionType);
     $("#teamName").text(message.teamName);
     $("#maxCarFuel").val(message.maxCarFuel);
+    $("#trackLocation").text(message.trackLocation)
+            .removeClass("loc-black")
+            .removeClass("loc-blue")
+            .removeClass("loc-yellow")
+            .removeClass("loc-green")
+            .removeClass("loc-orange")
+            .addClass(message.trackLocationCssClass);
     if (message.lastLapData) {
         showLapData(message.lastLapData)
     }

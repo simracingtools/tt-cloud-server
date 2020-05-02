@@ -2,6 +2,7 @@ package de.bausdorf.simcacing.tt.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
@@ -48,5 +49,27 @@ public class TimeToolsTest {
 
 		time = TimeTools.timeFromString("0:5,2");
 		assertThat(time.isAfter(LocalTime.MIN)).isTrue();
+	}
+
+	@Test
+	public void testDeltaDurationString() {
+		Duration d1 = Duration.ofSeconds(721);
+		Duration d2 = Duration.ofSeconds(859);
+
+		String delta = TimeTools.longDurationDeltaString(d1, d2);
+		assertThat(delta.startsWith("-")).isTrue();
+		delta = TimeTools.longDurationDeltaString(d2, d1);
+		assertThat(delta.startsWith("-")).isFalse();
+	}
+
+	@Test
+	public void testShortDurationString() {
+		Duration d1 = Duration.ofSeconds(721);
+
+		String delta = TimeTools.shortDurationString(d1);
+		assertThat(delta.startsWith("-")).isFalse();
+		d1 = d1.multipliedBy(-1);
+		delta = TimeTools.shortDurationString(d1);
+		assertThat(delta.startsWith("-")).isTrue();
 	}
 }
