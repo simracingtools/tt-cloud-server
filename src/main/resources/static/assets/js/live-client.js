@@ -23,11 +23,6 @@ function connect() {
             console.log(jsonMessage);
             showSessionData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/sesiondata', function (message) {
-            var jsonMessage = JSON.parse(message.body);
-            console.log(jsonMessage);
-            showSessionData(jsonMessage);
-        });
         stompClient.subscribe('/live/' + $("#teamId").val() + '/rundata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);

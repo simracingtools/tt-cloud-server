@@ -128,7 +128,6 @@ public class SessionHolder implements MessageProcessor {
 				if( !data.putSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
 				}
-				sendSessionData(sessionData, getSessionController(sessionKey), sessionKey.getSessionId().getSubscriptionId());
 				break;
 			default:
 				break;
@@ -159,23 +158,6 @@ public class SessionHolder implements MessageProcessor {
 		if (liveTopics.containsKey(subscriptionId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
 					getLapDataView(clientData, controller));
-		}
-	}
-
-	public void sendSessionData(SessionData sessionData, SessionController controller, String teamId) {
-		if (liveTopics.containsKey(teamId)) {
-			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/sessiondata", SessionDataView.builder()
-					.carName(sessionData.getCarName())
-					.trackName(sessionData.getTrackName())
-					.sessionDuration(sessionData.getSessionDuration().orElse(LocalTime.MIN)
-							.format(DateTimeFormatter.ofPattern("HH:mm")))
-					.sessionType(sessionData.getSessionType())
-					.teamName(sessionData.getTeamName())
-					.sessionId(teamId)
-					.maxCarFuel(fuelString(sessionData.getMaxCarFuel()).replace(",", "."))
-//					.trackLocation(controller.getCurrentTrackLocation().name())
-//					.trackLocationCssClass(controller.getCurrentTrackLocation().getCssClass())
-					.build());
 		}
 	}
 

@@ -103,11 +103,17 @@ public class ModelFactory {
     }
 
     private static LocalTime getFromIracingSessionTime(Object iRacingSessionTime) {
+        if (iRacingSessionTime == null) {
+            return LocalTime.MIN;
+        }
         // iRacing session time is seconds as double
         return LocalTime.ofNanoOfDay((long)((Double)iRacingSessionTime * 1000000000));
     }
 
     private static Duration getFromIracingDuration(Object iRacingDuration) {
+        if (iRacingDuration == null) {
+            return Duration.ZERO;
+        }
         // iRacing lap, repair and tow times are seconds as float
         return Duration.ofNanos((long)((Double)iRacingDuration * 1000000000));
     }
