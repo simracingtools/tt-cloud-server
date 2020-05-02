@@ -77,7 +77,7 @@ public class TimeTools {
     public static String longDurationDeltaString(Duration d1, Duration d2) {
         Duration delta = d1.minus(d2);
         String prefix = delta.isNegative() ? "-" : "";
-        return prefix + longDurationString(delta);
+        return prefix + longDurationString(delta.isNegative() ? d2.minus(d1) : delta);
     }
 
     public static String shortDurationString(Duration duration) {
