@@ -217,12 +217,13 @@ public class SessionHolder implements MessageProcessor {
 
 	public void sendSyncData(SyncData syncData, Collection<SyncData> teamSync, String teamId) {
 		List<SyncDataView> syncDataViews = new ArrayList<>();
+		String inCarCssClass = syncData.isInCar() ? "table-info" : "";
 		for (SyncData sync : teamSync) {
 			syncDataViews.add(SyncDataView.builder()
 					.driverId(sync.getClientId())
 					.timestamp(sync.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
 					.stateCssClass(getSyncState(sync.getSessionTime(), syncData.getSessionTime()))
-					.inCarCssClass(sync.getClientId().equalsIgnoreCase(syncData.getClientId()) ? "table-info" : "")
+					.inCarCssClass(sync.getClientId().equalsIgnoreCase(syncData.getClientId()) ? inCarCssClass : "")
 					.build());
 		}
 		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/syncdata", syncDataViews);
