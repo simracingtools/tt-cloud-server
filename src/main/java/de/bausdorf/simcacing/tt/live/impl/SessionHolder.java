@@ -95,6 +95,10 @@ public class SessionHolder implements MessageProcessor {
 								.name("N.N.")
 								.validated(false)
 								.build());
+				if (!driver.getId().equalsIgnoreCase("unknown") && !driver.isValidated()) {
+					driver.setValidated(true);
+					driverRepository.save(driver);
+				}
 				controller.setCurrentDriver(driver);
 				controller.updateRunData((RunData)clientData);
 				sendRunData((RunData)clientData, controller, sessionKey.getSessionId().getSubscriptionId(), driver);
