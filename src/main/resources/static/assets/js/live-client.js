@@ -104,15 +104,13 @@ function showRunData(message) {
 }
 
 function showSyncData(message) {
-    for (var i in message) {
-        $("#syncTD-" + message[i].driverId).text(message[i].timestamp);
-        $("#syncTD-" + message[i].driverId).removeClass("table-danger")
-                .removeClass("table-warning")
-                .removeClass("table-success")
-                .addClass(message[i].stateCssClass);
-        $("#syncTH-" + message[i].driverId).removeClass("table-info")
-                .addClass(message[i].inCarCssClass);
-    }
+    $("#syncTD-" + message.driverId).text(message.timestamp);
+    $("#syncTD-" + message.driverId).removeClass("table-danger")
+            .removeClass("table-warning")
+            .removeClass("table-success")
+            .addClass(message.stateCssClass);
+    $("#syncTH-" + message.driverId).removeClass("table-info")
+            .addClass(message.inCarCssClass);
 }
 
 function showLapData(message) {

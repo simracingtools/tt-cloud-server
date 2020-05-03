@@ -109,7 +109,7 @@ public class SessionHolder implements MessageProcessor {
 						.clientId(message.getClientId())
 						.build();
 				controller.updateSyncData(syncData);
-				sendSyncData(syncData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
+				sendSyncData(syncData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
@@ -121,7 +121,7 @@ public class SessionHolder implements MessageProcessor {
 				controller = getSessionController(sessionKey);
 				controller.setLastUpdate(System.currentTimeMillis());
 				controller.updateSyncData((SyncData)clientData);
-				sendSyncData((SyncData)clientData, controller.getHeartbeats().values(), sessionKey.getSessionId().getSubscriptionId());
+				sendSyncData((SyncData)clientData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case SESSION_INFO:
 				SessionData sessionData = (SessionData)clientData;
@@ -201,18 +201,13 @@ public class SessionHolder implements MessageProcessor {
 		}
 	}
 
-	public void sendSyncData(SyncData syncData, Collection<SyncData> teamSync, String teamId) {
-		List<SyncDataView> syncDataViews = new ArrayList<>();
-		String inCarCssClass = syncData.isInCar() ? "table-info" : "";
-		for (SyncData sync : teamSync) {
-			syncDataViews.add(SyncDataView.builder()
-					.driverId(sync.getClientId())
-					.timestamp(sync.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
-					.stateCssClass(getSyncState(sync.getSessionTime(), syncData.getSessionTime()))
-					.inCarCssClass(sync.getClientId().equalsIgnoreCase(syncData.getClientId()) ? inCarCssClass : "")
-					.build());
-		}
-		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/syncdata", syncDataViews);
+	public void sendSyncData(SyncData syncData, String teamId) {
+		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/syncdata", SyncDataView.builder()
+				.driverId(syncData.getClientId())
+				.timestamp(syncData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+				.stateCssClass(getSyncState(syncData.getSessionTime(), syncData.getSessionTime()))
+				.inCarCssClass(syncData.isInCar() ? "table-info" : "")
+				.build());
 	}
 
 	@MessageMapping("/liveclient")
