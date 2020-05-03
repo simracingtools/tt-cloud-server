@@ -100,6 +100,8 @@ public class SessionController {
 
     public void processEventData(EventData eventData) {
         log.debug("New event: {}", eventData);
+        sessionToD = eventData.getSessionToD();
+        currentTrackLocation = eventData.getTrackLocationType();
 
         switch (eventData.getTrackLocationType()) {
             case APPROACHING_PITS:
@@ -145,8 +147,6 @@ public class SessionController {
                 }
                 towTimeLeft = eventData.getTowingTime();
         }
-        sessionToD = eventData.getSessionToD();
-        currentTrackLocation = eventData.getTrackLocationType();
     }
 
     public Duration getRemainingSessionTime() {
