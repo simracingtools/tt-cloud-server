@@ -220,12 +220,13 @@ public class SessionController {
     }
 
     public int getRemainingLapCount() {
-        if (racePlan != null) {
-            int lapCount = 0;
-            for (de.bausdorf.simcacing.tt.planning.model.Stint stint : racePlan.getCurrentRacePlan()) {
-                lapCount += stint.getLaps();
+        Duration remainingSessionTime = getRemainingSessionTime();
+        Optional<Stint> lastStint = getLastStint();
+        if (lastStint.isPresent()) {
+            Duration lastStintAvgLapTime = lastStint.get().getAvgLapTime();
+            if (!lastStintAvgLapTime.isZero()) {
+                return (int) Math.ceil(remainingSessionTime.getSeconds() / lastStintAvgLapTime.getSeconds());
             }
-            return lapCount - currentLapNo;
         }
         return 0;
     }
