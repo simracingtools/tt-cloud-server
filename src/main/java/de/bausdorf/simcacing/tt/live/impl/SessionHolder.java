@@ -267,6 +267,7 @@ public class SessionHolder implements MessageProcessor {
 				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
 				.stintLap(Integer.toUnsignedString(stintLap))
 				.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
+				.driverBestLap(TimeTools.longDurationString(controller.getCurrentDriverBestLap()))
 				.build();
 	}
 

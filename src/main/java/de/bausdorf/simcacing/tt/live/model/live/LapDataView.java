@@ -24,4 +24,5 @@ public class LapDataView {
 	private String stintAvgFuelDelta;
 	private String stintAvgFuelDeltaCssClass;
 	private String trackTemp;
+	private String driverBestLap;
 }

@@ -134,6 +134,7 @@ function showLapData(message) {
             .addClass(message.stintAvgTimeDeltaCssClass);
     $("#stintRemainingTime").text(message.stintRemainingTime);
     $("#trackTemp").text(message.trackTemp);
+    $("#driverBestLap").text(message.driverBestLap)
 }
 
 function showEventData(message) {

@@ -239,6 +239,22 @@ public class SessionController {
         return Optional.of(laps.get(lastKey));
     }
 
+    public Duration getCurrentDriverBestLap() {
+        Duration driverBestLap = Duration.ZERO;
+        for (LapData lap : laps.values()) {
+            if (lap.getDriver().equalsIgnoreCase(currentDriver.getName())) {
+                if (driverBestLap.equals(Duration.ZERO)) {
+                    driverBestLap = lap.getLapTime();
+                } else {
+                    if (lap.getLapTime().compareTo(driverBestLap) < 0) {
+                        driverBestLap = lap.getLapTime();
+                    }
+                }
+            }
+        }
+        return driverBestLap;
+    }
+
     private Optional<LapData> getPreviousLap(int currentLapNo) {
         if (laps.isEmpty() || currentLapNo <= 1) {
             return Optional.empty();
