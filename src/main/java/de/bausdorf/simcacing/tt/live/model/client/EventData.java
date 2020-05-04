@@ -20,4 +20,5 @@ public class EventData implements ClientData {
     private Duration towingTime;
     private Duration repairTime;
     private Duration optRepairTime;
+    private List<ServiceFlagType> serviceFlags;
 }

@@ -14,6 +14,7 @@ public class LapData implements ClientData {
 
 	private int no;
 	private String driver;
+	private String driverId;
 	private double fuelLevel;
 	private Duration lapTime;
 	private double trackTemp;

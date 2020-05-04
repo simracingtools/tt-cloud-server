@@ -32,6 +32,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	static {
 		acceptedVersions.add("1.20");
 		acceptedVersions.add("1.30");
+		acceptedVersions.add("1.31");
 	}
 
 	private final MessageProcessor processor;

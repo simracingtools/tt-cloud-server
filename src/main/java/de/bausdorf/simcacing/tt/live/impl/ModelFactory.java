@@ -23,6 +23,7 @@ public class ModelFactory {
                 .no((Integer)messagePayload.get(MessageConstants.LapData.LAP))
                 .trackTemp((Double)messagePayload.get(MessageConstants.LapData.TRACK_TEMP))
                 .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
+                .driverId(stringOfNumberOrString(messagePayload.get(MessageConstants.LapData.DRIVER_ID)))
                 .build();
     }
 
@@ -49,6 +50,7 @@ public class ModelFactory {
                 .optRepairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.OPT_REPAIR_TIME)))
                 .repairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.REPAIR_TIME)))
                 .towingTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.TOW_TIME)))
+                .serviceFlags(ServiceFlagType.ofBitmask((Integer)messagePayload.get(MessageConstants.EventData.SERVICE_FLAGS)))
                 .build();
     }
 
