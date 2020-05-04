@@ -242,7 +242,7 @@ public class SessionController {
     public Duration getCurrentDriverBestLap() {
         Duration driverBestLap = Duration.ZERO;
         for (LapData lap : laps.values()) {
-            if (lap.getDriver().equalsIgnoreCase(currentDriver.getName())) {
+            if (lap.getDriverId().equalsIgnoreCase(currentDriver.getId())) {
                 if (driverBestLap.equals(Duration.ZERO)) {
                     driverBestLap = lap.getLapTime();
                 } else {
