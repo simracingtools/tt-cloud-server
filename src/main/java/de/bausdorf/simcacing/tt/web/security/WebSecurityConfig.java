@@ -7,24 +7,19 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	private GoogleUserService userService;
-	private ClientRegistrationRepository registrationRepository;
-	private PersistentTokenRepository tokenRepository;
+//	private ClientRegistrationRepository registrationRepository;
 
 	public WebSecurityConfig(@Autowired GoogleUserService userService,
-			@Autowired	ClientRegistrationRepository registrationRepository,
-			@Autowired PersistentTokenRepository tokenRepository) {
+			@Autowired	ClientRegistrationRepository registrationRepository) {
 		super(false);
 		this.userService = userService;
-		this.registrationRepository = registrationRepository;
-		this.tokenRepository = tokenRepository;
+//		this.registrationRepository = registrationRepository;
 	}
 
 	@Override
@@ -40,15 +35,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					.anyRequest().authenticated()
 				.and()
 				.rememberMe()
-					.tokenRepository(tokenRepository)
 					.key("irtactics")
 					.tokenValiditySeconds(90000)
 				.and()
 				.oauth2Login()
 					.authorizationEndpoint()
-					.authorizationRequestResolver(
-						new CustomAuthorizationRequestResolver(
-								registrationRepository))
+//					.authorizationRequestResolver(
+//						new CustomAuthorizationRequestResolver(
+//								registrationRepository))
 				.and()
 				.userInfoEndpoint()
 				.oidcUserService(userService);
