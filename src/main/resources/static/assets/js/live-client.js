@@ -73,6 +73,7 @@ function showSessionData(message) {
             .removeClass("loc-green")
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
+    $("#timeZone").text(message.timeZone);
     if (message.lastLapData) {
         showLapData(message.lastLapData)
     }
@@ -101,11 +102,12 @@ function showRunData(message) {
     $("#remainingSessionTime").text(message.remainingSessionTime);
     $("#timeInLap").text(message.timeInLap)
     $("#lapNo").text(message.lapNo);
+    $("#localClock").text(message.localClock);
 }
 
 function showSyncData(message) {
-    $("#syncTD-" + message.driverId).text(message.timestamp);
-    $("#syncTD-" + message.driverId).removeClass("table-danger")
+    $("#syncTD-" + message.driverId).text(message.timestamp)
+            .removeClass("table-danger")
             .removeClass("table-warning")
             .removeClass("table-success")
             .addClass(message.stateCssClass);
@@ -134,7 +136,23 @@ function showLapData(message) {
             .addClass(message.stintAvgTimeDeltaCssClass);
     $("#stintRemainingTime").text(message.stintRemainingTime);
     $("#trackTemp").text(message.trackTemp);
-    $("#driverBestLap").text(message.driverBestLap)
+    $("#driverBestLap").text(message.driverBestLap);
+    $("#estimatedFuelPerLap").text(message.estimatedFuelPerLap);
+    setEstimatedFuelDelta(message.lastLapFuel);
+    if ($("#estimatedFuelPerLapInput").val() == 0) {
+        $("#estimatedFuelPerLapInput").val(message.requiredFuelPerLapOneMore);
+        $("#estimatedFuelLaps").text(message.estimatedFuelLaps);
+    }
+    if ($("#maxCarFuel").val() == 0) {
+        $("#maxCarFuel").val(message.maxCarFuel);
+        $("#estimatedFuelLaps").text(message.estimatedFuelLaps);
+    }
+    $("#estimatedLapTime").text(message.estimatedLapTime);
+    $("#estimatedLapTimeDelta").text(message.estimatedLapTimeDelta)
+            .removeClass('table-success')
+            .removeClass('table-danger')
+            .addClass(message.estimatedLapTimeDeltaCssClass);
+    $("#estimatedStintTime").text(message.estimatedStintTime);
 }
 
 function showEventData(message) {

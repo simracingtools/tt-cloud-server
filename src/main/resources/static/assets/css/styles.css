@@ -13,6 +13,10 @@
   margin-bottom: 0;
 }
 
+.hidden {
+  display: none;
+}
+
 .table td, .table th {
   vertical-align: middle;
 }

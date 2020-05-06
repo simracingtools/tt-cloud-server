@@ -13,10 +13,12 @@ import java.util.stream.Stream;
 @Slf4j
 public class TimeTools {
 
+    public static final String HH_MM_SS = "HH:mm:ss";
+
     private static final List<String> TIME_PATTERNS = new ArrayList<>();
 
     static {
-        TIME_PATTERNS.add("HH:mm:ss");
+        TIME_PATTERNS.add(HH_MM_SS);
         TIME_PATTERNS.add("HH:mm:s");
         TIME_PATTERNS.add("HH:m:ss");
         TIME_PATTERNS.add("HH:m:s");

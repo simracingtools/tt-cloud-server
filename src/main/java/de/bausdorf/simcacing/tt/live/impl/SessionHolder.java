@@ -1,6 +1,5 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
-import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -11,6 +10,7 @@ import de.bausdorf.simcacing.tt.live.model.client.*;
 import de.bausdorf.simcacing.tt.live.model.live.EventDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LapDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
+import de.bausdorf.simcacing.tt.live.model.live.PitstopDataView;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
@@ -31,7 +31,6 @@ import org.springframework.stereotype.Controller;
 public class SessionHolder implements MessageProcessor {
 
 	private static final String LIVE_PREFIX = "/live/";
-	public static final String HH_MM_SS = "HH:mm:ss";
 	public static final String TABLE_SUCCESS = "table-success";
 	public static final String TABLE_DANGER = "table-danger";
 
@@ -114,7 +113,9 @@ public class SessionHolder implements MessageProcessor {
 			case EVENT:
 				controller = getSessionController(sessionKey);
 				controller.setLastUpdate(System.currentTimeMillis());
-				controller.processEventData((EventData)clientData);
+				if (controller.processEventData((EventData)clientData)) {
+					sendPitstopData(PitstopDataView.getPitstopDataView(controller), sessionKey.getSessionId().getSubscriptionId());
+				}
 				sendEventData((EventData)clientData, sessionKey.getSessionId().getSubscriptionId());
 				break;
 			case SYNC:
@@ -156,9 +157,16 @@ public class SessionHolder implements MessageProcessor {
 
 	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
 		if (liveTopics.containsKey(subscriptionId)) {
-			messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
-					getLapDataView(clientData, controller));
+			LapDataView dataView = LapDataView.getLapDataView(clientData, controller);
+			if (dataView != null) {
+				messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
+						dataView);
+			}
 		}
+	}
+
+	public void sendPitstopData(List<PitstopDataView> pitstopData, String teamId) {
+		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/pitdata", pitstopData);
 	}
 
 	public void sendRunData(RunData runData, SessionController controller, String teamId, IRacingDriver driver) {
@@ -173,19 +181,20 @@ public class SessionHolder implements MessageProcessor {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/rundata", RunDataView.builder()
 					.fuelLevel(runData.getFuelLevel())
 					.fuelLevelStr(fuelString(runData.getFuelLevel()).replace(",", "."))
-					.sessionTime(runData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.sessionTime(runData.getSessionTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.flags(runData.getFlags().stream()
 							.map(FlagType::name)
 							.collect(Collectors.toList()))
 					.driverName(driver.getName())
-					.raceSessionTime(controller.getCurrentRaceSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.raceSessionTime(controller.getCurrentRaceSessionTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.remainingSessionTime(TimeTools.shortDurationString(controller.getRemainingSessionTime()))
 					.availableLaps(String.format("%.2f", availableLaps))
 					.availableLapsCssClass(lapsCssClass)
 					.flagCssClass(runData.getFlags().get(0).cssClass())
-					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.lapNo(Integer.toUnsignedString(runData.getLapNo()))
 					.timeInLap(TimeTools.longDurationString(runData.getTimeInLap()))
+					.localClock(LocalTime.now().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.build());
 		}
 	}
@@ -193,8 +202,8 @@ public class SessionHolder implements MessageProcessor {
 	public void sendEventData(EventData eventData, String teamId) {
 		if (liveTopics.containsKey(teamId)) {
 			messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/eventdata", EventDataView.builder()
-					.sessionTime(eventData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
-					.timeOfDay(eventData.getSessionToD().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+					.sessionTime(eventData.getSessionTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
+					.timeOfDay(eventData.getSessionToD().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.trackLocation(eventData.getTrackLocationType().name())
 					.trackLocationCssClass(eventData.getTrackLocationType().getCssClass())
 					.build());
@@ -204,7 +213,7 @@ public class SessionHolder implements MessageProcessor {
 	public void sendSyncData(SyncData syncData, String teamId) {
 		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/syncdata", SyncDataView.builder()
 				.driverId(syncData.getClientId())
-				.timestamp(syncData.getSessionTime().format(DateTimeFormatter.ofPattern(HH_MM_SS)))
+				.timestamp(syncData.getSessionTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 				.stateCssClass(getSyncState(syncData.getSessionTime(), syncData.getSessionTime()))
 				.inCarCssClass(syncData.isInCar() ? "table-info" : "")
 				.build());
@@ -218,7 +227,7 @@ public class SessionHolder implements MessageProcessor {
 		if (!liveTopics.containsKey(teamId)) {
 			liveTopics.put(teamId, LIVE_PREFIX + teamId);
 		}
-		SessionDataView sessionDataView = getSessionDataView(teamId);
+		SessionDataView sessionDataView = SessionDataView.getSessionDataView(getSessionControllerBySubscriptionId(teamId));
 		if (sessionDataView != null) {
 			return sessionDataView;
 		} else {
@@ -233,64 +242,6 @@ public class SessionHolder implements MessageProcessor {
 				.trackName("---")
 				.carName("---")
 				.build();
-	}
-
-	private LapDataView getLapDataView(LapData clientData, SessionController controller) {
-		if (clientData == null) {
-			return null;
-		}
-		Optional<Stint> lastStint = controller.getLastStint();
-		Duration stintAvgLapTime = Duration.ZERO;
-		int stintLap = clientData.getNo();
-		double stintAvgFuel = 0.0D;
-		if (lastStint.isPresent()) {
-			stintAvgFuel = lastStint.get().getAvgFuelPerLap();
-			stintAvgLapTime = lastStint.get().getAvgLapTime();
-			stintLap = lastStint.get().getLaps();
-		}
-		double avgFuelDelta = stintAvgFuel - clientData.getLastLapFuelUsage();
-		String avgTimeDelta = TimeTools.longDurationDeltaString(stintAvgLapTime, clientData.getLapTime());
-		return LapDataView.builder()
-				.lapNo(Integer.toUnsignedString(clientData.getNo()))
-				.lapsRemaining(Integer.toUnsignedString(controller.getRemainingLapCount()))
-				.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
-				.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
-				.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
-				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
-				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
-				.stintAvgFuelDelta(fuelString(avgFuelDelta))
-				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? TABLE_DANGER : TABLE_SUCCESS)
-				.stintAvgTimeDelta(avgTimeDelta)
-				.stintAvgTimeDeltaCssClass(avgTimeDelta.startsWith("-") ? TABLE_DANGER : TABLE_SUCCESS)
-				.stintClock(TimeTools.shortDurationString(controller.getCurrentStintTime()))
-				.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
-				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
-				.stintLap(Integer.toUnsignedString(stintLap))
-				.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
-				.driverBestLap(TimeTools.longDurationString(controller.getCurrentDriverBestLap()))
-				.build();
-	}
-
-	private SessionDataView getSessionDataView(String subscriptionId) {
-		SessionController controller = getSessionControllerBySubscriptionId(subscriptionId);
-		TrackLocationType locationType = controller.getCurrentTrackLocation() == null
-				? TrackLocationType.OFF_WORLD : controller.getCurrentTrackLocation();
-		if (controller != null) {
-			return SessionDataView.builder()
-					.carName(controller.getSessionData().getCarName())
-					.trackName(controller.getSessionData().getTrackName())
-					.sessionDuration(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN)
-							.format(DateTimeFormatter.ofPattern("HH:mm")))
-					.sessionType(controller.getSessionData().getSessionType())
-					.teamName(controller.getSessionData().getTeamName())
-					.sessionId(subscriptionId)
-					.maxCarFuel(fuelString(controller.getSessionData().getMaxCarFuel()))
-					.lastLapData(getLapDataView(controller.getLastRecordedLap().orElse(null), controller))
-					.trackLocation(locationType.name())
-					.trackLocationCssClass(locationType.getCssClass())
-					.build();
-		}
-		return null;
 	}
 
 	private ClientData validateAndConvert(ClientMessage message) {
