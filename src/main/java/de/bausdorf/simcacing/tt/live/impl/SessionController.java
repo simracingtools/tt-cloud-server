@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
@@ -98,33 +99,39 @@ public class SessionController {
         heartbeats.put(syncData.getClientId(), syncData);
     }
 
-    public void processEventData(EventData eventData) {
+    public boolean processEventData(EventData eventData) {
         log.debug("New event: {}", eventData);
         sessionToD = eventData.getSessionToD();
-        currentTrackLocation = eventData.getTrackLocationType();
-
+        if (currentTrackLocation == null) {
+            // This is the first event
+            currentTrackLocation = eventData.getTrackLocationType();
+            return false;
+        }
         switch (eventData.getTrackLocationType()) {
             case APPROACHING_PITS:
                 if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
                     log.debug("Starting from box");
-                    return;
+                    return false;
                 }
                 Pitstop newPitStop = getOrCreateNextPitstop();
-                newPitStop.update(eventData);
+                newPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
                 pitStops.put(newPitStop.getStint(), newPitStop);
                 break;
             case PIT_STALL:
                 if (pitStops.isEmpty()) {
                     log.warn("No pitstop while in pit stall");
                 } else {
-                    pitStops.get(pitStops.lastKey()).update(eventData);
+                    log.debug("Update pitstop (PIT_STALL)");
+                    pitStops.get(pitStops.lastKey()).update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
                 }
                 repairTimeLeft = eventData.getRepairTime();
                 optRepairTimeLeft = eventData.getOptRepairTime();
                 towTimeLeft = eventData.getTowingTime();
                 break;
             case ONTRACK:
-                if (!pitStops.isEmpty() && pitStops.get(pitStops.lastKey()).update(eventData)) {
+                if (!pitStops.isEmpty()
+                        && pitStops.get(pitStops.lastKey()).update(eventData,
+                                runData != null ? runData.getFuelLevel() : 0.0D)) {
                     log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
                     Optional<LapData> lastRecordedLap = getLastRecordedLap();
                     if( lastRecordedLap.isPresent() ) {
@@ -136,17 +143,21 @@ public class SessionController {
                             .no(stint.getNo() + 1)
                             .build()
                     ));
+                    return true;
                 }
                 break;
             case OFF_WORLD:
             case OFFTRACK:
                 if (!eventData.getTowingTime().isZero()) {
                     Pitstop towPitStop = getOrCreateNextPitstop();
-                    towPitStop.update(eventData);
+                    towPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
                     pitStops.put(towPitStop.getStint(), towPitStop);
                 }
                 towTimeLeft = eventData.getTowingTime();
         }
+        currentTrackLocation = eventData.getTrackLocationType();
+
+        return false;
     }
 
     public Duration getRemainingSessionTime() {
@@ -155,7 +166,7 @@ public class SessionController {
             if (greenFlagTime != null) {
                 return Duration.between(runData.getSessionTime(), sessionDuration.get().plusSeconds(greenFlagTime.toSecondOfDay()));
             }
-            return Duration.between(runData.getSessionTime(), sessionDuration.get());
+            return Duration.between((runData != null ? runData.getSessionTime() : LocalTime.MIN), sessionDuration.get());
         }
         return Duration.ZERO;
     }
@@ -181,6 +192,13 @@ public class SessionController {
             if (lastStint.isPresent()) {
                 return currentFuelLevel / lastStint.get().getAvgFuelPerLap();
             }
+        }
+        return 0.0D;
+    }
+
+    public double getAvailableLapsForFuelLevel() {
+        if (runData != null) {
+            return getAvailableLapsForFuelLevel(runData.getFuelLevel());
         }
         return 0.0D;
     }
@@ -214,18 +232,19 @@ public class SessionController {
 
     public int getRemainingStintCount() {
         if (racePlan != null) {
-            return racePlan.getCurrentRacePlan().size() - stints.size();
+            return racePlan.getCurrentRacePlan().size();
         }
         return 0;
     }
 
     public int getRemainingLapCount() {
-        if (racePlan != null) {
-            int lapCount = 0;
-            for (de.bausdorf.simcacing.tt.planning.model.Stint stint : racePlan.getCurrentRacePlan()) {
-                lapCount += stint.getLaps();
+        Duration remainingSessionTime = getRemainingSessionTime();
+        Optional<Stint> lastStint = getLastStint();
+        if (lastStint.isPresent()) {
+            Duration lastStintAvgLapTime = lastStint.get().getAvgLapTime();
+            if (!lastStintAvgLapTime.isZero()) {
+                return (int) Math.ceil((double)remainingSessionTime.getSeconds() / lastStintAvgLapTime.getSeconds());
             }
-            return lapCount - currentLapNo;
         }
         return 0;
     }
@@ -236,6 +255,34 @@ public class SessionController {
         }
         Integer lastKey = laps.lastKey();
         return Optional.of(laps.get(lastKey));
+    }
+
+    public Duration getCurrentDriverBestLap() {
+        Duration driverBestLap = Duration.ZERO;
+        for (LapData lap : laps.values()) {
+            if (lap.getDriverId().equalsIgnoreCase(currentDriver.getId())) {
+                if (driverBestLap.equals(Duration.ZERO)) {
+                    driverBestLap = lap.getLapTime();
+                } else {
+                    if (lap.getLapTime().compareTo(driverBestLap) < 0) {
+                        driverBestLap = lap.getLapTime();
+                    }
+                }
+            }
+        }
+        return driverBestLap;
+    }
+
+    public Estimation getCurrentDriverEstimation() {
+        if (racePlan != null) {
+            LocalDateTime todStartTime = racePlan.getPlanParameters().getTodStartTime();
+            LocalDate todDate = todStartTime.toLocalDate();
+            if (sessionToD.isBefore(todStartTime.toLocalTime())) {
+                todDate = todDate.plusDays(1);
+            }
+            return racePlan.getPlanParameters().getDriverEstimationAt(currentDriver, LocalDateTime.of(todDate, sessionToD));
+        }
+        return null;
     }
 
     private Optional<LapData> getPreviousLap(int currentLapNo) {

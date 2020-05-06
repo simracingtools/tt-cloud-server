@@ -1,6 +1,8 @@
 package de.bausdorf.simcacing.tt.live.model.live;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientData;
+import de.bausdorf.simcacing.tt.live.impl.SessionController;
+import de.bausdorf.simcacing.tt.live.model.client.TrackLocationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

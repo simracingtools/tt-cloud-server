@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,13 +22,29 @@ public class Pitstop {
 	private LocalTime stopMoving;
 	private LocalTime startMoving;
 	private LocalTime exitPits;
-	private long serviceFlags;
+	private List<ServiceFlagType> serviceFlags;
 	private Duration repairTime;
 	private Duration optRepairTime;
 	private Duration towTime;
+	private double fuelLeft;
+	private double refuelAmount;
 
 	public boolean isComplete() {
 		return (enterPits != null && exitPits != null);
+	}
+
+	public Duration getRepairAndTowingTime() {
+		Duration accumulatedDuration = Duration.ZERO;
+		if (repairTime != null) {
+			accumulatedDuration = accumulatedDuration.plus(repairTime);
+		}
+		if (optRepairTime != null) {
+			accumulatedDuration = accumulatedDuration.plus(optRepairTime);
+		}
+		if (towTime != null) {
+			accumulatedDuration = accumulatedDuration.plus(towTime);
+		}
+		return accumulatedDuration;
 	}
 
 	public Duration getPitstopDuration() {
@@ -44,20 +61,30 @@ public class Pitstop {
 		return Duration.ZERO;
 	}
 
-	public boolean update(EventData event) {
+	public String getServiceFlagsString() {
+		StringBuilder flags = new StringBuilder();
+		for (ServiceFlagType flag : serviceFlags) {
+			flags.append(flag.code).append(' ');
+		}
+		return flags.toString();
+	}
+
+	public boolean update(EventData event, double fuelLevel) {
 		switch( event.getTrackLocationType() ) {
 			case APPROACHING_PITS:
 				if( enterPits == null ) {
-					enterPits = event.getSessionTime();
+					enterPits = LocalTime.now();
 				}
 				if( startMoving == null && stopMoving != null ) {
-					startMoving = event.getSessionTime();
+					startMoving = LocalTime.now();
 				}
 				updateRepairAndTowTimes(event);
 				break;
 			case PIT_STALL:
 				if( stopMoving == null ) {
-					stopMoving = event.getSessionTime();
+					stopMoving = LocalTime.now();
+					serviceFlags = event.getServiceFlags();
+					fuelLeft = fuelLevel;
 				}
 				updateRepairAndTowTimes(event);
 				break;
@@ -66,7 +93,8 @@ public class Pitstop {
 					// Pitstop already completed
 					break;
 				} else {
-					exitPits = event.getSessionTime();
+					exitPits = LocalTime.now();
+					refuelAmount = fuelLevel - fuelLeft;
 					return true;
 				}
 			case OFF_WORLD:

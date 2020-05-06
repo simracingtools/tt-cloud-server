@@ -6,36 +6,28 @@ import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.EventData;
+import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.LapData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.RunData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.SessionData;
-import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.LapData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageProcessor;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageTransformer;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageType;
 
 @Component
-public class ClientMessageV120Transformer extends MessageTransformer {
+public class ClientMessageV130Transformer extends MessageTransformer {
 
-	public ClientMessageV120Transformer(@Autowired MessageProcessor processor) {
+	public ClientMessageV130Transformer(@Autowired MessageProcessor processor) {
 		super(processor);
 	}
 
 	@Override
 	public String supportedMessageVersion() {
-		return "1.20";
+		return "1.30";
 	}
 
 	@Override
 	public ClientMessage transform(ClientMessage message) {
-		if (message.getType() == MessageType.SESSION_INFO) {
-			message.getPayload().put(SessionData.CAR_ID, "");
-			message.getPayload().put(SessionData.TRACK_ID, "");
-		} else if (message.getType() == MessageType.RUN_DATA) {
-			message.getPayload().put(RunData.SESSION_TOD, 0.0D);
-			message.getPayload().put(RunData.LAP_NO, 0);
-			message.getPayload().put(RunData.TIME_IN_LAP, 0.0D);
-		} else if (message.getType() == MessageType.EVENT) {
-			message.getPayload().put(EventData.SESSION_TOD, 0.0D);
+		if (message.getType() == MessageType.EVENT) {
 			message.getPayload().put(EventData.SERVICE_FLAGS, 0);
 		} else if (message.getType() == MessageType.LAP) {
 			message.getPayload().put(LapData.DRIVER_ID, "");

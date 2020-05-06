@@ -64,8 +64,7 @@ public class IndexController extends BaseController {
         SessionIdentifierView selectedView = getSelectedSession(subscriptionId.get());
         if (selectedView != null) {
             if (prepareModel(selectedView, planId.orElse(null), model)) {
-                return
-                        RACING_VIEW;
+                return RACING_VIEW;
             }
         } else {
             addWarning("No session selected", model);
@@ -129,6 +128,7 @@ public class IndexController extends BaseController {
                 planParameters.ifPresent(racePlanParameters -> model.addAttribute("planParameters", racePlanParameters));
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
+            model.addAttribute("stintTableRows", new Integer[50]);
             model.addAttribute("sessionData", selectedView);
             return true;
         }

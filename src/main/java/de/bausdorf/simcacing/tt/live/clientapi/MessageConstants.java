@@ -24,9 +24,8 @@ public class MessageConstants {
 
     public static class LapData {
         public static final String LAP = "lap";
-        public static final String STINT_LAP = "stintLap";
-        public static final String STINT_COUNT = "stintCount";
         public static final String DRIVER = "driver";
+        public static final String DRIVER_ID = "driverId";
         public static final String LAP_TIME = "laptime"; //.laptime / 86400
         public static final String FUEL_LEVEL = "fuelLevel";
         public static final String TRACK_TEMP = "trackTemp";
@@ -55,6 +54,7 @@ public class MessageConstants {
         public static final String TOW_TIME = "towingTime";
         public static final String REPAIR_TIME = "repairTime";
         public static final String OPT_REPAIR_TIME = "optRepairTime";
+        public static final String SERVICE_FLAGS = "serviceFlags";
 
         private EventData() {}
     }
