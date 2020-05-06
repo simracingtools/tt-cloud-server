@@ -27,6 +27,7 @@ public class RacePlan {
 	public static RacePlan createRacePlanTemplate(RacePlanParameters params) {
 		RacePlan newRacePlan =  RacePlan.builder()
 				.planParameters(params)
+				.currentRacePlan(params.getStints() == null ? new ArrayList<>() : params.getStints())
 				.build();
 
 		newRacePlan.calculateStints();
@@ -40,53 +41,43 @@ public class RacePlan {
 	}
 
 	public void calculateStints() {
-		List<Stint> oldRacePlan = prepareOldRacePlan();
-
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
+		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime);
+	}
+
+	public List<Stint> calculateStints(LocalDateTime raceClock, LocalDateTime todClock, LocalDateTime raceTimeLeft) {
+		List<Stint> stints = new ArrayList<>();
+
 		int stintCount = 1;
-		while( raceClock.isBefore(sessionEndTime) ) {
+		while( raceClock.isBefore(raceTimeLeft) ) {
 			String currentDriver = "N.N.";
-			if( oldRacePlan.size() > stintCount) {
-				currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
+			if( currentRacePlan.size() > stintCount) {
+				currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
 			}
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
 					planParameters.getMaxCarFuel(),
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
-			currentRacePlan.add(nextStint);
+			stints.add(nextStint);
 			stintCount++;
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			// Check for last Stint ?
-			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(sessionEndTime) ) {
+			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
 				currentDriver = "N.N.";
-				if( oldRacePlan.size() >= stintCount) {
-					currentDriver = oldRacePlan.get(stintCount-1).getDriverName();
+				if( currentRacePlan.size() >= stintCount) {
+					currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
 				}
 				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
-						Duration.between(raceClock, sessionEndTime),
+						Duration.between(raceClock, raceTimeLeft),
 						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
-				currentRacePlan.add(lastStint);
+				stints.add(lastStint);
 				break;
 			}
 		}
-
-	}
-
-	private List<Stint> prepareOldRacePlan() {
-		if( currentRacePlan != null ) {
-			if( !currentRacePlan.isEmpty() ) {
-				List<Stint> oldRacePlan = new ArrayList<>(currentRacePlan);
-				currentRacePlan.clear();
-				return oldRacePlan;
-			}
-		} else {
-			currentRacePlan = new ArrayList<>();
-			return planParameters.getStints();
-		}
-		return new ArrayList<>();
+		return stints;
 	}
 
 	private Stint calculateNewStint(LocalDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {
