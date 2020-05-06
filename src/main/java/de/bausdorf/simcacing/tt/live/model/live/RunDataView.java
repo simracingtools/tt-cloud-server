@@ -25,4 +25,5 @@ public class RunDataView {
     private String timeOfDay;
     private String lapNo;
     private String timeInLap;
+    private String localClock;
 }

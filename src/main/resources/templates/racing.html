@@ -70,7 +70,7 @@
                     <td id="stintTime" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;padding-bottom: 0;">
                         --:--:--
                     </td>
-                    <td style="padding-bottom: 0;font-size: 14px;"><strong>Best lap</strong></td>
+                    <td style="padding-bottom: 0;font-size: 14px;"><strong>Drivers best lap:</strong></td>
                     <td id="driverBestLap" style="padding-right: 0;padding-left: 0;font-family: 'Roboto Mono', monospace;padding-bottom: 0;">
                         --:--:--.---
                     </td>
@@ -134,14 +134,14 @@
                 </tr>
                 <tr class="text-center">
                     <td style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">
-                        <input id="maxCarFuel" type="number" style="width: 78px;" min="0.0" max="115.5" step="0.1" placeholder="000.0">
+                        <input id="maxCarFuel" type="number" style="width: 78px;" min="0.0" max="115.5" step="0.1" placeholder="000.0" onchange="maxCarFuelChange(this.value)">
                     </td>
                     <td style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">
-                        <input type="number" style="width: 78px;" min="0.0" step="0.01" placeholder="00.00">
+                        <input id="estimatedFuelPerLapInput" type="number" style="width: 78px;" min="0.0" step="0.01" placeholder="00.00" onchange="fuelPerLapChange(this.value)">
                     </td>
-                    <td class="table-warning" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">-.---</td>
-                    <td class="table-success" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">-.---<br></td>
-                    <td class="table-info" style="padding-right: 0;padding-left: 0;">-.---</td>
+                    <td id="estimatedFuelPerLap" class="table-active" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">-.---</td>
+                    <td id="estimatedFuelDelta" class="table-success" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">-.---<br></td>
+                    <td id="estimatedFuelLaps" class="table-info" style="padding-right: 0;padding-left: 0;">-.---</td>
                 </tr>
                 <tr>
                     <td><strong><em>Times</em></strong></td>
@@ -166,10 +166,12 @@
                 </tr>
                 <tr class="text-center">
                     <td></td>
-                    <td style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;"><input type="text" style="width: 95px;padding-right: 0;padding-left: 0;" placeholder="0:00.000"></td>
-                    <td class="table-warning" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
-                    <td class="table-danger" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
-                    <td class="table-info" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
+                    <td style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">Planning estimation:
+<!--                        <input id="estimatedLapTimeInput" type="text" style="width: 95px;padding-right: 0;padding-left: 0;" placeholder="0:00.000">-->
+                    </td>
+                    <td id="estimatedLapTime" class="table-active" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
+                    <td id="estimatedLapTimeDelta" class="table-danger" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
+                    <td id="estimatedStintTime" class="table-info" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
                 </tr>
                 </tbody>
             </table>
@@ -204,43 +206,38 @@
         <div class="table-responsive text-center" style="font-size: 12px;">
             <table class="table table-striped table-sm">
                 <thead>
+                <tr style="font-family: 'Roboto Mono', monospace;">
+                    <th colspan="2" class="text-right">All pitting times local to:</th>
+                    <th id="timeZone">GMT+2</th>
+                    <th colspan="5"></th>
+                    <th class="text-right">Local clock:</th>
+                    <th id="localClock">--:--:--</th>
+                </tr>
                 <tr class="text-center" style="font-family: 'Roboto Mono', monospace;">
                     <th>Stint #</th>
                     <th>Race time left</th>
                     <th>Lap</th>
                     <th>Driver</th>
-                    <th>Pitting planned</th>
-                    <th>Time pitted</th>
+                    <th>Pitting time</th>
                     <th>Pitstop duration</th>
                     <th>Service</th>
                     <th>Service duration</th>
+                    <th>Refuel amount</th>
                     <th>Repair time</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr class="text-center" style="font-family: 'Roboto Mono', monospace;">
-                    <td>1</td>
-                    <td>22:55:04</td>
-                    <td>7</td>
-                    <td>Dave</td>
-                    <td>01:03:50</td>
-                    <td>01:04:56</td>
-                    <td>01:15:05</td>
-                    <td>W F T</td>
-                    <td>00:00:53</td>
-                    <td>00:00:00</td>
-                </tr>
-                <tr style="font-family: 'Roboto Mono', monospace;">
-                    <td style="padding: 0;">2</td>
-                    <td style="padding: 0;">21:51:21</td>
-                    <td style="padding: 0;">14</td>
-                    <td></td>
-                    <td>02:08:39</td>
-                    <td></td>
-                    <td></td>
-                    <td>W F T</td>
-                    <td></td>
-                    <td></td>
+                <tr th:each="td,tdStat : ${stintTableRows}" th:id="${'stintRow-' + tdStat.index}" class="text-center hidden" style="font-family: 'Roboto Mono', monospace;">
+                    <td th:id="${'pitStint-' + tdStat.index}">1</td>
+                    <td th:id="${'pitTimeLeft-' + tdStat.index}">22:55:04</td>
+                    <td th:id="${'pitLap-' + tdStat.index}">7</td>
+                    <td th:id="${'pitDriver-' + tdStat.index}">Dave</td>
+                    <td th:id="${'pitTime-' + tdStat.index}">01:04:56</td>
+                    <td th:id="${'pitStopDuration-' + tdStat.index}">01:15:05</td>
+                    <td th:id="${'pitService-' + tdStat.index}">W F T</td>
+                    <td th:id="${'pitServiceDuration-' + tdStat.index}">00:00:53</td>
+                    <td th:id="${'pitRefuel-' + tdStat.index}">99.999</td>
+                    <td th:id="${'pitRepairTime-' + tdStat.index}">00:00:00</td>
                 </tr>
                 </tbody>
             </table>

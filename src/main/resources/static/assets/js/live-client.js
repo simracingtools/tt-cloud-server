@@ -43,6 +43,11 @@ function connect() {
             console.log(jsonMessage);
             showEventData(jsonMessage);
         });
+        stompClient.subscribe('/live/' + $("#teamId").val() + '/pitdata', function (message) {
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showPitData(jsonMessage);
+        });
         sendTeamId();
     }, function (frame) {
         console.log('Error: ' + frame);
@@ -73,8 +78,12 @@ function showSessionData(message) {
             .removeClass("loc-green")
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
+    $("#timeZone").text(message.timeZone);
     if (message.lastLapData) {
-        showLapData(message.lastLapData)
+        showLapData(message.lastLapData);
+    }
+    if (message.pitStops) {
+        showPitData(message.pitStops);
     }
 }
 
@@ -97,15 +106,16 @@ function showRunData(message) {
         .removeClass("flag-repair")
         .addClass(message.flagCssClass);
     $("#raceSessionTime").text(message.raceSessionTime);
-    $("#timeOfDay").text(message.timeOfDay)
+    $("#timeOfDay").text(message.timeOfDay);
     $("#remainingSessionTime").text(message.remainingSessionTime);
     $("#timeInLap").text(message.timeInLap)
     $("#lapNo").text(message.lapNo);
+    $("#localClock").text(message.localClock);
 }
 
 function showSyncData(message) {
-    $("#syncTD-" + message.driverId).text(message.timestamp);
-    $("#syncTD-" + message.driverId).removeClass("table-danger")
+    $("#syncTD-" + message.driverId).text(message.timestamp)
+            .removeClass("table-danger")
             .removeClass("table-warning")
             .removeClass("table-success")
             .addClass(message.stateCssClass);
@@ -134,7 +144,23 @@ function showLapData(message) {
             .addClass(message.stintAvgTimeDeltaCssClass);
     $("#stintRemainingTime").text(message.stintRemainingTime);
     $("#trackTemp").text(message.trackTemp);
-    $("#driverBestLap").text(message.driverBestLap)
+    $("#driverBestLap").text(message.driverBestLap);
+    $("#estimatedFuelPerLap").text(message.estimatedFuelPerLap);
+    setEstimatedFuelDelta(message.lastLapFuel);
+    if ($("#estimatedFuelPerLapInput").val() == 0) {
+        $("#estimatedFuelPerLapInput").val(message.requiredFuelPerLapOneMore);
+        $("#estimatedFuelLaps").text(message.estimatedFuelLaps);
+    }
+    if ($("#maxCarFuel").val() == 0) {
+        $("#maxCarFuel").val(message.maxCarFuel);
+        $("#estimatedFuelLaps").text(message.estimatedFuelLaps);
+    }
+    $("#estimatedLapTime").text(message.estimatedLapTime);
+    $("#estimatedLapTimeDelta").text(message.estimatedLapTimeDelta)
+            .removeClass('table-success')
+            .removeClass('table-danger')
+            .addClass(message.estimatedLapTimeDeltaCssClass);
+    $("#estimatedStintTime").text(message.estimatedStintTime);
 }
 
 function showEventData(message) {
@@ -148,6 +174,51 @@ function showEventData(message) {
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
 }
+
+function showPitData(message) {
+    var rowsLeft = 50;
+    for (var i in message) {
+        $("#stintRow-" + i).removeClass("hidden");
+        $("#pitStint-" + i).text(message[i].stintNo);
+        $("#pitTimeLeft-" + i).text(message[i].raceTimeLeft);
+        $("#pitLap-" + i).text(message[i].lapNo);
+        $("#pitDriver-" + i).text(message[i].driver)
+        $("#pitTime-" + i).text(message[i].timePitted);
+        $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
+        $("#pitService-" + i).text(message[i].service);
+        $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
+        $("#pitRefuel-" + i).text(message[i].refuelAmount);
+        $("#pitRepairTime-" + i).text(message[i].repairTime);
+        rowsLeft -= 1;
+    }
+    for (var i = 50 - rowsLeft; i < 50; i++) {
+        $("#stintRow-" + i).addClass("hidden");
+    }
+}
+
+function setEstimatedFuelDelta(fuelPerLap) {
+    var delta = Number(fuelPerLap) - $("#estimatedFuelPerLapInput").val();
+    var cssClass = 'table-success';
+    if (delta > 0) {
+        cssClass = 'table-danger';
+    }
+    $("#estimatedFuelDelta").text(delta.toFixed(3))
+    .removeClass('table-success')
+    .removeClass('table-danger')
+    .addClass(cssClass);
+}
+
+function maxCarFuelChange(maxFuel) {
+    var laps = maxFuel / $("#estimatedFuelPerLapInput").val();
+    $("#estimatedFuelLaps").text(laps.toFixed(2));
+}
+
+function fuelPerLapChange(fuelPerLap) {
+    var laps = $("#maxCarFuel").val() / fuelPerLap;
+    $("#estimatedFuelLaps").text(laps.toFixed(2));
+    setEstimatedFuelDelta($("#fuelLastLap").text())
+}
+
 // $(function () {
 //     $("form").on('submit', function (e) {
 //         e.preventDefault();
