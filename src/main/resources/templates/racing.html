@@ -25,8 +25,7 @@
             style="padding-left: 0;background-image: url('assets/img/be-logo.png');background-size: cover;background-repeat: no-repeat;height: 70px;width: 70px"
             href="/"></a></div>
     <div class="col-8 col-sm-7 col-md-8 col-lg-8 col-xl-7 flex-grow-1 flex-shrink-0 flex-fill">
-        <h1 style="font-style: italic;font-size: 32px;font-family: 'Coda Caption', sans-serif;color: rgb(255,255,255);">
-            iRacing TeamTactics</h1>
+        <h1 style="font-style: italic;font-size: 32px;font-family: 'Coda Caption', sans-serif;color: rgb(255,255,255);">iRacing TeamTactics</h1>
         <div class="clearfix"></div>
         <input id="teamId" th:value="${sessionData.sessionId}" type="hidden"/>
         <span id="teamName" style="padding-right: 50px;" th:text="${sessionData.teamName}">FBP Racing BLUE</span>
@@ -43,16 +42,10 @@
 </div>
 <div class="row" style="margin-left: 0;">
     <div class="col-md-6 col-lg-6" style="padding: 0;padding-left: 15px;">
-        <div style="height: 71px;margin-top: 10px;">
-            <canvas data-bs-chart="{&quot;type&quot;:&quot;line&quot;,&quot;data&quot;:{&quot;labels&quot;:[&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;],&quot;datasets&quot;:[{&quot;label&quot;:&quot;Temperature&quot;,&quot;backgroundColor&quot;:&quot;#4e73df&quot;,&quot;borderColor&quot;:&quot;#dfc84e&quot;,&quot;data&quot;:[&quot;28.4&quot;,&quot;28.5&quot;,&quot;28.6&quot;,&quot;28.4&quot;,&quot;28.2&quot;,&quot;27.9&quot;],&quot;fill&quot;:false}]},&quot;options&quot;:{&quot;maintainAspectRatio&quot;:false,&quot;legend&quot;:{&quot;display&quot;:false},&quot;title&quot;:{},&quot;scales&quot;:{&quot;xAxes&quot;:[{&quot;ticks&quot;:{&quot;beginAtZero&quot;:false}}],&quot;yAxes&quot;:[{&quot;ticks&quot;:{&quot;beginAtZero&quot;:false}}]}}}"></canvas>
+        <div style="height: 161px;margin-top: 10px;">
+            <canvas id="charts"></canvas>
         </div>
-        <div
-                class="clearfix"></div>
-        <div style="height: 90px;">
-            <canvas data-bs-chart="{&quot;type&quot;:&quot;line&quot;,&quot;data&quot;:{&quot;labels&quot;:[&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;,&quot;8&quot;],&quot;datasets&quot;:[{&quot;label&quot;:&quot;Revenue&quot;,&quot;backgroundColor&quot;:&quot;#4e73df&quot;,&quot;borderColor&quot;:&quot;#4e73df&quot;,&quot;data&quot;:[&quot;510&quot;,&quot;509.8&quot;,&quot;509.9&quot;,&quot;508.7&quot;,&quot;506.9&quot;,&quot;512.5&quot;],&quot;fill&quot;:false}]},&quot;options&quot;:{&quot;maintainAspectRatio&quot;:false,&quot;legend&quot;:{&quot;display&quot;:false},&quot;title&quot;:{&quot;display&quot;:false},&quot;scales&quot;:{&quot;xAxes&quot;:[{&quot;gridLines&quot;:{&quot;drawTicks&quot;:true},&quot;ticks&quot;:{&quot;beginAtZero&quot;:false}}],&quot;yAxes&quot;:[{&quot;gridLines&quot;:{&quot;drawTicks&quot;:true},&quot;ticks&quot;:{&quot;beginAtZero&quot;:false}}]}}}"></canvas>
-        </div>
-        <div
-                class="clearfix"></div>
+        <div class="clearfix"></div>
         <div class="table-responsive" style="font-size: 16px;">
             <table class="table">
                 <tbody>
@@ -231,7 +224,9 @@
                     <td th:id="${'pitStint-' + tdStat.index}">1</td>
                     <td th:id="${'pitTimeLeft-' + tdStat.index}">22:55:04</td>
                     <td th:id="${'pitLap-' + tdStat.index}">7</td>
-                    <td th:id="${'pitDriver-' + tdStat.index}">Dave</td>
+                    <td th:id="${'pitDriver-' + tdStat.index}">
+                        <select th:id="${'pitDriverSelect-' + tdStat.index}"></select>
+                    </td>
                     <td th:id="${'pitTime-' + tdStat.index}">01:04:56</td>
                     <td th:id="${'pitStopDuration-' + tdStat.index}">01:15:05</td>
                     <td th:id="${'pitService-' + tdStat.index}">W F T</td>
@@ -251,15 +246,19 @@
 </footer>
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-<script src="assets/js/chart.min.js"></script>
+<!--<script src="assets/js/chart.min.js"></script>-->
 <script src="assets/js/bs-init.js"></script>
 <script src="assets/js/Profile-Edit-Form.js"></script>
 <script src="/webjars/sockjs-client/sockjs.min.js"></script>
 <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+<script src="/webjars/momentjs/moment.js"></script>
+<script src="/webjars/chartjs/Chart.min.js"></script>
 <script src="assets/js/live-client.js"></script>
 <script language='javascript'>
     window.onload = function afterPageReload() {
         connect();
+        var ctx = document.getElementById('charts').getContext('2d');
+        window.lapCharts = new Chart(ctx, chartConfig);
     }
 </script>
 </body>

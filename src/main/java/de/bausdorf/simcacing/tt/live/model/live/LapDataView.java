@@ -46,6 +46,8 @@ public class LapDataView {
 	private String requiredFuelPerLapOneMore;
 	private String trackTemp;
 	private String driverBestLap;
+	private String fastestLap;
+	private String slowestLap;
 	private String maxCarFuel;
 
 	public static LapDataView getLapDataView(LapData clientData, SessionController controller) {
@@ -91,18 +93,20 @@ public class LapDataView {
 				.stintRemainingTime(TimeTools.shortDurationString(controller.getRemainingStintTime()))
 				.stintsRemaining(Integer.toUnsignedString(controller.getRemainingStintCount()))
 				.stintLap(Integer.toUnsignedString(stintLap))
-				.trackTemp(String.format("%.1f",clientData.getTrackTemp()) + "°C")
+				.trackTemp(String.format(Locale.US,"%.1f",clientData.getTrackTemp()))
 				.driverBestLap(TimeTools.longDurationString(controller.getCurrentDriverBestLap()))
 				.estimatedFuelPerLap(estimation != null ? fuelString(estimation.getAvgFuelPerLap()) : "-.---")
 				.estimatedFuelDelta(fuelString(estimatedFuelDelta))
 				.estimatedFuelDeltaCssClass(estimatedFuelDelta < 0.0 ?  TABLE_SUCCESS : TABLE_DANGER)
-				.estimatedFuelLaps(String.format("%.2f", oneLapMore))
+				.estimatedFuelLaps(String.format(Locale.US,"%.2f", oneLapMore))
 				.estimatedLapTime(TimeTools.longDurationString(estimatedLapTime))
 				.estimatedLapTimeDelta(estimatedLapTimeDelta)
 				.estimatedLapTimeDeltaCssClass(estimatedLapTimeDelta.startsWith("-") ? TABLE_SUCCESS : TABLE_DANGER)
 				.estimatedStintTime(estimatedStintTime)
 				.requiredFuelPerLapOneMore(fuelString(controller.getSessionData().getMaxCarFuel() / oneLapMore))
 				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getSessionData().getMaxCarFuel()))
+				.fastestLap(TimeTools.longDurationString(controller.getFastestLap()))
+				.slowestLap(TimeTools.longDurationString(controller.getSlowestLap()))
 				.build();
 	}
 

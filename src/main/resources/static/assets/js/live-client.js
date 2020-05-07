@@ -1,4 +1,108 @@
 var stompClient = null;
+var timeFormat = 'H:mm:ss.SSS';
+var chartConfig = {
+    type: 'line',
+    data: {
+        labels: [
+        ],
+        datasets: [{
+            label: 'Temp',
+            backgroundColor: 'rgb(255, 99, 132)',//.alpha(0.5).rgbString(),
+            borderColor: 'rgb(235, 99, 132)',
+            fill: false,
+            yAxisID: 'temp',
+            data: [
+            ],
+        }, {
+            label: 'Laptime',
+            backgroundColor: 'rgb(54, 162, 235)',//.alpha(0.5).rgbString(),
+            borderColor: 'rgb(54, 162, 235)',
+            fill: false,
+            yAxisID: 'time',
+            data: [
+            ],
+        }]
+    },
+    options: {
+        aspectRatio: 4,
+        maintainAspectRatio: false,
+        title: {
+            text: 'Laptime / Track temp'
+        },
+        scales: {
+            yAxes: [{
+                id: 'time',
+                type: 'time',
+                position: 'left',
+                time: {
+                    parser: timeFormat,
+                    // tooltipFormat: 'mm:ss.SSS',
+                    unit: 'seconds',
+                    stepSize : 2,
+                    displayFormats: {
+                        'seconds': 'mm:ss.SSS',
+                        'minutes': 'mm:ss.SSS',
+                    }
+                },
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Laptime'
+                },
+                gridLines: {
+                    color: 'rgb(74, 182, 255)'
+                },
+                ticks: {
+                    beginAtZero: false
+                }
+            }, {
+                id: 'temp',
+                type: 'linear',
+                position: 'right',
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Temp'
+                },
+                gridLines: {
+                    color: 'rgb(255, 179, 212)'
+                },
+                ticks: {
+                    beginAtZero: false
+                }
+            }],
+            xAxes: [{
+                position: 'bottom',
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Laps'
+                }
+            }]
+        },
+    }
+};
+
+function addChartData(lap, temp, lapTime, slowest, fastest) {
+    window.lapCharts.data.labels.push(lap);
+    window.lapCharts.data.datasets[0].data.push(temp);
+    window.lapCharts.options.scales.yAxes[0].ticks.min = fastest;
+    window.lapCharts.options.scales.yAxes[0].ticks.max = slowest;
+    if (lapTime !== '0:00:00.000') {
+        window.lapCharts.data.datasets[1].data.push(lapTime);
+    } else {
+        window.lapCharts.data.datasets[1].data.push('');
+    }
+    window.lapCharts.update();
+}
+
+function addSessionChartData(chartData, slowest, fastest) {
+    for (var i in chartData.lapNos) {
+        window.lapCharts.data.labels.push(chartData.lapNos[i]);
+        window.lapCharts.data.datasets[0].data.push(chartData.temps[i]);
+        window.lapCharts.data.datasets[1].data.push(chartData.laps[i]);
+    }
+    window.lapCharts.options.scales.yAxes[0].ticks.min = fastest;
+    window.lapCharts.options.scales.yAxes[0].ticks.max = slowest;
+    window.lapCharts.update();
+}
 
 function setConnected(connected) {
     $("#connect").prop("disabled", connected);
@@ -85,6 +189,7 @@ function showSessionData(message) {
     if (message.pitStops) {
         showPitData(message.pitStops);
     }
+    addSessionChartData(message.chartData, message.slowestLap, message.fastestLap);
 }
 
 function showRunData(message) {
@@ -143,7 +248,7 @@ function showLapData(message) {
             .removeClass('table-danger')
             .addClass(message.stintAvgTimeDeltaCssClass);
     $("#stintRemainingTime").text(message.stintRemainingTime);
-    $("#trackTemp").text(message.trackTemp);
+    $("#trackTemp").text(message.trackTemp + '°C');
     $("#driverBestLap").text(message.driverBestLap);
     $("#estimatedFuelPerLap").text(message.estimatedFuelPerLap);
     setEstimatedFuelDelta(message.lastLapFuel);
@@ -161,6 +266,8 @@ function showLapData(message) {
             .removeClass('table-danger')
             .addClass(message.estimatedLapTimeDeltaCssClass);
     $("#estimatedStintTime").text(message.estimatedStintTime);
+    addChartData(message.lapNo, message.trackTemp, message.lastLapTime,
+        message.slowestLap, message.fastestLap);
 }
 
 function showEventData(message) {
@@ -182,13 +289,21 @@ function showPitData(message) {
         $("#pitStint-" + i).text(message[i].stintNo);
         $("#pitTimeLeft-" + i).text(message[i].raceTimeLeft);
         $("#pitLap-" + i).text(message[i].lapNo);
-        $("#pitDriver-" + i).text(message[i].driver)
         $("#pitTime-" + i).text(message[i].timePitted);
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
         $("#pitService-" + i).text(message[i].service);
         $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
         $("#pitRefuel-" + i).text(message[i].refuelAmount);
         $("#pitRepairTime-" + i).text(message[i].repairTime);
+        for (var k in message[i].allDrivers) {
+            $("<option/>").val(message[i].allDrivers[k])
+                    .text(message[i].allDrivers[k])
+                    .appendTo("#pitDriverSelect-" + i);
+        }
+        $("#pitDriverSelect-" + i).val(message[i].driver)
+        if (message[i].pitStopDuration !== '') {
+            $("#pitDriverSelect-" + i).prop('disabled', 'disabled')
+        }
         rowsLeft -= 1;
     }
     for (var i = 50 - rowsLeft; i < 50; i++) {
