@@ -19,16 +19,35 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="team : ${teams}">
+                                <tr th:each="team, teamStat : ${teams}">
                                     <td th:text="${team.name}">FBP Racing RED</td>
                                     <td th:text="${team.id}">47110815</td>
                                     <td>
-                                        <a th:href="@{/deleteTeam(teamId=${team.id})}">
-                                            <button class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team"><i class="fas fa-trash-alt"></i></button>
-                                        </a>
+                                        <button th:onclick="'confirmTeamDelete(' + ${teamStat.index} + ')'" class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team"><i class="fas fa-trash-alt"></i></button>
                                         <a th:href="@{/teams(teamId=${team.id})}">
                                             <button class="btn btn-primary" type="button" style="margin: 0px 5px;"><i class="far fa-copy" data-toggle="tooltip" data-bs-tooltip="" title="Select team"></i></button>
                                         </a>
+                                        <div th:id="'team-delete-confirm-' + ${teamStat.index}" class="modal fade" role="dialog" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Confirm delete</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">×</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p th:text="'Do you really want to delete team ' + ${team.name} + ' ?'">Do you really want to delete team ?</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <a th:href="@{/deleteTeam(teamId=${team.id})}">
+                                                            <button class="btn btn-primary" type="button">Delete</button>
+                                                        </a>
+                                                        <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr th:if="${teams.isEmpty()}">
@@ -57,6 +76,7 @@
                                             <th>Team admin</th>
                                             <th>Validated</th>
                                             <th>Owner</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-left">
@@ -75,6 +95,33 @@
                                             <td>
                                                 <i th:if="*{authorizedDrivers[__${driverStat.index}__].owner}" class="far fa-check-circle" style="color: rgb(15,0,184);"></i>
                                                 <i th:if="!*{authorizedDrivers[__${driverStat.index}__].owner}" class="far fa-times-circle" style="color: rgb(251,31,1);"></i>
+                                            </td>
+                                            <td>
+                                                <button th:if="!*{authorizedDrivers[__${driverStat.index}__].owner}" th:onclick="'confirmMemberRemove(' + ${driverStat.index} + ')'"
+                                                        class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team member from team">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                                <div th:id="'member-remove-confirm-' + ${driverStat.index}" class="modal fade" role="dialog" tabindex="-1">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h4 class="modal-title">Confirm remove</h4>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">×</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p th:text="'Do you really want to remove ' + *{authorizedDrivers[__${driverStat.index}__].name} + ' from team ' + *{name} + ' ?'">Do you really want to remove team member ?</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <a th:href="@{/removeTeamMember(teamMemberId=*{authorizedDrivers[__${driverStat.index}__].id}, teamId=*{id})}">
+                                                                    <button class="btn btn-primary" type="button">Remove</button>
+                                                                </a>
+                                                                <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>

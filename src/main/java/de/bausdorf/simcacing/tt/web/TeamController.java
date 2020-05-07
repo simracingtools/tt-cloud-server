@@ -25,6 +25,7 @@ public class TeamController extends BaseController {
     public static final String TEAMS = "teams";
     public static final String TEAMS_VIEW = "teams";
     public static final String NEW_DRIVER = "newDriver";
+    public static final String TEAM_ID = "Team ID ";
 
     private final TeamRepository teamRepository;
 
@@ -88,7 +89,7 @@ public class TeamController extends BaseController {
     public String deleteTeam(@RequestParam String teamId, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
         if( !existingTeam.isPresent() ) {
-            addWarning("Team ID " + teamId + " does not exist.", model);
+            addWarning(TEAM_ID + teamId + " does not exist.", model);
         } else {
             if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
                 addError("Only the team owner is allowed to delete his team.", model);
@@ -99,6 +100,27 @@ public class TeamController extends BaseController {
         }
         addEmptySelectedTeam(model);
         return TEAMS_VIEW;
+    }
+
+    @GetMapping("/removeTeamMember")
+    public String removeTeamMember(@RequestParam String teamId, @RequestParam String teamMemberId, Model model) {
+        Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
+        if( !existingTeam.isPresent() ) {
+            addWarning(TEAM_ID + teamId + " does not exist.", model);
+            addEmptySelectedTeam(model);
+            return TEAMS_VIEW;
+        } else {
+            if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
+                addError("Only the team owner is allowed to delete his team member.", model);
+                addEmptySelectedTeam(model);
+                return TEAMS_VIEW;
+            } else {
+                existingTeam.get().getAuthorizedDriverIds().remove(teamMemberId);
+                teamRepository.save(existingTeam.get());
+                model.addAttribute(TEAMS, getMyTeams());
+            }
+        }
+        return "redirect:" + TEAMS_VIEW + "?teamId=" + existingTeam.get().getId();
     }
 
     @PostMapping("/newDriver")
@@ -122,7 +144,7 @@ public class TeamController extends BaseController {
             teamRepository.save(team.get());
             model.addAttribute(SELECTED_TEAM, new TeamView(team.get(), driverRepository, currentUser().getIRacingId()));
         } else {
-            addError("Team ID " + newDriver.getTeamId() + " not found.", model);
+            addError(TEAM_ID + newDriver.getTeamId() + " not found.", model);
         }
         return TEAMS_VIEW;
     }
