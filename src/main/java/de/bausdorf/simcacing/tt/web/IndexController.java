@@ -1,6 +1,7 @@
 package de.bausdorf.simcacing.tt.web;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.web.model.PlanDescriptionView;
 import de.bausdorf.simcacing.tt.web.model.SessionIdentifierView;
 import de.bausdorf.simcacing.tt.web.model.SessionView;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,8 +26,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 
 @Controller
+@Slf4j
 public class IndexController extends BaseController {
 
     public static final String INDEX_VIEW = "index";
@@ -36,12 +40,15 @@ public class IndexController extends BaseController {
     TeamRepository teamRepository;
     RacePlanRepository planRepository;
 
+    RestTemplate restTemplate;
+
     public IndexController(@Autowired SessionHolder holder,
             @Autowired TeamRepository teamRepository,
             @Autowired RacePlanRepository planRepository) {
         this.planRepository = planRepository;
         this.teamRepository = teamRepository;
         this.sessionHolder = holder;
+        this.restTemplate = new RestTemplate();
     }
 
     @GetMapping({"/", "/index", "index.html"})
@@ -50,7 +57,16 @@ public class IndexController extends BaseController {
     }
 
     @GetMapping({"/setup"})
-    public String setup() {
+    public String setup(Model model) {
+
+        Map<String, Object> json = restTemplate.getForObject("https://api.github.com/repos/simracingtools/teamtactics/releases/latest", Map.class);
+        try {
+            String clientVersion = (String) json.get("tag_name");
+            model.addAttribute("currentClientVersion", clientVersion);
+        } catch (Exception e) {
+            log.warn("Error getting client version from Github: {}", e.getMessage());
+            model.addAttribute("currentClientVersion", "unknown");
+        }
         return SETUP_VIEW;
     }
 
