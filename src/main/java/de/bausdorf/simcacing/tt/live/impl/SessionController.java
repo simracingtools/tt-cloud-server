@@ -40,9 +40,11 @@ public class SessionController {
     private Duration optRepairTimeLeft;
     private Duration towTimeLeft;
     private LocalTime sessionToD;
+    private ChartData chartData;
 
     public SessionController(SessionData sessionData) {
         this.sessionData = sessionData;
+        this.chartData = new ChartData();
         log.info("Created session controller for {}", sessionData.getSessionId());
     }
 
@@ -84,6 +86,7 @@ public class SessionController {
         Assumption assumption = getAssumptionFromRacePlan();
         calculateStintLaps(currentStint, runData != null ? runData.getFuelLevel() : 0.0D, assumption);
         calculateExpectedStintDuration(currentStint, assumption);
+        chartData.addLap(newLap);
         log.debug("Current stint: {}", currentStint);
     }
 
@@ -258,19 +261,27 @@ public class SessionController {
     }
 
     public Duration getCurrentDriverBestLap() {
-        Duration driverBestLap = Duration.ZERO;
-        for (LapData lap : laps.values()) {
-            if (lap.getDriverId().equalsIgnoreCase(currentDriver.getId())) {
-                if (driverBestLap.equals(Duration.ZERO)) {
-                    driverBestLap = lap.getLapTime();
-                } else {
-                    if (lap.getLapTime().compareTo(driverBestLap) < 0) {
-                        driverBestLap = lap.getLapTime();
-                    }
-                }
-            }
-        }
-        return driverBestLap;
+        double millis = laps.values().stream()
+                .filter(s -> s.getDriverId().equalsIgnoreCase(currentDriver.getId()))
+                .mapToDouble(s -> s.getLapTime().toMillis())
+                .min().orElse(0.0D);
+        return Duration.ofMillis((long)millis);
+    }
+
+    public Duration getFastestLap() {
+        double millis = laps.values().stream()
+                .filter(s -> s.getLapTime().toMillis() > 0)
+                .mapToDouble(s -> s.getLapTime().toMillis())
+                .min().orElse(0.0D);
+        return Duration.ofMillis((long)millis);
+    }
+
+    public Duration getSlowestLap() {
+        double millis = laps.values().stream()
+                .filter(s -> !s.isPitStop())
+                .mapToDouble(s -> s.getLapTime().toMillis())
+                .max().orElse(0.0D);
+        return Duration.ofMillis((long)millis);
     }
 
     public Estimation getCurrentDriverEstimation() {

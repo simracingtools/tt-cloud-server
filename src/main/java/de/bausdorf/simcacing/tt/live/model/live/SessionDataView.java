@@ -8,7 +8,9 @@ import java.util.Locale;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientData;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
+import de.bausdorf.simcacing.tt.live.model.client.ChartData;
 import de.bausdorf.simcacing.tt.live.model.client.TrackLocationType;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +33,9 @@ public class SessionDataView implements ClientData {
 	private String trackLocationCssClass;
 	private List<PitstopDataView> pitStops;
 	private String timeZone;
+	private ChartData chartData;
+	private String slowestLap;
+	private String fastestLap;
 
 	public static SessionDataView getSessionDataView(SessionController controller) {
 		TrackLocationType locationType = controller.getCurrentTrackLocation() == null
@@ -49,6 +54,9 @@ public class SessionDataView implements ClientData {
 				.trackLocationCssClass(locationType.getCssClass())
 				.pitStops(PitstopDataView.getPitstopDataView(controller))
 				.timeZone("GMT" + ZonedDateTime.now().getOffset().getId())
+				.chartData(controller.getChartData())
+				.slowestLap(TimeTools.longDurationString(controller.getSlowestLap()))
+				.fastestLap(TimeTools.longDurationString(controller.getFastestLap()))
 				.build();
 	}
 }
