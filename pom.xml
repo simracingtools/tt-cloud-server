@@ -17,6 +17,7 @@
     <java.version>1.8</java.version>
     <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
+    <appengine.version>${project.version}</appengine.version>
     <maven.test.skip>true</maven.test.skip>
   </properties>
 
@@ -224,6 +225,7 @@
         <version>2.1.0</version>
         <configuration>
           <projectId>${gcloud-project-id}</projectId>
+          <deploy.version>${appengine.version}</deploy.version>
         </configuration>
       </plugin>
 
@@ -231,9 +233,32 @@
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
           <useReleaseProfile>false</useReleaseProfile>
-          <tagNameFormat>v@{version}</tagNameFormat>
+          <tagNameFormat>v@{appengine.version}</tagNameFormat>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>regex-property</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>appengine.version</name>
+              <value>${project.version}</value>
+              <regex>^([0-9]+).([0-9]+).([0-9]+)-(SNAPSHOT)$</regex>
+              <replacement>v$1_$2_$3_P$4</replacement>
+              <failIfNoMatch>true</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
