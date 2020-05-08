@@ -1,5 +1,4 @@
 # Getting Started
-https://github.com/simracingtools/teamtactics/releases/download/V2.00/TeamTactics2Setup.exe
 
 ### Reference Documentation
 For further reference, please consider the following sections:

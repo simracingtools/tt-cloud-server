@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 
 public enum MessageType {
+	PING(MessageConstants.MessageType.PING_NAME),
 	LAP(MessageConstants.MessageType.LAPDATA_NAME),
 	SESSION_INFO(MessageConstants.MessageType.SESSION_INFO_NAME),
 	RUN_DATA(MessageConstants.MessageType.RUN_DATA_NAME),
@@ -12,7 +13,7 @@ public enum MessageType {
 
 	private String jsonKey;
 
-	private MessageType(String name) {
+	MessageType(String name) {
 		this.jsonKey = name;
 	}
 
@@ -31,6 +32,7 @@ public enum MessageType {
 			case MessageConstants.MessageType.RUN_DATA_NAME: return RUN_DATA;
 			case MessageConstants.MessageType.EVENTDATA_NAME: return EVENT;
 			case MessageConstants.MessageType.SYNCDATA_NAME: return SYNC;
+			case MessageConstants.MessageType.PING_NAME: return PING;
 			default:
 				throw new IllegalArgumentException("Invalid message type \"" + key + "\"");
 		}

@@ -30,9 +30,9 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	private static final List<String> acceptedVersions = new ArrayList<>();
 
 	static {
-		acceptedVersions.add("1.20");
 		acceptedVersions.add("1.30");
 		acceptedVersions.add("1.31");
+		acceptedVersions.add("1.32");
 	}
 
 	private final MessageProcessor processor;
@@ -65,12 +65,20 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 		}
 		try {
 			ClientMessage msg = this.validateClientMessage(clientMessage, clientAccessToken.get());
-			processMessage(msg);
+			if (msg.getType() != MessageType.PING) {
+				processMessage(msg);
+			}
 			return msg.getType().name();
 		} catch (InvalidClientMessageException e) {
 			log.warn(e.getMessage());
+			return "VALIDATION_ERROR";
+		} catch (UnauthorizedAccessException e) {
+			log.warn(e.getMessage());
+			return "AUTHORIZATION_ERROR";
+		} catch (UnsupportedClientException e) {
+			log.warn(e.getMessage());
+			return "UNSUPPORTED_CLIENT";
 		}
-		return "VALIDATION_ERROR";
 	}
 
 	private Map<String, Object> readClientMessage(String clientString) {
@@ -103,14 +111,14 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 			throw new InvalidClientMessageException("No message version");
 		} else {
 			if( !acceptedVersions.contains(clientVersion)) {
-				throw new InvalidClientMessageException("Client version " + clientVersion + " not accepted");
+				throw new UnsupportedClientException("Client version " + clientVersion + " not accepted");
 			}
-		}
-		if( sessionId == null ) {
-			throw new InvalidClientMessageException("Message without session id");
 		}
 		if( clientId == null ) {
 			throw new InvalidClientMessageException("Message without client id");
+		}
+		if( sessionId == null ) {
+			throw new InvalidClientMessageException("Message without session id");
 		}
 
 		try {
@@ -143,10 +151,10 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 				}
 			}
 			tokenCache.put(accessToken, "NONE");
-			throw new InvalidClientMessageException("Token could not be validated on client id " + clientId);
+			throw new UnauthorizedAccessException("Token could not be validated on client id " + clientId);
 		} else {
 			if (!authorizedClientId.equalsIgnoreCase(clientId)) {
-				throw new InvalidClientMessageException("Token could not be validated on client id " + clientId);
+				throw new UnauthorizedAccessException("Token could not be validated on client id " + clientId);
 			}
 		}
 	}
