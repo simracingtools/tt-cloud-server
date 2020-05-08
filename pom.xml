@@ -233,7 +233,7 @@
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
           <useReleaseProfile>false</useReleaseProfile>
-          <tagNameFormat>v@{appengine.version}</tagNameFormat>
+          <tagNameFormat>v@{version}</tagNameFormat>
         </configuration>
       </plugin>
 
@@ -244,7 +244,6 @@
         <executions>
           <execution>
             <id>regex-property</id>
-            <phase>deploy</phase>
             <goals>
               <goal>regex-property</goal>
             </goals>
