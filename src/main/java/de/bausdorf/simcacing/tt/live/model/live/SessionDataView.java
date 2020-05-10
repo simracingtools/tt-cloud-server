@@ -48,7 +48,7 @@ public class SessionDataView implements ClientData {
 				.sessionType(controller.getSessionData().getSessionType())
 				.teamName(controller.getSessionData().getTeamName())
 				.sessionId(controller.getSessionData().getSessionId().getSubscriptionId())
-				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getSessionData().getMaxCarFuel()))
+				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getMaxCarFuel()))
 				.lastLapData(LapDataView.getLapDataView(controller.getLastRecordedLap().orElse(null), controller))
 				.trackLocation(locationType.name())
 				.trackLocationCssClass(locationType.getCssClass())
