@@ -44,15 +44,15 @@ public class RacePlan {
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
-		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime);
+		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime, 0);
 	}
 
-	public List<Stint> calculateStints(LocalDateTime raceClock, LocalDateTime todClock, LocalDateTime raceTimeLeft) {
+	public List<Stint> calculateStints(LocalDateTime raceClock, LocalDateTime todClock, LocalDateTime raceTimeLeft, int finishedStints) {
 		List<Stint> stints = new ArrayList<>();
 
-		int stintCount = 1;
+		int stintCount = finishedStints + 1;
 		while( raceClock.isBefore(raceTimeLeft) ) {
-			String currentDriver = "N.N.";
+			String currentDriver = "unassigned";
 			if( currentRacePlan.size() > stintCount) {
 				currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
 			}
@@ -66,7 +66,7 @@ public class RacePlan {
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
-				currentDriver = "N.N.";
+				currentDriver = "unassigned";
 				if( currentRacePlan.size() >= stintCount) {
 					currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
 				}
