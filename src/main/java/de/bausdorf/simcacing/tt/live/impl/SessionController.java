@@ -245,7 +245,7 @@ public class SessionController {
         Optional<Stint> lastStint = getLastStint();
         if (lastStint.isPresent()) {
             Duration lastStintAvgLapTime = lastStint.get().getAvgLapTime();
-            if (!lastStintAvgLapTime.isZero()) {
+            if (lastStintAvgLapTime != null && !lastStintAvgLapTime.isZero()) {
                 return (int) Math.ceil((double)remainingSessionTime.getSeconds() / lastStintAvgLapTime.getSeconds());
             }
         }
@@ -257,7 +257,7 @@ public class SessionController {
             return Optional.empty();
         }
         Integer lastKey = laps.lastKey();
-        return Optional.of(laps.get(lastKey));
+        return Optional.ofNullable(laps.get(lastKey));
     }
 
     public Duration getCurrentDriverBestLap() {

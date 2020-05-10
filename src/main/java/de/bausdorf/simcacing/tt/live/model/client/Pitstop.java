@@ -62,6 +62,9 @@ public class Pitstop {
 	}
 
 	public String getServiceFlagsString() {
+		if (serviceFlags == null) {
+			return "";
+		}
 		StringBuilder flags = new StringBuilder();
 		for (ServiceFlagType flag : serviceFlags) {
 			flags.append(flag.code).append(' ');
