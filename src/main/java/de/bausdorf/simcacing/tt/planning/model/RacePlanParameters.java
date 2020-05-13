@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,7 @@ public class RacePlanParameters {
 		map.put(GREEN_FLAG_OFFSET_TIME, greenFlagOffsetTime.toString());
 		if (stints != null && !stints.isEmpty()) {
 			Map<String, Object> stintMap = new HashMap<>();
-			stints.stream().forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
+			stints.forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
 			map.put(STINTS, stintMap);
 		}
 		if (roster != null) {
@@ -119,7 +120,7 @@ public class RacePlanParameters {
 		if (roster != null ) {
 			return roster.getAvailableDrivers(forTime);
 		}
-		return Arrays.asList(NN_DRIVER);
+		return Collections.singletonList(NN_DRIVER);
 	}
 
 	public List<IRacingDriver> getAllDrivers() {
@@ -256,7 +257,7 @@ public class RacePlanParameters {
 			raceDuration = update.getRaceDuration();
 		}
 		if (update.getSessionStartTime() != null) {
-			sessionStartTime = update.getSessionStartTime();
+			updateSessionStartTime(update.getSessionStartTime());
 		}
 		if (update.getTeamId() != null) {
 			teamId = update.getTeamId();
@@ -293,6 +294,17 @@ public class RacePlanParameters {
 				repoDriver.ifPresent(iRacingDriver -> roster.updateDriverData(iRacingDriver));
 			}
 		}
+	}
+
+	private void updateSessionStartTime(LocalDateTime newStartTime) {
+		if (roster != null) {
+			for (List<ScheduleEntry> schedule : roster.getDriverAvailability().values()) {
+				if (!schedule.isEmpty() && schedule.get(0).getFrom().isEqual(sessionStartTime)) {
+					schedule.get(0).setFrom(newStartTime);
+				}
+			}
+		}
+		sessionStartTime = newStartTime;
 	}
 
 	private void mergeRoster(Roster other) {
