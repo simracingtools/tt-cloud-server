@@ -19,4 +19,5 @@ public class TeamtacticsServerProperties {
     private Long teamRepositoryCacheMinutes;
     private Long userRepositoryCacheMinutes;
     private Long inactiveSessionTimeoutMinutes;
+    private boolean shiftSessionStartTimeToNow;
 }

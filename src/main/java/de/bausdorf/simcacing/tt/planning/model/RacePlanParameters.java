@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -293,6 +292,15 @@ public class RacePlanParameters {
 				Optional<IRacingDriver> repoDriver = driverRepository.findById(driver.getId());
 				repoDriver.ifPresent(iRacingDriver -> roster.updateDriverData(iRacingDriver));
 			}
+		}
+	}
+
+	public void shiftSessionStartTime(LocalDateTime newSessionStart) {
+		Duration timeShift = Duration.between(sessionStartTime, newSessionStart);
+		updateSessionStartTime(newSessionStart);
+		for (Stint stint : stints) {
+			stint.setStartTime(stint.getStartTime().plus(timeShift));
+			stint.setEndTime(stint.getEndTime().plus(timeShift));
 		}
 	}
 
