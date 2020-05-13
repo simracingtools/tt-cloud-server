@@ -34,6 +34,8 @@ public class SessionController {
 	private RunData runData;
 
 	private int currentLapNo;
+	private boolean uncleanLap;
+
 	@Setter
 	private IRacingDriver currentDriver;
 	private TrackLocationType currentTrackLocation;
@@ -41,7 +43,7 @@ public class SessionController {
 	private Duration optRepairTimeLeft;
 	private Duration towTimeLeft;
 	private LocalTime sessionToD;
-	private ChartData chartData;
+	private final ChartData chartData;
 
 	public SessionController(SessionData sessionData) {
 		this.sessionData = sessionData;
@@ -64,6 +66,8 @@ public class SessionController {
 
 		log.debug("New Lap: {}", newLap);
 		currentLapNo = newLap.getNo();
+		newLap.setUnclean(uncleanLap);
+		uncleanLap = false;
 		laps.put(currentLapNo, newLap);
 
 		Stint currentStint = stints.get(newLap.getStint());
@@ -157,6 +161,7 @@ public class SessionController {
 					towPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
 					pitStops.put(towPitStop.getStint(), towPitStop);
 				}
+				uncleanLap = true;
 				towTimeLeft = eventData.getTowingTime();
 		}
 		currentTrackLocation = eventData.getTrackLocationType();
@@ -281,6 +286,7 @@ public class SessionController {
 	public Duration getSlowestLap() {
 		double millis = laps.values().stream()
 				.filter(s -> !s.isPitStop())
+				.filter(s-> !s.isUnclean())
 				.mapToDouble(s -> s.getLapTime().toMillis())
 				.max().orElse(0.0D);
 		return Duration.ofMillis((long) millis);

@@ -12,15 +12,17 @@ import java.time.LocalTime;
 @ToString
 public class LapData implements ClientData {
 
-	private int no;
-	private String driver;
-	private String driverId;
-	private double fuelLevel;
-	private Duration lapTime;
-	private double trackTemp;
-	private LocalTime sessionTime;
+	private final int no;
+	private final String driver;
+	private final String driverId;
+	private final double fuelLevel;
+	private final Duration lapTime;
+	private final double trackTemp;
+	private final LocalTime sessionTime;
 	@Setter
 	private boolean pitStop;
+	@Setter
+	private boolean unclean;
 	@Setter
 	private double lastLapFuelUsage;
 	@Setter
