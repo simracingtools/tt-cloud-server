@@ -295,12 +295,13 @@ function showPitData(message) {
         $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
         $("#pitRefuel-" + i).text(message[i].refuelAmount);
         $("#pitRepairTime-" + i).text(message[i].repairTime);
+        $("#pitDriverSelect-" + i).empty();
         for (var k in message[i].allDrivers) {
             $("<option/>").val(message[i].allDrivers[k])
                     .text(message[i].allDrivers[k])
                     .appendTo("#pitDriverSelect-" + i);
         }
-        $("#pitDriverSelect-" + i).val(message[i].driver)
+        $("#pitDriverSelect-" + i).val(message[i].driver);
         if (message[i].pitStopDuration !== '') {
             $("#pitDriverSelect-" + i).prop('disabled', 'disabled')
         }

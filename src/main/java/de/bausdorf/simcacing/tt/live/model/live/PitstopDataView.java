@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
@@ -42,77 +43,88 @@ public class PitstopDataView {
 		if (controller != null) {
 			int lapCount = 0;
 			int stintNo = 0;
-			RunData runData = controller.getRunData();
 			LocalDateTime now = LocalDateTime.now();
 			Duration accumulatedStintDuration = Duration.ZERO;
-			for (Stint stint : controller.getStints().tailMap(0).values()) {
-				Pitstop pitstop = controller.getPitStops().get(stint.getNo());
-				if (pitstop == null || !pitstop.isComplete()) {
-					// Stint not complete
-					continue;
-				}
-				lapCount += stint.getLaps();
-				stintNo++;
-				Duration stintDuration = stint.getCurrentStintDuration() != null ? stint.getCurrentStintDuration() : Duration.ZERO;
-				accumulatedStintDuration = accumulatedStintDuration.plus(stintDuration);
-				Duration raceDuration = controller.getRacePlan() != null
-						? controller.getRacePlan().getPlanParameters().getRaceDuration()
-						: Duration.ofSeconds(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN).toSecondOfDay());
-				Duration raceTimeLeft = raceDuration.minus(accumulatedStintDuration);
-
-				PitstopDataView view = PitstopDataView.builder()
-						.allDrivers(Arrays.asList(stint.getDriver()))
-						.driver(stint.getDriver())
-						.lapNo(Integer.toUnsignedString(lapCount))
-						.raceTimeLeft(raceTimeLeft.isNegative() ? "" : TimeTools.shortDurationString(raceTimeLeft))
-						.stintNo(Integer.toUnsignedString(stint.getNo()))
-						.timePitted(pitstop.getEnterPits().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
-						.serviceDuration(TimeTools.shortDurationString(pitstop.getPitstopServiceTime()))
-						.service(pitstop.getServiceFlagsString())
-						.repairTime(TimeTools.shortDurationString(pitstop.getRepairAndTowingTime()))
-						.pitStopDuration(TimeTools.shortDurationString(pitstop.getPitstopDuration()))
-						.refuelAmount(fuelString(pitstop.getRefuelAmount()))
-						.build();
-
-				pitstopDataViews.add(view);
-			}
+			viewForPittedStints(controller, lapCount, stintNo, accumulatedStintDuration, pitstopDataViews);
 			if (controller.getRacePlan() != null) {
-				LocalDateTime sessionToD = controller.getRacePlan().getPlanParameters().getTodStartTime();
-				if (runData != null) {
-					sessionToD = LocalDateTime.of(sessionToD.toLocalDate(), runData.getSessionToD());
-				}
-				List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
-						controller.getRacePlan().calculateStints(now, sessionToD, now.plus(controller.getRemainingSessionTime()));
-				controller.getRacePlan().setCurrentRacePlan(stints);
-				for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
-					lapCount += stint.getLaps();
-					stintNo++;
-					accumulatedStintDuration = accumulatedStintDuration.plus(stint.getStintDuration(true));
-					Duration raceTimeLeft = controller.getRacePlan().getPlanParameters().getRaceDuration()
-							.minus(accumulatedStintDuration);
-
-					PitstopDataView view = PitstopDataView.builder()
-							.driver(stint.getDriverName())
-							.lapNo(Integer.toUnsignedString(lapCount))
-							.timePitted(stint.getEndTimeString())
-							.stintNo(Integer.toUnsignedString(stintNo))
-							.allDrivers(controller.getRacePlan().getPlanParameters().getAllDrivers().stream()
-									.map(IRacingDriver::getName)
-									.collect(Collectors.toList())
-							)
-							.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
-							.pitStopDuration("")
-							.repairTime("")
-							.service("")
-							.serviceDuration("")
-							.refuelAmount("")
-							.build();
-
-					pitstopDataViews.add(view);
-				}
+				viewForPlannedStints(controller, now, lapCount, stintNo, accumulatedStintDuration, pitstopDataViews);
 			}
 		}
 		return pitstopDataViews;
+	}
+
+	private static void viewForPlannedStints(SessionController controller, LocalDateTime now, int lapCount, int stintNo,
+			Duration accumulatedStintDuration, List<PitstopDataView> pitstopDataViews) {
+		RunData runData = controller.getRunData();
+		LocalDateTime sessionToD = controller.getRacePlan().getPlanParameters().getTodStartTime();
+		if (runData != null) {
+			sessionToD = LocalDateTime.of(sessionToD.toLocalDate(), runData.getSessionToD());
+		}
+		List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
+				controller.getRacePlan().calculateStints(now, sessionToD, now.plus(controller.getRemainingSessionTime()));
+
+		for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
+			lapCount += stint.getLaps();
+			stintNo++;
+			accumulatedStintDuration = accumulatedStintDuration.plus(stint.getStintDuration(true));
+			Duration raceTimeLeft = controller.getRacePlan().getPlanParameters().getRaceDuration()
+					.minus(accumulatedStintDuration);
+			List<String> driverList = controller.getRacePlan().getPlanParameters().getAllDrivers().stream()
+					.map(IRacingDriver::getName)
+					.collect(Collectors.toList());
+			driverList.add("unassigned");
+
+			PitstopDataView view = PitstopDataView.builder()
+					.driver(stint.getDriverName())
+					.lapNo(Integer.toUnsignedString(lapCount))
+					.timePitted(stint.getEndTimeString())
+					.stintNo(Integer.toUnsignedString(stintNo))
+					.allDrivers(driverList)
+					.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
+					.pitStopDuration("")
+					.repairTime("")
+					.service("")
+					.serviceDuration("")
+					.refuelAmount(String.format(Locale.US, "%.3f", stint.getRefuelAmount()))
+					.build();
+
+			pitstopDataViews.add(view);
+		}
+	}
+
+	private static void viewForPittedStints(SessionController controller, int lapCount, int stintNo,
+			Duration accumulatedStintDuration, List<PitstopDataView> pitstopDataViews) {
+		for (Stint stint : controller.getStints().tailMap(0).values()) {
+			Pitstop pitstop = controller.getPitStops().get(stint.getNo());
+			if (pitstop == null || !pitstop.isComplete()) {
+				// Stint not complete
+				continue;
+			}
+			lapCount += stint.getLaps();
+			stintNo++;
+			Duration stintDuration = stint.getCurrentStintDuration() != null ? stint.getCurrentStintDuration() : Duration.ZERO;
+			accumulatedStintDuration = accumulatedStintDuration.plus(stintDuration);
+			Duration raceDuration = controller.getRacePlan() != null
+					? controller.getRacePlan().getPlanParameters().getRaceDuration()
+					: Duration.ofSeconds(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN).toSecondOfDay());
+			Duration raceTimeLeft = raceDuration.minus(accumulatedStintDuration);
+
+			PitstopDataView view = PitstopDataView.builder()
+					.allDrivers(Collections.singletonList(stint.getDriver()))
+					.driver(stint.getDriver())
+					.lapNo(Integer.toUnsignedString(lapCount))
+					.raceTimeLeft(raceTimeLeft.isNegative() ? "" : TimeTools.shortDurationString(raceTimeLeft))
+					.stintNo(Integer.toUnsignedString(stint.getNo()))
+					.timePitted(pitstop.getEnterPits().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
+					.serviceDuration(TimeTools.shortDurationString(pitstop.getPitstopServiceTime()))
+					.service(pitstop.getServiceFlagsString())
+					.repairTime(TimeTools.shortDurationString(pitstop.getRepairAndTowingTime()))
+					.pitStopDuration(TimeTools.shortDurationString(pitstop.getPitstopDuration()))
+					.refuelAmount(fuelString(pitstop.getRefuelAmount()))
+					.build();
+
+			pitstopDataViews.add(view);
+		}
 	}
 
 	private static String fuelString(double fuelAmount) {

@@ -104,7 +104,7 @@ public class LapDataView {
 				.estimatedLapTimeDeltaCssClass(estimatedLapTimeDelta.startsWith("-") ? TABLE_SUCCESS : TABLE_DANGER)
 				.estimatedStintTime(estimatedStintTime)
 				.requiredFuelPerLapOneMore(fuelString(controller.getSessionData().getMaxCarFuel() / oneLapMore))
-				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getSessionData().getMaxCarFuel()))
+				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getMaxCarFuel()))
 				.fastestLap(TimeTools.longDurationString(controller.getFastestLap()))
 				.slowestLap(TimeTools.longDurationString(controller.getSlowestLap()))
 				.build();
