@@ -25,7 +25,7 @@ public class SessionController {
 	private final SessionData sessionData;
 	@Setter
 	private RacePlan racePlan;
-
+	@Setter
 	private LocalTime greenFlagTime;
 	private final SortedMap<Integer, Stint> stints = new TreeMap<>();
 	private final SortedMap<Integer, LapData> laps = new TreeMap<>();
@@ -38,10 +38,14 @@ public class SessionController {
 
 	@Setter
 	private IRacingDriver currentDriver;
+	@Setter
+	private String teamId;
+	@Setter
 	private TrackLocationType currentTrackLocation;
 	private Duration repairTimeLeft;
 	private Duration optRepairTimeLeft;
 	private Duration towTimeLeft;
+	@Setter
 	private LocalTime sessionToD;
 	private final ChartData chartData;
 
@@ -117,52 +121,16 @@ public class SessionController {
 		}
 		switch (eventData.getTrackLocationType()) {
 			case APPROACHING_PITS:
-				if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
-					log.debug("Starting from box");
-					return false;
-				}
-				Pitstop newPitStop = getOrCreateNextPitstop();
-				newPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
-				pitStops.put(newPitStop.getStint(), newPitStop);
+				processApproachingPitsEvent(eventData);
 				break;
 			case PIT_STALL:
-				if (pitStops.isEmpty()) {
-					log.warn("No pitstop while in pit stall");
-				} else {
-					log.debug("Update pitstop (PIT_STALL)");
-					pitStops.get(pitStops.lastKey()).update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
-				}
-				repairTimeLeft = eventData.getRepairTime();
-				optRepairTimeLeft = eventData.getOptRepairTime();
-				towTimeLeft = eventData.getTowingTime();
+				processPitStallEvent(eventData);
 				break;
 			case ONTRACK:
-				if (!pitStops.isEmpty()
-						&& pitStops.get(pitStops.lastKey()).update(eventData,
-						runData != null ? runData.getFuelLevel() : 0.0D)) {
-					log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
-					Optional<LapData> lastRecordedLap = getLastRecordedLap();
-					if (lastRecordedLap.isPresent()) {
-						log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
-						lastRecordedLap.get().setPitStop(true);
-					}
-					Optional<Stint> lastStint = getLastStint();
-					lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
-							.no(stint.getNo() + 1)
-							.build()
-					));
-					return true;
-				}
-				break;
+				return processOnTrackEvent(eventData);
 			case OFF_WORLD:
 			case OFFTRACK:
-				if (!eventData.getTowingTime().isZero()) {
-					Pitstop towPitStop = getOrCreateNextPitstop();
-					towPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
-					pitStops.put(towPitStop.getStint(), towPitStop);
-				}
-				uncleanLap = true;
-				towTimeLeft = eventData.getTowingTime();
+				processOffTrackEvent(eventData);
 		}
 		currentTrackLocation = eventData.getTrackLocationType();
 
@@ -173,7 +141,7 @@ public class SessionController {
 		Optional<LocalTime> sessionDuration = sessionData.getSessionDuration();
 		if (sessionDuration.isPresent()) {
 			if (greenFlagTime != null) {
-				return Duration.between(runData.getSessionTime(), sessionDuration.get().plusSeconds(greenFlagTime.toSecondOfDay()));
+				return Duration.between(runData != null ? runData.getSessionTime() : LocalTime.MIN, sessionDuration.get().plusSeconds(greenFlagTime.toSecondOfDay()));
 			}
 			return Duration.between((runData != null ? runData.getSessionTime() : LocalTime.MIN), sessionDuration.get());
 		}
@@ -266,6 +234,10 @@ public class SessionController {
 		return Optional.ofNullable(laps.get(lastKey));
 	}
 
+	public Pitstop getLastPitstop() {
+		return !pitStops.isEmpty() ? pitStops.get(pitStops.lastKey()) : null;
+	}
+
 	public Duration getCurrentDriverBestLap() {
 		double millis = laps.values().stream()
 				.filter(s -> s.getDriverId().equalsIgnoreCase(currentDriver.getId()))
@@ -316,7 +288,7 @@ public class SessionController {
 			return Optional.empty();
 		}
 
-		return Optional.of(laps.get(currentLapNo - 1));
+		return Optional.ofNullable(laps.get(currentLapNo - 1));
 	}
 
 	private void setStintValuesToLap(LapData newLap) {
@@ -439,5 +411,57 @@ public class SessionController {
 				.carFuel(racePlan == null ? 0.0D : racePlan.getPlanParameters().getMaxCarFuel())
 				.avgPitStopTime(Optional.ofNullable(racePlan == null ? null : racePlan.getPlanParameters().getAvgPitStopTime()))
 				.build();
+	}
+
+	private boolean processOnTrackEvent(EventData eventData) {
+		if (!pitStops.isEmpty()
+				&& pitStops.get(pitStops.lastKey()).update(eventData,
+				runData != null ? runData.getFuelLevel() : 0.0D)) {
+			log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
+			Optional<LapData> lastRecordedLap = getLastRecordedLap();
+			if (lastRecordedLap.isPresent()) {
+				log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
+				lastRecordedLap.get().setPitStop(true);
+			}
+			Optional<Stint> lastStint = getLastStint();
+			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
+					.no(stint.getNo() + 1)
+					.build()
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private void processPitStallEvent(EventData eventData) {
+		if (pitStops.isEmpty()) {
+			log.warn("No pitstop while in pit stall");
+		} else {
+			log.debug("Update pitstop (PIT_STALL)");
+			pitStops.get(pitStops.lastKey()).update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
+		}
+		repairTimeLeft = eventData.getRepairTime();
+		optRepairTimeLeft = eventData.getOptRepairTime();
+		towTimeLeft = eventData.getTowingTime();
+	}
+
+	private void processApproachingPitsEvent(EventData eventData) {
+		if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
+			log.debug("Starting from box");
+			return;
+		}
+		Pitstop newPitStop = getOrCreateNextPitstop();
+		newPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
+		pitStops.put(newPitStop.getStint(), newPitStop);
+	}
+
+	private void processOffTrackEvent(EventData eventData) {
+		if (!eventData.getTowingTime().isZero()) {
+			Pitstop towPitStop = getOrCreateNextPitstop();
+			towPitStop.update(eventData, runData != null ? runData.getFuelLevel() : 0.0D);
+			pitStops.put(towPitStop.getStint(), towPitStop);
+		}
+		uncleanLap = true;
+		towTimeLeft = eventData.getTowingTime();
 	}
 }

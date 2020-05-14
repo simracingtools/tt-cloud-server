@@ -145,14 +145,15 @@ public class IndexController extends BaseController {
 
         SessionController controller = sessionHolder.getSessionController(sessionKey);
         if (controller != null) {
-            if (selectedPlanId != null) {
+            if (controller.getRacePlan() != null) {
+
+                model.addAttribute("planParameters", controller.getRacePlan().getPlanParameters());
+            } else if (selectedPlanId != null) {
                 Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
 
                 if (config.isShiftSessionStartTimeToNow()) {
                     planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(LocalDateTime.now()));
                 }
-
-                planParameters.ifPresent(racePlanParameters -> model.addAttribute("planParameters", racePlanParameters));
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
             model.addAttribute("stintTableRows", new Integer[50]);

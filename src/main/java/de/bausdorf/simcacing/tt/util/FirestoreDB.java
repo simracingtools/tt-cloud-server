@@ -69,6 +69,19 @@ public class FirestoreDB {
         }
     }
 
+    public Timestamp updateDocument(String collectionName, String documentName, Map<String, Object> updates) {
+        ApiFuture<WriteResult> future = firestore.collection(collectionName).document(documentName).update(updates);
+        try {
+            WriteResult writeResult = future.get();
+            return writeResult.getUpdateTime();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
+        }
+    }
+
     public Timestamp save(String collectionName, String documentName, Map<String, Object> documentData) {
         ApiFuture<WriteResult> future = firestore.collection(collectionName).document(documentName).set(documentData);
         try {
