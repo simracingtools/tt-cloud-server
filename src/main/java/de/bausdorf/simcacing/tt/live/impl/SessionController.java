@@ -73,7 +73,6 @@ public class SessionController {
 		newLap.setUnclean(uncleanLap);
 		uncleanLap = false;
 		laps.put(currentLapNo, newLap);
-
 		Stint currentStint = stints.get(newLap.getStint());
 		if (currentStint == null) {
 			currentStint = Stint.builder()
@@ -85,6 +84,8 @@ public class SessionController {
 					.lastLapFuel(newLap.getLastLapFuelUsage())
 					.avgFuelPerLap(lastLapFuel)
 					.currentStintDuration(newLap.getLapTime())
+					.todStart(sessionToD)
+					.avgTrackTemp(newLap.getTrackTemp())
 					.build();
 			log.debug("New Stint: {}", currentStint);
 			stints.put(currentStint.getNo(), currentStint);
@@ -111,13 +112,13 @@ public class SessionController {
 		heartbeats.put(syncData.getClientId(), syncData);
 	}
 
-	public boolean processEventData(EventData eventData) {
+	public Stint processEventData(EventData eventData) {
 		log.debug("New event: {}", eventData);
 		sessionToD = eventData.getSessionToD();
 		if (currentTrackLocation == null) {
 			// This is the first event
 			currentTrackLocation = eventData.getTrackLocationType();
-			return false;
+			return null;
 		}
 		switch (eventData.getTrackLocationType()) {
 			case APPROACHING_PITS:
@@ -134,7 +135,7 @@ public class SessionController {
 		}
 		currentTrackLocation = eventData.getTrackLocationType();
 
-		return false;
+		return null;
 	}
 
 	public Duration getRemainingSessionTime() {
@@ -184,7 +185,7 @@ public class SessionController {
 		if (stints.isEmpty()) {
 			return Optional.empty();
 		}
-		return Optional.of(stints.get(stints.lastKey()));
+		return Optional.ofNullable(stints.get(stints.lastKey()));
 	}
 
 	public Duration getCurrentStintTime() {
@@ -324,6 +325,11 @@ public class SessionController {
 					? newLap.getLastLapFuelUsage() : 0.0);
 		}
 		try {
+			currentStint.setAvgTrackTemp(calculateAvgTrackTemp(stintNo));
+		} catch (NoSuchElementException e) {
+			currentStint.setAvgTrackTemp(newLap.getTrackTemp());
+		}
+		try {
 			currentStint.setAvgLapTime(TimeTools.getAverageLapDuration(
 					laps.values().stream()
 							.filter(s -> s.getStint() == stintNo)
@@ -333,6 +339,7 @@ public class SessionController {
 			currentStint.setAvgLapTime(newLap.getLapTime());
 		}
 		currentStint.addStintDuration(newLap.getLapTime());
+		currentStint.setTodEnd(sessionToD);
 	}
 
 	private double calculateAvgFuelPerLap(int stintNo) {
@@ -341,6 +348,14 @@ public class SessionController {
 				.filter(s -> !s.getLapTime().isZero())
 				.filter(s -> s.getLastLapFuelUsage() > 0.0)
 				.mapToDouble(LapData::getLastLapFuelUsage)
+				.average().orElse(0.001D);
+	}
+
+	private double calculateAvgTrackTemp(int stintNo) {
+		return laps.values().stream()
+				.filter(s -> s.getStint() == stintNo)
+				.filter(s -> s.getTrackTemp() > 0.0)
+				.mapToDouble(LapData::getTrackTemp)
 				.average().orElse(0.001D);
 	}
 
@@ -413,7 +428,7 @@ public class SessionController {
 				.build();
 	}
 
-	private boolean processOnTrackEvent(EventData eventData) {
+	private Stint processOnTrackEvent(EventData eventData) {
 		if (!pitStops.isEmpty()
 				&& pitStops.get(pitStops.lastKey()).update(eventData,
 				runData != null ? runData.getFuelLevel() : 0.0D)) {
@@ -426,11 +441,12 @@ public class SessionController {
 			Optional<Stint> lastStint = getLastStint();
 			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
 					.no(stint.getNo() + 1)
+					.todStart(sessionToD)
 					.build()
 			));
-			return true;
+			return lastStint.orElse(null);
 		}
-		return false;
+		return null;
 	}
 
 	private void processPitStallEvent(EventData eventData) {

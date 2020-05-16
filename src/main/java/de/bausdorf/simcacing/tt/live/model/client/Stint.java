@@ -3,6 +3,7 @@ package de.bausdorf.simcacing.tt.live.model.client;
 import lombok.*;
 
 import java.time.Duration;
+import java.time.LocalTime;
 
 @Getter
 @AllArgsConstructor
@@ -10,7 +11,7 @@ import java.time.Duration;
 @ToString
 public class Stint {
 
-	private int no;
+	private final int no;
 	private int laps;
 	@Setter
 	private String driver;
@@ -30,6 +31,12 @@ public class Stint {
 	private Duration currentStintDuration;
 	@Setter
 	private Duration expectedStintDuration;
+	@Setter
+	private LocalTime todStart;
+	@Setter
+	private LocalTime todEnd;
+	@Setter
+	private double avgTrackTemp;
 
 	public Duration addStintDuration(Duration toAdd) {
 		if( currentStintDuration == null ) {

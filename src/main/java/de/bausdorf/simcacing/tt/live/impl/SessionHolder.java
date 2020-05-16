@@ -19,7 +19,9 @@ import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.stock.DriverStatsRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
@@ -49,11 +51,13 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	final DriverRepository driverRepository;
 	final ActiveSessionRepository sessionRepository;
 	final RacePlanRepository planRepository;
+	final DriverStatsRepository driverStatsRepository;
 
 	public SessionHolder(@Autowired SimpMessagingTemplate messagingTemplate,
 			@Autowired DriverRepository driverRepository,
 			@Autowired ActiveSessionRepository sessionRepository,
 			@Autowired RacePlanRepository planRepository,
+			@Autowired DriverStatsRepository driverStatsRepository,
 			@Autowired TeamtacticsServerProperties config) {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
@@ -64,6 +68,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		this.planRepository = planRepository;
 		this.config = config;
 		this.sessionRepository = sessionRepository;
+		this.driverStatsRepository = driverStatsRepository;
 	}
 
 	@Override
@@ -315,8 +320,24 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			sessionRepository.saveTrackLocation(sessionId, eventData.getTrackLocationType());
 		}
 		String subscriptionId = controller.getSessionData().getSessionId().getSubscriptionId();
-		if (controller.processEventData(eventData)) {
-			sessionRepository.savePitstop(sessionId, controller.getLastPitstop());
+		Stint lastStint = controller.processEventData(eventData);
+		if (lastStint != null) {
+			Pitstop pitstop = controller.getLastPitstop();
+			driverStatsRepository.addStatsEntry(
+					controller.getCurrentDriver().getId(),
+					controller.getSessionData().getTrackId(),
+					controller.getSessionData().getCarId(),
+					StatsEntry.builder()
+							.avgFuelPerLap(lastStint.getAvgFuelPerLap())
+							.avgLapTime(lastStint.getAvgLapTime())
+							.avgTrackTemp(lastStint.getAvgTrackTemp())
+							.todStart(lastStint.getTodStart())
+							.todEnd(lastStint.getTodEnd())
+							.stintLaps(lastStint.getLaps())
+							.pitstop(pitstop)
+							.build()
+			);
+			sessionRepository.savePitstop(sessionId, pitstop);
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
 			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
 		}

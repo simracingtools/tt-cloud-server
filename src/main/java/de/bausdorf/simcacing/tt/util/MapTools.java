@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -99,4 +100,21 @@ public class MapTools {
 		return new ArrayList<>();
 	}
 
+	public static List<Map<String, Object>> mapListFromMap(String key, Map<String, Object> data) {
+		try {
+			return (List<Map<String, Object>>)data.get(key);
+		} catch( Exception e ) {
+			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+		}
+		return new ArrayList<>();
+	}
+
+	public static Map<String, Object> mapFromMap(String key, Map<String, Object> data) {
+		try {
+			return (Map<String, Object>)data.get(key);
+		} catch( Exception e ) {
+			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+		}
+		return new HashMap<>();
+	}
 }
