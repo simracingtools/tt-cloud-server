@@ -440,8 +440,12 @@ public class SessionController {
 
 	private Assumption getAssumptionFromRacePlan() {
 		LocalDateTime atTod = racePlan == null ? null : racePlan.getTodRaceTime(getCurrentSessionTime());
-		Estimation estimation = racePlan == null ? null : racePlan.getPlanParameters()
-				.getDriverEstimationAt(currentDriver, LocalDateTime.of(atTod.toLocalDate(), sessionToD));
+		Estimation estimation = null;
+		if (atTod != null) {
+			LocalDateTime todDateTime = LocalDateTime.of(atTod.toLocalDate(), sessionToD != null ? sessionToD : LocalTime.MIN);
+			estimation = racePlan == null ? null : racePlan.getPlanParameters()
+					.getDriverEstimationAt(currentDriver, todDateTime);
+		}
 		return Assumption.builder()
 				.avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))
 				.avgLapTime(Optional.ofNullable(estimation == null ? null : estimation.getAvgLapTime()))

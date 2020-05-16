@@ -33,8 +33,10 @@ import de.bausdorf.simcacing.tt.stock.model.DriverStats;
 import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class DriverStatsRepository extends CachedRepository<DriverStats> {
 	public static final String COLLECTION_NAME = "DriverStats";
 
@@ -75,7 +77,13 @@ public class DriverStatsRepository extends CachedRepository<DriverStats> {
 					return;
 				}
 			}
-			stats.get().getStats().add(statsEntry);
+			try {
+				if (stats.get().getStats() != null) {
+					stats.get().getStats().add(statsEntry);
+				}
+			} catch (UnsupportedOperationException e) {
+				log.warn("Unsupported operation adding driver stats entry: {}", statsEntry);
+			}
 			save(stats.get());
 		} else {
 			save(DriverStats.builder()

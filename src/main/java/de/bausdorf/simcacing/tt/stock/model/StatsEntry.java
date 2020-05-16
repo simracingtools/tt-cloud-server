@@ -33,11 +33,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
+@ToString
 public class StatsEntry {
 	public static final String TOD_START = "todStart";
 	public static final String TOD_END = "todEnd";
@@ -68,7 +70,7 @@ public class StatsEntry {
 
 	public Map<String, Object> toMap() {
 		Map<String, Object> data = new HashMap<>();
-		data.put(TOD_START, todStart.toString());
+		data.put(TOD_START, todStart != null ? todStart.toString() : null);
 		data.put(TOD_END, todEnd != null ? todEnd.toString() : null);
 		data.put(STINT_LAPS, stintLaps);
 		data.put(AVG_LAP_TIME, avgLapTime.toString());

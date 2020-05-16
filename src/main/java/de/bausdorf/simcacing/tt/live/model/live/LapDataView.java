@@ -105,7 +105,7 @@ public class LapDataView {
 				.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
 				.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
 				.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
-				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
+				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime != null ? stintAvgLapTime : Duration.ZERO))
 				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
 				.stintAvgFuelDelta(fuelString(avgFuelDelta))
 				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? TABLE_SUCCESS : TABLE_DANGER)
