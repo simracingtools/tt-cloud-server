@@ -41,6 +41,8 @@ import de.bausdorf.simcacing.tt.web.security.TtUserType;
 public class UserContentController extends BaseController {
 
 
+    public static final String PROFILE_VIEW = "profile";
+
     @GetMapping("/acknewuser")
     public String showUserAck() {
         return "acknewuser";
@@ -48,18 +50,18 @@ public class UserContentController extends BaseController {
 
     @PostMapping("/acknewuser")
     public String showProfileAfterAck() {
-        return "profile";
+        return PROFILE_VIEW;
     }
 
     @GetMapping("/profile")
     public String showUserProfile() {
-        return "profile";
+        return PROFILE_VIEW;
     }
 
     @PostMapping("/profile")
     public String saveUserProfile(@ModelAttribute UserProfileView user, Model model) {
         saveUser(user, model);
-        return "profile";
+        return PROFILE_VIEW;
     }
 
     @PostMapping("/saveuser")

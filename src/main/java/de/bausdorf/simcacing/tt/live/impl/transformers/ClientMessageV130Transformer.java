@@ -29,8 +29,6 @@ import org.springframework.stereotype.Component;
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.EventData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.LapData;
-import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.RunData;
-import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.SessionData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageProcessor;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageTransformer;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageType;

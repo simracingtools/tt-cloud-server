@@ -328,7 +328,7 @@ function showPitData(message) {
         }
         rowsLeft -= 1;
     }
-    for (var i = 50 - rowsLeft; i < 50; i++) {
+    for (i = 50 - rowsLeft; i < 50; i++) {
         $("#stintRow-" + i).addClass("hidden");
     }
 }

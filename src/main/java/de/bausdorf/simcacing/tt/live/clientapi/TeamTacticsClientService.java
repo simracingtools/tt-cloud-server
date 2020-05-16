@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.live.clientapi;
  * #L%
  */
 
-import java.util.Map;
 import java.util.Optional;
 
 public interface TeamTacticsClientService {
