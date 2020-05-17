@@ -213,7 +213,7 @@ public class SessionController {
 	public Duration getCurrentStintTime() {
 		Optional<Stint> lastStint = getLastStint();
 		if (lastStint.isPresent()) {
-			return lastStint.get().getCurrentStintDuration();
+			return lastStint.get().getCurrentStintDuration() != null ? lastStint.get().getCurrentStintDuration() : Duration.ZERO;
 		}
 		return Duration.ZERO;
 	}
