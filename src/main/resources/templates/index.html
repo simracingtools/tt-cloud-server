@@ -69,7 +69,10 @@
         <div th:fragment="footer">
             <footer style="height: 10%;">
                 <div class="row">
-                    <div class="col"><span style="font-size: 8px;">(C) 2020 bausdorf engineering</span></div>
+                    <div class="col-md-1 col-xl-2"><span></span></div>
+                    <div class="col-7 col-sm-7 col-md-6 col-lg-6 col-xl-5"><span style="font-size: 12px;">(C) 2020 bausdorf engineering</span></div>
+                    <div class="col-5 col-sm-5 col-md-4 col-xl-3 text-right"><span class="text-right" style="font-size: 12px;" th:text="${serverVersion}">Version : 0.9.1</span></div>
+                    <div class="col"><span></span></div>
                 </div>
             </footer>
             <script src="assets/js/jquery.min.js"></script>

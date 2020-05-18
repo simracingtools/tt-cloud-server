@@ -23,6 +23,7 @@ package de.bausdorf.simcacing.tt.web;
  */
 
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.web.model.UserProfileView;
 import de.bausdorf.simcacing.tt.web.security.TtClientRegistrationRepository;
 import de.bausdorf.simcacing.tt.web.security.TtUser;
@@ -45,9 +46,17 @@ public class BaseController {
     @Autowired
     DriverRepository driverRepository;
 
+    @Autowired
+    TeamtacticsServerProperties config;
+
     @ModelAttribute("user")
     public UserProfileView currentUserProfile() {
         return new UserProfileView(currentUser(), driverRepository);
+    }
+
+    @ModelAttribute("serverVersion")
+    public String serverVersion() {
+        return "TeamTactics server version: " + config.getVersion();
     }
 
     protected TtUser currentUser() {
