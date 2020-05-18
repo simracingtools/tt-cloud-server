@@ -1,5 +1,27 @@
 package de.bausdorf.simcacing.tt.live.model.live;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
@@ -83,7 +105,7 @@ public class LapDataView {
 				.lastLapFuel(fuelString(clientData.getLastLapFuelUsage()))
 				.lastLapTime(TimeTools.longDurationString(clientData.getLapTime()))
 				.stintNo(lastStint.map(stint -> Integer.toUnsignedString(stint.getNo())).orElse("-"))
-				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime))
+				.stintAvgLapTime(TimeTools.longDurationString(stintAvgLapTime != null ? stintAvgLapTime : Duration.ZERO))
 				.stintAvgFuelPerLap(fuelString(stintAvgFuel))
 				.stintAvgFuelDelta(fuelString(avgFuelDelta))
 				.stintAvgFuelDeltaCssClass(avgFuelDelta < 0.0 ? TABLE_SUCCESS : TABLE_DANGER)
@@ -104,7 +126,7 @@ public class LapDataView {
 				.estimatedLapTimeDeltaCssClass(estimatedLapTimeDelta.startsWith("-") ? TABLE_SUCCESS : TABLE_DANGER)
 				.estimatedStintTime(estimatedStintTime)
 				.requiredFuelPerLapOneMore(fuelString(controller.getSessionData().getMaxCarFuel() / oneLapMore))
-				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getSessionData().getMaxCarFuel()))
+				.maxCarFuel(String.format(Locale.US,"%.1f", controller.getMaxCarFuel()))
 				.fastestLap(TimeTools.longDurationString(controller.getFastestLap()))
 				.slowestLap(TimeTools.longDurationString(controller.getSlowestLap()))
 				.build();

@@ -1,5 +1,27 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import lombok.AllArgsConstructor;
@@ -11,7 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +99,7 @@ public class RacePlanParameters {
 		map.put(GREEN_FLAG_OFFSET_TIME, greenFlagOffsetTime.toString());
 		if (stints != null && !stints.isEmpty()) {
 			Map<String, Object> stintMap = new HashMap<>();
-			stints.stream().forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
+			stints.forEach(s -> stintMap.put(Integer.toUnsignedString(stints.indexOf(s)), s.toMap()));
 			map.put(STINTS, stintMap);
 		}
 		if (roster != null) {
@@ -119,7 +141,7 @@ public class RacePlanParameters {
 		if (roster != null ) {
 			return roster.getAvailableDrivers(forTime);
 		}
-		return Arrays.asList(NN_DRIVER);
+		return Collections.singletonList(NN_DRIVER);
 	}
 
 	public List<IRacingDriver> getAllDrivers() {
@@ -256,7 +278,7 @@ public class RacePlanParameters {
 			raceDuration = update.getRaceDuration();
 		}
 		if (update.getSessionStartTime() != null) {
-			sessionStartTime = update.getSessionStartTime();
+			updateSessionStartTime(update.getSessionStartTime());
 		}
 		if (update.getTeamId() != null) {
 			teamId = update.getTeamId();
@@ -293,6 +315,26 @@ public class RacePlanParameters {
 				repoDriver.ifPresent(iRacingDriver -> roster.updateDriverData(iRacingDriver));
 			}
 		}
+	}
+
+	public void shiftSessionStartTime(LocalDateTime newSessionStart) {
+		Duration timeShift = Duration.between(sessionStartTime, newSessionStart);
+		updateSessionStartTime(newSessionStart);
+		for (Stint stint : stints) {
+			stint.setStartTime(stint.getStartTime().plus(timeShift));
+			stint.setEndTime(stint.getEndTime().plus(timeShift));
+		}
+	}
+
+	private void updateSessionStartTime(LocalDateTime newStartTime) {
+		if (roster != null) {
+			for (List<ScheduleEntry> schedule : roster.getDriverAvailability().values()) {
+				if (!schedule.isEmpty() && schedule.get(0).getFrom().isEqual(sessionStartTime)) {
+					schedule.get(0).setFrom(newStartTime);
+				}
+			}
+		}
+		sessionStartTime = newStartTime;
 	}
 
 	private void mergeRoster(Roster other) {

@@ -1,5 +1,28 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -14,12 +37,19 @@ import de.bausdorf.simcacing.tt.live.model.live.PitstopDataView;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
+import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
+import de.bausdorf.simcacing.tt.planning.model.RacePlan;
+import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.stock.DriverStatsRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -28,7 +58,7 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 @Slf4j
-public class SessionHolder implements MessageProcessor {
+public class SessionHolder implements MessageProcessor, ApplicationListener<ApplicationReadyEvent> {
 
 	private static final String LIVE_PREFIX = "/live/";
 	public static final String TABLE_SUCCESS = "table-success";
@@ -41,9 +71,15 @@ public class SessionHolder implements MessageProcessor {
 	private final Map<String, String> liveTopics;
 	private final SimpMessagingTemplate messagingTemplate;
 	final DriverRepository driverRepository;
+	final ActiveSessionRepository sessionRepository;
+	final RacePlanRepository planRepository;
+	final DriverStatsRepository driverStatsRepository;
 
 	public SessionHolder(@Autowired SimpMessagingTemplate messagingTemplate,
 			@Autowired DriverRepository driverRepository,
+			@Autowired ActiveSessionRepository sessionRepository,
+			@Autowired RacePlanRepository planRepository,
+			@Autowired DriverStatsRepository driverStatsRepository,
 			@Autowired TeamtacticsServerProperties config) {
 		this.data = new SessionMap();
 		this.validators = new EnumMap<>(MessageType.class);
@@ -51,7 +87,10 @@ public class SessionHolder implements MessageProcessor {
 		this.liveTopics = new HashMap<>();
 		this.messagingTemplate = messagingTemplate;
 		this.driverRepository = driverRepository;
+		this.planRepository = planRepository;
 		this.config = config;
+		this.sessionRepository = sessionRepository;
+		this.driverStatsRepository = driverStatsRepository;
 	}
 
 	@Override
@@ -62,7 +101,7 @@ public class SessionHolder implements MessageProcessor {
 
 	@Override
 	public void registerMessageTransformer(MessageTransformer transformer) {
-		log.info("Register transformer for version " + transformer.supportedMessageVersion());
+		log.info("Register client message transformer for version " + transformer.supportedMessageVersion());
 		transformers.put(transformer.supportedMessageVersion(), transformer);
 	}
 
@@ -76,47 +115,19 @@ public class SessionHolder implements MessageProcessor {
 		SessionController controller;
 		switch(message.getType()) {
 			case LAP:
-				try {
-					controller = getSessionController(sessionKey);
-					controller.setLastUpdate(System.currentTimeMillis());
-					controller.addLap((LapData) clientData);
-					sendLapData((LapData)clientData, controller, sessionKey.getSessionId().getSubscriptionId());
-				} catch( DuplicateLapException e) {
-					log.warn(e.getMessage());
-				}
+				controller = getSessionController(sessionKey);
+				controller.setLastUpdate(System.currentTimeMillis());
+				processLapData(controller, controller.getSessionData().getSessionId().toString(), (LapData)clientData);
 				break;
 			case RUN_DATA:
 				controller = getSessionController(sessionKey);
 				controller.setLastUpdate(System.currentTimeMillis());
-				IRacingDriver driver = driverRepository.findById(message.getClientId())
-						.orElse(IRacingDriver.builder()
-								.id("unknown")
-								.name("N.N.")
-								.validated(false)
-								.build());
-				if (!driver.getId().equalsIgnoreCase("unknown") && !driver.isValidated()) {
-					driver.setValidated(true);
-					driverRepository.save(driver);
-				}
-				controller.setCurrentDriver(driver);
-				controller.updateRunData((RunData)clientData);
-				sendRunData((RunData)clientData, controller, sessionKey.getSessionId().getSubscriptionId(), driver);
-
-				SyncData syncData = SyncData.builder()
-						.isInCar(true)
-						.sessionTime(((RunData)clientData).getSessionTime())
-						.clientId(message.getClientId())
-						.build();
-				controller.updateSyncData(syncData);
-				sendSyncData(syncData, sessionKey.getSessionId().getSubscriptionId());
+				processRunData(controller, message.getClientId(), (RunData)clientData);
 				break;
 			case EVENT:
 				controller = getSessionController(sessionKey);
 				controller.setLastUpdate(System.currentTimeMillis());
-				if (controller.processEventData((EventData)clientData)) {
-					sendPitstopData(PitstopDataView.getPitstopDataView(controller), sessionKey.getSessionId().getSubscriptionId());
-				}
-				sendEventData((EventData)clientData, sessionKey.getSessionId().getSubscriptionId());
+				processEventData(controller, (EventData)clientData);
 				break;
 			case SYNC:
 				controller = getSessionController(sessionKey);
@@ -128,7 +139,11 @@ public class SessionHolder implements MessageProcessor {
 				SessionData sessionData = (SessionData)clientData;
 				if( !data.putSession(sessionKey, sessionData)) {
 					log.warn("Session {} already exists", sessionKey);
+					break;
 				}
+				controller = data.get(sessionKey);
+				controller.setRacePlan(selectRacePlan(sessionData, sessionKey.getTeamId()));
+				sessionRepository.save(controller);
 				break;
 			default:
 				break;
@@ -244,6 +259,138 @@ public class SessionHolder implements MessageProcessor {
 				.build();
 	}
 
+	@Scheduled(cron="0 0/30 * * * ?")
+	public void removeInactiveSessions() {
+		List<SessionKey> inactiveSessions = new ArrayList<>();
+		long timeoutMillis = config.getInactiveSessionTimeoutMinutes() * 60000;
+		for (Map.Entry<SessionKey, SessionController> activeSession : data.entrySet()) {
+			if (activeSession.getValue().getLastUpdate() + timeoutMillis < System.currentTimeMillis()) {
+				inactiveSessions.add(activeSession.getKey());
+			}
+		}
+		if (inactiveSessions.isEmpty()) {
+			log.info("No inactive sessions found");
+		}
+		for (SessionKey key : inactiveSessions) {
+			log.info("Removing inactive session " + key.getSessionId().toString());
+			data.remove(key);
+			sessionRepository.delete(key.getSessionId().toString());
+		}
+	}
+
+	@Override
+	public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+		log.info("Loading active sessions from repository");
+		List<SessionController> activeSessions = sessionRepository.loadAll();
+		if (activeSessions.isEmpty()) {
+			log.info("No active sessions to load");
+			return;
+		}
+		for (SessionController controller : activeSessions) {
+			SessionKey key = SessionKey.builder()
+					.teamId(controller.getTeamId())
+					.sessionId(controller.getSessionData().getSessionId())
+					.build();
+			log.info("Loaded session {}", controller.getSessionData().getSessionId());
+			controller.setRacePlan(selectRacePlan(controller.getSessionData(), controller.getTeamId()));
+			data.put(key, controller);
+		}
+	}
+
+	private void processLapData(SessionController controller, String sessionId, LapData lapData) {
+		try {
+			controller.addLap(lapData);
+			sessionRepository.saveLap(sessionId, lapData);
+			sendLapData(lapData, controller, controller.getSessionData().getSessionId().getSubscriptionId());
+		} catch( DuplicateLapException e) {
+			log.warn(e.getMessage());
+		}
+	}
+
+	private void processRunData(SessionController controller, String clientId, RunData runData) {
+		IRacingDriver driver = driverRepository.findById(clientId)
+				.orElse(IRacingDriver.builder()
+						.id("unknown")
+						.name("N.N.")
+						.validated(false)
+						.build());
+		if (!driver.getId().equalsIgnoreCase("unknown") && !driver.isValidated()) {
+			driver.setValidated(true);
+			driverRepository.save(driver);
+		}
+		if (controller.getCurrentDriver() == null || !controller.getCurrentDriver().getId().equalsIgnoreCase(driver.getId())) {
+			controller.setCurrentDriver(driver);
+			sessionRepository.saveCurrentDriver(controller.getSessionData().getSessionId().toString(), driver);
+		}
+		controller.updateRunData(runData);
+		String subscriptionId = controller.getSessionData().getSessionId().getSubscriptionId();
+		sendRunData(runData, controller, subscriptionId, driver);
+
+		SyncData syncData = SyncData.builder()
+				.isInCar(true)
+				.sessionTime(runData.getSessionTime())
+				.clientId(clientId)
+				.build();
+		controller.updateSyncData(syncData);
+		sendSyncData(syncData, subscriptionId);
+	}
+
+	private void processEventData(SessionController controller, EventData eventData) {
+		String sessionId = controller.getSessionData().getSessionId().toString();
+		if (controller.getCurrentTrackLocation() == null
+				|| controller.getCurrentTrackLocation() != eventData.getTrackLocationType()) {
+			sessionRepository.saveTrackLocation(sessionId, eventData.getTrackLocationType());
+		}
+		String subscriptionId = controller.getSessionData().getSessionId().getSubscriptionId();
+		Stint lastStint = controller.processEventData(eventData);
+		if (lastStint != null) {
+			Pitstop pitstop = controller.getLastPitstop();
+			driverStatsRepository.addStatsEntry(
+					controller.getCurrentDriver().getId(),
+					controller.getSessionData().getTrackId(),
+					controller.getSessionData().getCarId(),
+					StatsEntry.builder()
+							.avgFuelPerLap(lastStint.getAvgFuelPerLap())
+							.avgLapTime(lastStint.getAvgLapTime())
+							.avgTrackTemp(lastStint.getAvgTrackTemp())
+							.todStart(lastStint.getTodStart())
+							.todEnd(lastStint.getTodEnd())
+							.stintLaps(lastStint.getLaps())
+							.pitstop(pitstop)
+							.build()
+			);
+			sessionRepository.savePitstop(sessionId, pitstop);
+			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
+			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
+		}
+		sendEventData(eventData, subscriptionId);
+	}
+
+	private RacePlan selectRacePlan(SessionData sessionData, String teamId) {
+		List<RacePlanParameters> planParameters;
+		if (teamId.equalsIgnoreCase("0")) {
+			planParameters = planRepository.findByFieldValue(RacePlanParameters.TRACK_ID, sessionData.getTrackId());
+		} else {
+			planParameters = planRepository.findByTeamIds(Collections.singletonList(teamId));
+		}
+		planParameters = planParameters.stream()
+				.filter(s -> s.getTrackId().equalsIgnoreCase(sessionData.getTrackId()))
+				.filter(s -> s.getCarId().equalsIgnoreCase(sessionData.getCarId()))
+				.collect(Collectors.toList());
+		if (planParameters.isEmpty()) {
+			log.info("No race plan available for session {}", sessionData.getSessionId().toString());
+		} else if (planParameters.size() > 1) {
+			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
+		} else {
+			if (config.isShiftSessionStartTimeToNow()) {
+				planParameters.get(0).shiftSessionStartTime(LocalDateTime.now().minusMinutes(1));
+			}
+			log.info("Using race plan {}", planParameters.get(0).getId());
+			return RacePlan.createRacePlanTemplate(planParameters.get(0));
+		}
+		return null;
+	}
+
 	private ClientData validateAndConvert(ClientMessage message) {
 		MessageValidator validator = validators.get(message.getType());
 		if( validator != null ) {
@@ -279,23 +426,5 @@ public class SessionHolder implements MessageProcessor {
 
 	private static String fuelString(double fuelAmount) {
 		return String.format("%.3f", fuelAmount).replace(",", ".");
-	}
-
-	@Scheduled(cron="0 0/30 * * * ?")
-	public void removeInactiveSessions() {
-		List<SessionKey> inactiveSessions = new ArrayList<>();
-		long timeoutMillis = config.getInactiveSessionTimeoutMinutes() * 60000;
-		for (Map.Entry<SessionKey, SessionController> activeSession : data.entrySet()) {
-			if (activeSession.getValue().getLastUpdate() + timeoutMillis < System.currentTimeMillis()) {
-				inactiveSessions.add(activeSession.getKey());
-			}
-		}
-		if (inactiveSessions.isEmpty()) {
-			log.info("No inactive sessions found");
-		}
-		for (SessionKey key : inactiveSessions) {
-			log.info("Removing inactive session " + key.getSessionId().toString());
-			data.remove(key);
-		}
 	}
 }

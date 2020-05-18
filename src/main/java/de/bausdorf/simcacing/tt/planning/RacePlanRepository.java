@@ -1,5 +1,34 @@
 package de.bausdorf.simcacing.tt.planning;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import static de.bausdorf.simcacing.tt.util.MapTools.dateTimeFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.doubleFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.durationFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.stringFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.stringListFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.timeFromMap;
+
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
@@ -12,16 +41,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -77,58 +102,8 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         return super.findByName(COLLECTION_NAME, id);
     }
 
-    private String stringFromMap(String key, Map<String, Object> data) {
-        try {
-            return (String)data.get(key);
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return "";
-    }
-
-    private double doubleFromMap(String key, Map<String, Object> data) {
-        try {
-            return (Double)data.get(key);
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return 0.0D;
-    }
-
-    private Duration durationFromMap(String key, Map<String, Object> data) {
-        try {
-            return Duration.parse((String)data.get(key));
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return Duration.ZERO;
-    }
-
-    private LocalTime timeFromMap(String key, Map<String, Object> data) {
-        try {
-            return LocalTime.parse((String)data.get(key));
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return LocalTime.MIN;
-    }
-
-    private LocalDateTime dateTimeFromMap(String key, Map<String, Object> data) {
-        try {
-            return LocalDateTime.parse((String)data.get(key));
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return LocalDateTime.MIN;
-    }
-
-    private List<String> stringListFromMap(String key, Map<String, Object> data) {
-        try {
-            return (List<String>)data.get(key);
-        } catch( Exception e ) {
-            log.warn(e.getMessage());
-        }
-        return new ArrayList<>();
+    public List<RacePlanParameters> findByFieldValue(String fieldName, String fieldValue) {
+        return super.findByFieldValue(COLLECTION_NAME, fieldName, fieldValue);
     }
 
     private List<Stint> stintsFromMap(String key, Map<String, Object> data) {
@@ -151,7 +126,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 if( pitService != null && !pitService.isEmpty() ) {
                     PitStop pitstop = PitStop.defaultPitStop();
                     pitstop.getService().clear();
-                    pitService.stream().forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
+                    pitService.forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
                     stint.setPitStop(Optional.of(pitstop));
                 }
 
@@ -160,6 +135,6 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         } catch( Exception e ) {
             log.warn(e.getMessage());
         }
-        return stints.tailMap(0).values().stream().collect(Collectors.toList());
+        return new ArrayList<>(stints.tailMap(0).values());
     }
 }

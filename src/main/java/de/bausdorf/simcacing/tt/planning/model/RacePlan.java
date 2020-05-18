@@ -1,5 +1,27 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -44,32 +66,24 @@ public class RacePlan {
 		LocalDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		LocalDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
-		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime, 0);
+		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime);
 	}
 
-	public List<Stint> calculateStints(LocalDateTime raceClock, LocalDateTime todClock, LocalDateTime raceTimeLeft, int finishedStints) {
+	public List<Stint> calculateStints(LocalDateTime raceClock, LocalDateTime todClock, LocalDateTime raceTimeLeft) {
 		List<Stint> stints = new ArrayList<>();
 
-		int stintCount = finishedStints + 1;
 		while( raceClock.isBefore(raceTimeLeft) ) {
-			String currentDriver = "unassigned";
-			if( currentRacePlan.size() > stintCount) {
-				currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
-			}
+			String currentDriver = getDriverForClock(raceClock);
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
 					planParameters.getMaxCarFuel(),
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			stints.add(nextStint);
-			stintCount++;
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
-				currentDriver = "unassigned";
-				if( currentRacePlan.size() >= stintCount) {
-					currentDriver = currentRacePlan.get(stintCount-1).getDriverName();
-				}
+				currentDriver = getDriverForClock(raceClock);
 				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
 						Duration.between(raceClock, raceTimeLeft),
 						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
@@ -116,5 +130,15 @@ public class RacePlan {
 				.todStartTime(todStartTime)
 				.pitStop(Optional.empty())
 				.build();
+	}
+
+	private String getDriverForClock(LocalDateTime raceClock) {
+		for (Stint stint : currentRacePlan) {
+			if (stint.getStartTime().isEqual(raceClock)
+					|| (raceClock.isAfter(stint.getStartTime()) && raceClock.isBefore(stint.getEndTime()))) {
+				return stint.getDriverName();
+			}
+		}
+		return "unassigned";
 	}
 }
