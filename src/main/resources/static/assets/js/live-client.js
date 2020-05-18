@@ -20,7 +20,7 @@
  * #L%
  */
 var stompClient = null;
-var timeFormat = 'H:mm:ss.SSS';
+var timeFormat = 'mm:ss.SSS';
 var chartConfig = {
     type: 'line',
     data: {
@@ -57,7 +57,7 @@ var chartConfig = {
                 position: 'left',
                 time: {
                     parser: timeFormat,
-                    // tooltipFormat: 'mm:ss.SSS',
+                    tooltipFormat: 'mm:ss.SSS',
                     unit: 'seconds',
                     stepSize : 2,
                     displayFormats: {
@@ -204,6 +204,7 @@ function showSessionData(message) {
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
     $("#timeZone").text(message.timeZone);
+    $("#utcOffset").text(moment().utcOffset() + ' min');
     if (message.lastLapData) {
         showLapData(message.lastLapData);
     }
