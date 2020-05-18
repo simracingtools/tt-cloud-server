@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Slf4j
@@ -47,6 +48,8 @@ public class SessionController {
 	private final SessionData sessionData;
 	@Setter
 	private RacePlan racePlan;
+	@Setter
+	private ZonedDateTime sessionRegistered;
 	@Setter
 	private LocalTime greenFlagTime;
 	private final SortedMap<Integer, Stint> stints = new TreeMap<>();

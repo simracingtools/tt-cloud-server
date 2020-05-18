@@ -31,6 +31,11 @@ function confirmTeamDelete(teamId) {
 	$("#team-delete-confirm-" + teamId).modal('show');
 }
 
+function confirmPlanDelete() {
+	$("#plan-delete-confirm").modal('show');
+}
+
+
 function selectTimezoneFromUtcOffset(timezone) {
 	if (!timezone) {
 		var utcOffsetHours = moment().utcOffset() / 60;

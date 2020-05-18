@@ -25,6 +25,8 @@ package de.bausdorf.simcacing.tt.util;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,15 +70,6 @@ public class MapTools {
 		return 0;
 	}
 
-	public static long longFromMap(String key, Map<String, Object> data) {
-		try {
-			return (Long) data.get(key);
-		} catch( Exception e ) {
-			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
-		}
-		return 0L;
-	}
-
 	public static boolean booleanFromMap(String key, Map<String, Object> data, boolean defaultValue) {
 		try {
 			return (Boolean) data.get(key);
@@ -111,6 +104,15 @@ public class MapTools {
 			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
 		}
 		return LocalDateTime.MIN;
+	}
+
+	public static ZonedDateTime zonedDateTimeFromMap(String key, Map<String, Object> data) {
+		try {
+			return TimeTools.zonedDateTimeFromString((String) data.get(key));
+		} catch( Exception e ) {
+			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+		}
+		return ZonedDateTime.of(LocalDateTime.MIN, ZoneId.of("GMT"));
 	}
 
 	public static List<String> stringListFromMap(String key, Map<String, Object> data) {

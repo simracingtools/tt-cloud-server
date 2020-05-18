@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +37,7 @@ import java.util.stream.Stream;
 public class TimeTools {
 
     public static final String HH_MM_SS = "HH:mm:ss";
+    public static final ZoneId GMT = ZoneId.of("GMT");
 
     private static final List<String> TIME_PATTERNS = new ArrayList<>();
 
@@ -179,5 +181,14 @@ public class TimeTools {
         String shortId = zoneId.getId(); //GMT+02:00
         shortId = shortId.replace("0", "");
         return shortId.replace(":", "");
+    }
+
+    public static ZonedDateTime zonedDateTimeFromString(String timeString) {
+        try {
+            return ZonedDateTime.parse(timeString);
+        } catch (DateTimeParseException e) {
+            log.warn("Parse local time {} using default timezone {}", timeString, TimeTools.GMT);
+            return ZonedDateTime.of(LocalDateTime.parse(timeString), TimeTools.GMT);
+        }
     }
 }

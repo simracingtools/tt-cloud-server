@@ -22,8 +22,8 @@ package de.bausdorf.simcacing.tt.live.impl;
  * #L%
  */
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -383,7 +383,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
 		} else {
 			if (config.isShiftSessionStartTimeToNow()) {
-				planParameters.get(0).shiftSessionStartTime(LocalDateTime.now().minusMinutes(1));
+				planParameters.get(0).shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
 			}
 			log.info("Using race plan {}", planParameters.get(0).getId());
 			return RacePlan.createRacePlanTemplate(planParameters.get(0));

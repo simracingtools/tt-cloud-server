@@ -72,7 +72,7 @@ public class TtUser implements UserDetails {
         enabled = (Boolean) data.get(ENABLED);
         locked = (Boolean) data.get(LOCKED);
         expired = (Boolean) data.get(EXPIRED);
-        timezone = data.get(TIMEZONE) != null ? ZoneId.of((String)data.get(TIMEZONE)) : null;
+        timezone = data.get(TIMEZONE) != null ? ZoneId.of((String)data.get(TIMEZONE)) : ZoneId.systemDefault();
     }
 
     public Map<String, Object> toObjectMap() {

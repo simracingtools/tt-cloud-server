@@ -23,8 +23,9 @@ package de.bausdorf.simcacing.tt.planning.model;
  */
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public class ScheduleEntry {
 	public static final String FROM = "from";
 	public static final String STATUS = "status";
 
-	private LocalDateTime from;
+	private ZonedDateTime from;
 	private IRacingDriver driver;
 	private ScheduleDriverOptionType status;
 
@@ -56,7 +57,7 @@ public class ScheduleEntry {
 	}
 
 	public void setFromTime(LocalTime time) {
-		from = LocalDateTime.of(from.toLocalDate(), time);
+		from = ZonedDateTime.of(from.toLocalDate(), time, from.getZone());
 	}
 
 	public LocalDate getFromDate() {
@@ -64,7 +65,15 @@ public class ScheduleEntry {
 	}
 
 	public void setFromDate(LocalDate date) {
-		from = LocalDateTime.of(date, from.toLocalTime());
+		from = ZonedDateTime.of(date, from.toLocalTime(), from.getZone());
+	}
+
+	public ZoneId getFromZoneId() {
+		return from.getZone();
+	}
+
+	public void setFromZone(ZoneId zone) {
+		from = ZonedDateTime.of(from.toLocalDateTime(), zone);
 	}
 
 	public Map<String, Object> toMap() {

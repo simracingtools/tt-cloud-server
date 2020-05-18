@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.live.impl;
  * #L%
  */
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 
 import de.bausdorf.simcacing.tt.live.clientapi.SessionKey;
@@ -34,6 +35,7 @@ public class SessionMap extends HashMap<SessionKey, SessionController> {
 			return false;
 		}
 		SessionController controller = new SessionController(sessionData);
+		controller.setSessionRegistered(ZonedDateTime.now());
 		controller.setTeamId(sessionKey.getTeamId());
 		put(sessionKey, controller);
 		return true;

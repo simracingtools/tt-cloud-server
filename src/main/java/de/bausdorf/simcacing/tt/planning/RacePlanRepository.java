@@ -28,6 +28,7 @@ import static de.bausdorf.simcacing.tt.util.MapTools.durationFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.stringFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.stringListFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.timeFromMap;
+import static de.bausdorf.simcacing.tt.util.MapTools.zonedDateTimeFromMap;
 
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
@@ -66,7 +67,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .id(stringFromMap(RacePlanParameters.ID, data))
                 .name(stringFromMap(RacePlanParameters.NAME, data))
                 .raceDuration(durationFromMap(RacePlanParameters.RACE_DURATION, data))
-                .sessionStartTime(dateTimeFromMap(RacePlanParameters.SESSION_START_TIME, data))
+                .sessionStartTime(zonedDateTimeFromMap(RacePlanParameters.SESSION_START_TIME, data))
                 .teamId(stringFromMap(RacePlanParameters.TEAM_ID, data))
                 .trackId(stringFromMap(RacePlanParameters.TRACK_ID, data))
                 .carId(stringFromMap(RacePlanParameters.CAR_ID, data))
@@ -76,7 +77,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .maxCarFuel(doubleFromMap(RacePlanParameters.MAX_CAR_FUEL, data))
                 .greenFlagOffsetTime(timeFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
                 .todStartTime(dateTimeFromMap(RacePlanParameters.TOD_START_TIME, data))
-                .stints(stintsFromMap(RacePlanParameters.STINTS, data))
+                .stints(stintsFromMap(data))
                 .roster(new Roster((Map<String, Object>)data.get(RacePlanParameters.ROSTER)))
                 .build();
     }
@@ -88,6 +89,10 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
 
     public void save(RacePlanParameters planParameters) {
         super.save(COLLECTION_NAME, planParameters.getId(), planParameters);
+    }
+
+    public void delete(String planId) {
+        super.delete(COLLECTION_NAME, planId);
     }
 
     public List<RacePlanParameters> findByTeamIds(List<String> teamIds) {
@@ -106,17 +111,17 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         return super.findByFieldValue(COLLECTION_NAME, fieldName, fieldValue);
     }
 
-    private List<Stint> stintsFromMap(String key, Map<String, Object> data) {
+    private List<Stint> stintsFromMap(Map<String, Object> data) {
         SortedMap<Integer, Stint> stints = new TreeMap<>();
         try {
-            Map<String, Object> stintsMap = (Map<String, Object>) data.get(key);
+            Map<String, Object> stintsMap = (Map<String, Object>) data.get(RacePlanParameters.STINTS);
             for( Map.Entry<String, Object> stintEntry : stintsMap.entrySet() ) {
                 Map<String, Object> stintMap = (Map<String, Object>)stintEntry.getValue();
                 Stint stint = Stint.builder()
                         .driverName(stringFromMap(Stint.DRIVER_NAME, stintMap))
-                        .startTime(dateTimeFromMap(Stint.START_TIME, stintMap))
+                        .startTime(zonedDateTimeFromMap(Stint.START_TIME, stintMap))
                         .todStartTime(dateTimeFromMap(Stint.TOD_START_TIME, stintMap))
-                        .endTime(dateTimeFromMap(Stint.END_TIME, stintMap))
+                        .endTime(zonedDateTimeFromMap(Stint.END_TIME, stintMap))
                         .laps(((Long)stintMap.get(Stint.LAPS)).intValue())
                         .refuelAmount(doubleFromMap(Stint.REFUEL_AMOUNT, stintMap))
                         .pitStop(Optional.empty())

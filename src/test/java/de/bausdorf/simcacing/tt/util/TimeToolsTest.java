@@ -25,8 +25,10 @@ package de.bausdorf.simcacing.tt.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
@@ -111,5 +113,14 @@ public class TimeToolsTest {
 		log.info("{}", zoneId.getDisplayName(TextStyle.NARROW, Locale.US));
 		log.info("{}", zoneId.getDisplayName(TextStyle.FULL, Locale.US));
 		log.info("{}", TimeTools.toShortZoneId(zoneId));
+	}
+
+	@Test
+	public void zonedTimeConversions() {
+		ZonedDateTime now = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("GMT+2"));
+
+		log.info("{}", now.toString());
+
+		log.info(now.withZoneSameInstant(ZoneId.of("GMT")).toString());
 	}
 }

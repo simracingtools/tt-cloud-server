@@ -23,10 +23,11 @@ package de.bausdorf.simcacing.tt.web.model;
  */
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +38,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ScheduleView {
-	private LocalDateTime validFrom;
+	private ZonedDateTime validFrom;
 	private ScheduleDriverOptionType status;
 
 	public LocalDate getValidFromDate() {
@@ -46,9 +47,9 @@ public class ScheduleView {
 
 	public void setValidFromDate(LocalDate date) {
 		if (validFrom == null) {
-			validFrom = LocalDateTime.of(date, LocalTime.MIN);
+			validFrom = ZonedDateTime.of(date, LocalTime.MIN, TimeTools.GMT);
 		} else {
-			validFrom = LocalDateTime.of(date, validFrom.toLocalTime());
+			validFrom = ZonedDateTime.of(date, validFrom.toLocalTime(), validFrom.getZone());
 		}
 	}
 
@@ -58,9 +59,9 @@ public class ScheduleView {
 
 	public void setValidFromTime(LocalTime time) {
 		if (validFrom == null) {
-			validFrom = LocalDateTime.of(LocalDate.MIN, time);
+			validFrom = ZonedDateTime.of(LocalDate.MIN, time, TimeTools.GMT);
 		} else {
-			validFrom = LocalDateTime.of(validFrom.toLocalDate(), time);
+			validFrom = ZonedDateTime.of(validFrom.toLocalDate(), time, validFrom.getZone());
 		}
 	}
 }

@@ -55,6 +55,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 	public static final String CURRENT_TRACK_LOCATION = "currentTrackLocation";
 	public static final String TEAM_ID = "teamId";
 	public static final String SESSION_TOD = "sessionToD";
+	public static final String SESSION_REGISTERED = "sessionRegistered";
 
 	public ActiveSessionRepository(@Autowired FirestoreDB db) {
 		super(db);
@@ -71,6 +72,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		controller.setLastUpdate(Long.parseLong(MapTools.stringFromMap(LAST_UPDATE, data)));
 		controller.setGreenFlagTime(MapTools.timeFromMap(GREEN_FLAG_TIME, data));
 		controller.setSessionToD(MapTools.timeFromMap(SESSION_TOD, data));
+		controller.setSessionRegistered(MapTools.zonedDateTimeFromMap(SESSION_REGISTERED, data));
 
 		Map<String, Object> lapMap = (Map<String, Object>)data.get(LAPS);
 		if (lapMap != null) {
@@ -107,6 +109,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		dbData.put(TEAM_ID, object.getTeamId());
 		dbData.put(LAST_UPDATE, Long.toString(object.getLastUpdate()));
 		dbData.put(GREEN_FLAG_TIME, object.getGreenFlagTime() != null ? object.getGreenFlagTime().toString() : null);
+		dbData.put(SESSION_REGISTERED, object.getSessionRegistered() != null ? object.getSessionRegistered().toString() : null);
 		Map<String, Object> lapMap = new HashMap<>();
 		for (LapData lap : object.getLaps().values()) {
 			lapMap.put(Integer.toUnsignedString(lap.getNo()), lap.toMap());

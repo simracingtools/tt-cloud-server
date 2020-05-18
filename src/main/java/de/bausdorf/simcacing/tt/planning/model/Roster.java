@@ -23,8 +23,9 @@ package de.bausdorf.simcacing.tt.planning.model;
  */
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,9 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.swing.*;
-
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -52,23 +52,27 @@ public class Roster {
 	Map<String, List<ScheduleEntry>> driverAvailability;
 	Map<String, List<Estimation>> driverEstimations;
 
-	public void updateDate(LocalDate date) {
-		driverAvailability.values().stream()
-				.forEach(s -> s.stream()
-						.forEach(k -> k.setFromDate(date)
-						)
-				);
-		driverEstimations.values().stream()
-				.forEach(s -> s.stream()
-						.forEach(k -> k.setTodDate(date)
-						)
-				);
-	}
-
 	public Roster() {
 		this.drivers = new ArrayList<>();
 		this.driverAvailability = new HashMap<>();
 		this.driverEstimations = new HashMap<>();
+	}
+
+	public Roster(Roster other, ZoneId displayZoneId) {
+		this();
+		this.drivers.addAll(other.drivers);
+		this.driverEstimations.putAll(other.driverEstimations);
+		for (Map.Entry<String, List<ScheduleEntry>> entry : other.getDriverAvailability().entrySet()) {
+			List<ScheduleEntry> scheduleEntryList = new ArrayList<>();
+			for (ScheduleEntry scheduleEntry : entry.getValue()) {
+				scheduleEntryList.add(ScheduleEntry.builder()
+						.status(scheduleEntry.getStatus())
+						.driver(scheduleEntry.getDriver())
+						.from(scheduleEntry.getFrom().withZoneSameInstant(displayZoneId))
+						.build());
+			}
+			this.driverAvailability.put(entry.getKey(), scheduleEntryList);
+		}
 	}
 
 	public Roster(Map<String, Object> data) {
@@ -109,7 +113,7 @@ public class Roster {
 					Map<String, Object> availabilityMap = (Map<String, Object>) availabilityMapEntry.getValue();
 					ScheduleEntry entry = ScheduleEntry.builder()
 							.driver(driver)
-							.from(LocalDateTime.parse(availabilityMapEntry.getKey()))
+							.from(TimeTools.zonedDateTimeFromString(availabilityMapEntry.getKey()))
 							.status(ScheduleDriverOptionType.valueOf((String) availabilityMap.get(ScheduleEntry.STATUS)))
 							.build();
 					availabilityList.add(entry);
@@ -148,12 +152,10 @@ public class Roster {
 		return map;
 	}
 
-	public boolean addDriver(IRacingDriver driver) {
+	public void addDriver(IRacingDriver driver) {
 		if (!drivers.contains(driver)) {
 			drivers.add(driver);
-			return true;
 		}
-		return false;
 	}
 
 	public void removeDriver(IRacingDriver driver) {
@@ -183,12 +185,12 @@ public class Roster {
 
 			List<Estimation> driverEstimationList = driverEstimations.get(driver.getId());
 			if (driverEstimationList != null) {
-				driverEstimationList.stream().forEach(s -> s.setDriver(driver));
+				driverEstimationList.forEach(s -> s.setDriver(driver));
 			}
 
 			List<ScheduleEntry> driverScheduleList = driverAvailability.get(driver.getId());
 			if (driverScheduleList != null) {
-				driverScheduleList.stream().forEach(s -> s.setDriver(driver));
+				driverScheduleList.forEach(s -> s.setDriver(driver));
 			}
 		}
 	}
@@ -250,7 +252,7 @@ public class Roster {
 		return last;
 	}
 
-	public List<IRacingDriver> getAvailableDrivers(LocalDateTime forTime) {
+	public List<IRacingDriver> getAvailableDrivers(ZonedDateTime forTime) {
 		List<IRacingDriver> availableDrivers = new ArrayList<>();
 		for (Map.Entry<String, List<ScheduleEntry>> scheduleMapEntry : driverAvailability.entrySet()) {
 			ScheduleEntry last = null;
@@ -267,7 +269,7 @@ public class Roster {
 		return availableDrivers;
 	}
 
-	public ScheduleDriverOptionType getDriverStatusAt(String driverId, LocalDateTime time) {
+	public ScheduleDriverOptionType getDriverStatusAt(String driverId, ZonedDateTime time) {
 		List<ScheduleEntry> scheduleEntryList = driverAvailability.get(driverId);
 		if (scheduleEntryList != null ) {
 			ScheduleEntry last = null;

@@ -25,6 +25,7 @@ package de.bausdorf.simcacing.tt.live.model.live;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +66,7 @@ public class PitstopDataView {
 		if (controller != null) {
 			int lapCount = 0;
 			int stintNo = 0;
-			LocalDateTime now = LocalDateTime.now();
+			ZonedDateTime now = ZonedDateTime.now();
 			Duration accumulatedStintDuration = Duration.ZERO;
 			viewForPittedStints(controller, lapCount, stintNo, accumulatedStintDuration, pitstopDataViews);
 			if (controller.getRacePlan() != null) {
@@ -75,7 +76,7 @@ public class PitstopDataView {
 		return pitstopDataViews;
 	}
 
-	private static void viewForPlannedStints(SessionController controller, LocalDateTime now, int lapCount, int stintNo,
+	private static void viewForPlannedStints(SessionController controller, ZonedDateTime now, int lapCount, int stintNo,
 			Duration accumulatedStintDuration, List<PitstopDataView> pitstopDataViews) {
 		RunData runData = controller.getRunData();
 		LocalDateTime sessionToD = controller.getRacePlan().getPlanParameters().getTodStartTime();

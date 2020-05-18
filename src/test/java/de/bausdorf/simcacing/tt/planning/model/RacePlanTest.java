@@ -26,18 +26,20 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RacePlanTest {
 
 	private static final LocalDate START_DATE = LocalDate.parse("2020-01-01");
-	private static final LocalDateTime START_TIME = LocalDateTime.of(START_DATE, LocalTime.parse("13:00"));
+	private static final ZonedDateTime START_TIME = ZonedDateTime.of(START_DATE, LocalTime.parse("13:00"), TimeTools.GMT);
 	private static final LocalDateTime START_TOD = LocalDateTime.of(START_DATE, LocalTime.parse("15:00"));
 
 	RacePlanParameters planParameters;
@@ -140,7 +142,7 @@ public class RacePlanTest {
 
 		List<Stint> stints = plan.calculateStints(
 				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30),
-				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30),
+				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30).toLocalDateTime(),
 				planParameters.getSessionStartTime().plusHours(6));
 
 		log.info("Changed start time plan:");
@@ -158,7 +160,7 @@ public class RacePlanTest {
 				.build();
 	}
 
-	private ScheduleEntry buildOpenScheduleEntry(String driverName, LocalDateTime from) {
+	private ScheduleEntry buildOpenScheduleEntry(String driverName, ZonedDateTime from) {
 		return ScheduleEntry.builder()
 				.driver(roster.getDriverByName(driverName))
 				.from(from)

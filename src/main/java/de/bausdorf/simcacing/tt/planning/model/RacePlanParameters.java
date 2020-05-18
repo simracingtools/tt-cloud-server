@@ -24,14 +24,18 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +46,7 @@ import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class RacePlanParameters {
 
@@ -72,7 +77,7 @@ public class RacePlanParameters {
 	private String trackId;
 	private String carId;
 	private Duration raceDuration;
-	private LocalDateTime sessionStartTime;
+	private ZonedDateTime sessionStartTime;
 	private LocalDateTime todStartTime;
 	private LocalTime greenFlagOffsetTime;
 	private Duration avgLapTime;
@@ -81,6 +86,35 @@ public class RacePlanParameters {
 	private Double maxCarFuel;
 	private List<Stint> stints;
 	private Roster roster;
+
+	public RacePlanParameters(RacePlanParameters other, ZoneId displayZoneId) {
+		this.name = other.name;
+		this.id = other.id;
+		this.teamId = other.teamId;
+		this.trackId = other.trackId;
+		this.carId = other.carId;
+		this.raceDuration = other.raceDuration;
+		this.sessionStartTime = other.sessionStartTime.withZoneSameInstant(displayZoneId);
+		this.todStartTime = other.todStartTime;
+		this.greenFlagOffsetTime = other.greenFlagOffsetTime;
+		this.avgLapTime = other.avgLapTime;
+		this.avgPitStopTime = other.avgPitStopTime;
+		this.avgFuelPerLap = other.avgFuelPerLap;
+		this.maxCarFuel = other.maxCarFuel;
+		this.stints = new ArrayList<>();
+		for (Stint stint : other.stints) {
+			this.stints.add(Stint.builder()
+					.todStartTime(stint.getTodStartTime())
+					.driverName(stint.getDriverName())
+					.startTime(stint.getStartTime().withZoneSameInstant(displayZoneId))
+					.endTime(stint.getEndTime().withZoneSameInstant(displayZoneId))
+					.laps(stint.getLaps())
+					.refuelAmount(stint.getRefuelAmount())
+					.pitStop(stint.getPitStop())
+					.build());
+		}
+		this.roster = new Roster(other.roster, displayZoneId);
+	}
 
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<>();
@@ -137,7 +171,7 @@ public class RacePlanParameters {
 		return null;
 	}
 
-	public List<IRacingDriver> getAvailableDrivers(LocalDateTime forTime) {
+	public List<IRacingDriver> getAvailableDrivers(ZonedDateTime forTime) {
 		if (roster != null ) {
 			return roster.getAvailableDrivers(forTime);
 		}
@@ -189,7 +223,7 @@ public class RacePlanParameters {
 		return new ArrayList<>();
 	}
 
-	public ScheduleDriverOptionType getDriverStatusAt(String driverId, LocalDateTime time) {
+	public ScheduleDriverOptionType getDriverStatusAt(String driverId, ZonedDateTime time) {
 		if (roster != null ) {
 			return roster.getDriverStatusAt(driverId, time);
 		}
@@ -219,9 +253,9 @@ public class RacePlanParameters {
 
 	public void setSessionStartDate(LocalDate date) {
 		if( sessionStartTime == null ) {
-			sessionStartTime = LocalDateTime.of(date, LocalTime.MIN);
+			sessionStartTime = ZonedDateTime.of(date, LocalTime.MIN, TimeTools.GMT);
 		} else {
-			sessionStartTime = LocalDateTime.of(date, sessionStartTime.toLocalTime());
+			sessionStartTime = ZonedDateTime.of(date, sessionStartTime.toLocalTime(), sessionStartTime.getZone());
 		}
 	}
 
@@ -231,9 +265,21 @@ public class RacePlanParameters {
 
 	public void setStartLocalTime(LocalTime time) {
 		if( sessionStartTime == null ) {
-			sessionStartTime = LocalDateTime.of(LocalDate.MIN, time);
+			sessionStartTime = ZonedDateTime.of(LocalDate.MIN, time, TimeTools.GMT);
 		} else {
-			sessionStartTime = LocalDateTime.of(sessionStartTime.toLocalDate(), time);
+			sessionStartTime = ZonedDateTime.of(sessionStartTime.toLocalDate(), time, sessionStartTime.getZone());
+		}
+	}
+
+	public ZoneId getTimeZone() {
+		return sessionStartTime.getZone();
+	}
+
+	public void setTimeZone(ZoneId zone) {
+		if (sessionStartTime == null) {
+			sessionStartTime = ZonedDateTime.of(LocalDateTime.MIN, zone);
+		} else {
+			sessionStartTime = ZonedDateTime.of(sessionStartTime.toLocalDateTime(), zone);
 		}
 	}
 
@@ -298,9 +344,6 @@ public class RacePlanParameters {
 		if (update.getName() != null) {
 			name = update.getName();
 		}
-		if (update.getStints() != null) {
-			stints = update.getStints();
-		}
 		if (update.getRoster() != null) {
 			mergeRoster(update.getRoster());
 		}
@@ -317,7 +360,7 @@ public class RacePlanParameters {
 		}
 	}
 
-	public void shiftSessionStartTime(LocalDateTime newSessionStart) {
+	public void shiftSessionStartTime(ZonedDateTime newSessionStart) {
 		Duration timeShift = Duration.between(sessionStartTime, newSessionStart);
 		updateSessionStartTime(newSessionStart);
 		for (Stint stint : stints) {
@@ -326,15 +369,15 @@ public class RacePlanParameters {
 		}
 	}
 
-	private void updateSessionStartTime(LocalDateTime newStartTime) {
+	private void updateSessionStartTime(ZonedDateTime newStartTime) {
 		if (roster != null) {
 			for (List<ScheduleEntry> schedule : roster.getDriverAvailability().values()) {
 				if (!schedule.isEmpty() && schedule.get(0).getFrom().isEqual(sessionStartTime)) {
-					schedule.get(0).setFrom(newStartTime);
+					schedule.get(0).setFrom(newStartTime.withZoneSameInstant(sessionStartTime.getZone()));
 				}
 			}
 		}
-		sessionStartTime = newStartTime;
+		sessionStartTime = newStartTime.withZoneSameInstant(sessionStartTime.getZone());
 	}
 
 	private void mergeRoster(Roster other) {
@@ -357,11 +400,6 @@ public class RacePlanParameters {
 		}
 		for (IRacingDriver driver : driversToAdd) {
 			addDriver(driver);
-			roster.addScheduleEntry(ScheduleEntry.builder()
-					.driver(driver)
-					.from(sessionStartTime)
-					.status(ScheduleDriverOptionType.OPEN)
-					.build());
 		}
 	}
 }

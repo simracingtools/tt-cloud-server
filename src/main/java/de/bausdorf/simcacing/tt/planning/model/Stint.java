@@ -24,6 +24,7 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,8 +54,8 @@ public class Stint {
 
 	private String driverName;
 	private LocalDateTime todStartTime;
-	private LocalDateTime startTime;
-	private LocalDateTime endTime;
+	private ZonedDateTime startTime;
+	private ZonedDateTime endTime;
 	private double refuelAmount;
 	private int laps;
 	private Optional<PitStop> pitStop;
@@ -95,9 +96,8 @@ public class Stint {
 		map.put(END_TIME, endTime.toString());
 		map.put(REFUEL_AMOUNT, refuelAmount);
 		map.put(LAPS, laps);
-		map.put(PITSTOP_SERVICE, pitStop.isPresent()
-				? pitStop.get().getService().stream().map(Enum::name).collect(Collectors.toList())
-				: null
+		map.put(PITSTOP_SERVICE,
+				pitStop.<Object>map(stop -> stop.getService().stream().map(Enum::name).collect(Collectors.toList())).orElse(null)
 		);
 
 		return map;
