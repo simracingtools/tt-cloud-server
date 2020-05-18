@@ -142,6 +142,7 @@ public class SessionController {
 			currentTrackLocation = eventData.getTrackLocationType();
 			return null;
 		}
+		Stint stint = null;
 		switch (eventData.getTrackLocationType()) {
 			case APPROACHING_PITS:
 				processApproachingPitsEvent(eventData);
@@ -150,14 +151,15 @@ public class SessionController {
 				processPitStallEvent(eventData);
 				break;
 			case ONTRACK:
-				return processOnTrackEvent(eventData);
+				stint = processOnTrackEvent(eventData);
+				break;
 			case OFF_WORLD:
 			case OFFTRACK:
 				processOffTrackEvent(eventData);
 		}
 		currentTrackLocation = eventData.getTrackLocationType();
 
-		return null;
+		return stint;
 	}
 
 	public Duration getRemainingSessionTime() {
@@ -459,11 +461,7 @@ public class SessionController {
 				&& pitStops.get(pitStops.lastKey()).update(eventData,
 				runData != null ? runData.getFuelLevel() : 0.0D)) {
 			log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
-			Optional<LapData> lastRecordedLap = getLastRecordedLap();
-			if (lastRecordedLap.isPresent()) {
-				log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
-				lastRecordedLap.get().setPitStop(true);
-			}
+			markPitstopLap();
 			Optional<Stint> lastStint = getLastStint();
 			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
 					.no(stint.getNo() + 1)
@@ -505,5 +503,13 @@ public class SessionController {
 		}
 		uncleanLap = true;
 		towTimeLeft = eventData.getTowingTime();
+	}
+
+	private void markPitstopLap() {
+		Optional<LapData> lastRecordedLap = getLastRecordedLap();
+		if (lastRecordedLap.isPresent()) {
+			log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
+			lastRecordedLap.get().setPitStop(true);
+		}
 	}
 }
