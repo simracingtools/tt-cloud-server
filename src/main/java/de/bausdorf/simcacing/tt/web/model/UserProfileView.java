@@ -24,6 +24,7 @@ package de.bausdorf.simcacing.tt.web.model;
 
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.ZoneId;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Data
 @AllArgsConstructor
@@ -47,6 +50,7 @@ public class UserProfileView {
     private String driverNick;
     private String clientMessageAccessToken;
     private String userType;
+    private String timezone;
     private Boolean enabled;
     private Boolean locked;
     private Boolean expired;
@@ -66,6 +70,7 @@ public class UserProfileView {
         this.locked = user.isLocked();
         this.expired = user.isExpired();
         this.username = user.getUsername();
+        this.timezone = user.getTimezone() != null ? TimeTools.toShortZoneId(user.getTimezone()) : "";
 
         Optional<IRacingDriver> driver = driverRepository.findById(iRacingId);
         this.driverNick = driver.isPresent() ? driver.get().getName() : "";
@@ -83,6 +88,7 @@ public class UserProfileView {
                 .expired(expired != null ? expired : merge.isExpired())
                 .iRacingId(iRacingId != null ? iRacingId : merge.getIRacingId())
                 .userType(userType != null ? TtUserType.ofText(userType) : merge.getUserType())
+                .timezone(timezone != null ? ZoneId.of(timezone) : merge.getTimezone())
                 .build();
     }
 

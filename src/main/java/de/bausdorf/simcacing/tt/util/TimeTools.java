@@ -174,4 +174,10 @@ public class TimeTools {
         }
         return result;
     }
+
+    public static String toShortZoneId(ZoneId zoneId) {
+        String shortId = zoneId.getId(); //GMT+02:00
+        shortId = shortId.replace("0", "");
+        return shortId.replace(":", "");
+    }
 }

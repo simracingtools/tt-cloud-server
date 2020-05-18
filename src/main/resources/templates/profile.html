@@ -23,7 +23,11 @@
 
 <html xmlns:th="http://www.thymeleaf.org">
     <head th:replace="index :: head">></head>
-    <body>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
+    <script src="/webjars/momentjs/moment.js"></script>
+
+    <body th:onload="'selectTimezoneFromUtcOffset(' + ${!user.timezone.isEmpty()} + ');'">
         <header th:replace="index :: header"></header>
 
         <!-- Start: Profile Edit Form -->
@@ -54,6 +58,40 @@
                             </div>
                             <div class="col-sm-12 col-md-6">
                                 <div class="form-group"><label>Driver nick&nbsp;</label><input th:field="*{driverNick}" class="form-control" type="text"/></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <label>Preferred Timezone</label>
+                                    <select th:field="*{timezone}" th:value="*{timezone}" class="form-control">
+                                        <option value="GMT-12" th:selected="*{timezone} == 'GMT-12'">GMT-12</option>
+                                        <option value="GMT-11" th:selected="*{timezone} == 'GMT-11'">GMT-11</option>
+                                        <option value="GMT-10" th:selected="*{timezone} == 'GMT-10'">GMT-10</option>
+                                        <option value="GMT-9" th:selected="*{timezone} == 'GMT-9'">GMT-9</option>
+                                        <option value="GMT-8" th:selected="*{timezone} == 'GMT-8'">GMT-8</option>
+                                        <option value="GMT-7" th:selected="*{timezone} == 'GMT-7'">GMT-7</option>
+                                        <option value="GMT-6" th:selected="*{timezone} == 'GMT-6'">GMT-6</option>
+                                        <option value="GMT-5" th:selected="*{timezone} == 'GMT-5'">GMT-5</option>
+                                        <option value="GMT-4" th:selected="*{timezone} == 'GMT-4'">GMT-4</option>
+                                        <option value="GMT-3" th:selected="*{timezone} == 'GMT-3'">GMT-3</option>
+                                        <option value="GMT-2" th:selected="*{timezone} == 'GMT-2'">GMT-2</option>
+                                        <option value="GMT-1" th:selected="*{timezone} == 'GMT-1'">GMT-1</option>
+                                        <option value="GMT" th:selected="*{timezone} == 'GMT'">GMT</option>
+                                        <option value="GMT+1" th:selected="*{timezone} == 'GMT+1'">GMT+1</option>
+                                        <option value="GMT+2" th:selected="*{timezone} == 'GMT+2'">GMT+2</option>
+                                        <option value="GMT+3" th:selected="*{timezone} == 'GMT+3'">GMT+3</option>
+                                        <option value="GMT+4" th:selected="*{timezone} == 'GMT+4'">GMT+4</option>
+                                        <option value="GMT+5" th:selected="*{timezone} == 'GMT+5'">GMT+5</option>
+                                        <option value="GMT+6" th:selected="*{timezone} == 'GMT+6'">GMT+6</option>
+                                        <option value="GMT+7" th:selected="*{timezone} == 'GMT+7'">GMT+7</option>
+                                        <option value="GMT+8" th:selected="*{timezone} == 'GMT+8'">GMT+8</option>
+                                        <option value="GMT+9" th:selected="*{timezone} == 'GMT+9'">GMT+9</option>
+                                        <option value="GMT+10" th:selected="*{timezone} == 'GMT+10'">GMT+10</option>
+                                        <option value="GMT+11" th:selected="*{timezone} == 'GMT+11'">GMT+11</option>
+                                        <option value="GMT+12" th:selected="*{timezone} == 'GMT+12'">GMT+12</option>
+                                        <option value="GMT+13" th:selected="*{timezone} == 'GMT+13'">GMT+13</option>
+                                        <option value="GMT+14" th:selected="*{timezone} == 'GMT+14'">GMT+14</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <hr>

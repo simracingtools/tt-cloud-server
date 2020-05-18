@@ -19,9 +19,9 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-$(document).ready(function(){
-	$('[data-bs-tooltip]').tooltip();
-});
+// $(document).ready(function(){
+// 	$('[data-bs-tooltip]').tooltip();
+// });
 
 function confirmMemberRemove(index) {
 	$("#member-remove-confirm-" + index).modal('show');
@@ -29,4 +29,21 @@ function confirmMemberRemove(index) {
 
 function confirmTeamDelete(teamId) {
 	$("#team-delete-confirm-" + teamId).modal('show');
+}
+
+function selectTimezoneFromUtcOffset(timezone) {
+	if (!timezone) {
+		var utcOffsetHours = moment().utcOffset() / 60;
+		var tz = 'GMT';
+		if (utcOffsetHours >= 0) {
+			tz = tz + '+' + utcOffsetHours;
+		} else {
+			tz = tz + utcOffsetHours;
+		}
+		$("#timezone > option").each(function() {
+			if (this.value == tz) {
+				this.selected = true;
+			}
+		});
+	}
 }
