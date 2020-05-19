@@ -35,10 +35,12 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @AllArgsConstructor
 @Builder
+@Slf4j
 public class RacePlan {
 	public static final List<PitStopServiceType> DEFAULT_SERVICE = Collections.unmodifiableList(
 			Arrays.asList(PitStopServiceType.FUEL, PitStopServiceType.WS, PitStopServiceType.TYRES));
@@ -120,6 +122,7 @@ public class RacePlan {
 		lastStint.setRefuelAmount(neededFuel);
 		lastStint.setLaps(lapsLeft);
 		lastStint.setEndTime(stintStartTime.plus(estimation.getAvgLapTime().multipliedBy(lapsLeft)));
+		lastStint.setLastStint(true);
 
 		return lastStint;
 	}
@@ -134,7 +137,9 @@ public class RacePlan {
 	}
 
 	private String getDriverForClock(ZonedDateTime raceClock) {
+		log.debug("Get driver for clock: {}", raceClock.toString());
 		for (Stint stint : currentRacePlan) {
+			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
 			if (stint.getStartTime().isEqual(raceClock)
 					|| (raceClock.isAfter(stint.getStartTime()) && raceClock.isBefore(stint.getEndTime()))) {
 				return stint.getDriverName();

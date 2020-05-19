@@ -22,13 +22,11 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class TeamScheduleView {
@@ -38,5 +36,13 @@ public class TeamScheduleView {
 	public TeamScheduleView(String planId) {
 		this.planId = planId;
 		this.teamSchedule = new ArrayList<>();
+	}
+
+	public void setTimezone(ZoneId zoneId) {
+		for (DriverScheduleView driverScheduleView : teamSchedule) {
+			for (ScheduleView scheduleEntry : driverScheduleView.getScheduleEntries()) {
+				scheduleEntry.setValidFromZone(zoneId);
+			}
+		}
 	}
 }

@@ -241,7 +241,7 @@ public class RacePlanController extends BaseController {
             return NEWRACEPLAN_VIEW;
         }
         prepareViewMode(mode, model);
-
+        teamScheduleView.setTimezone(currentUser().getTimezone());
         updateDriverSchedule(repoPlanParameters, teamScheduleView);
         RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters);
         repoPlanParameters.setStints(racePlan.getCurrentRacePlan());

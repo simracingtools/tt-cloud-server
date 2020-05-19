@@ -20,7 +20,7 @@
  * #L%
  */
 var stompClient = null;
-var timeFormat = 'mm:ss.SSS';
+var timeFormat = 'H:mm:ss.SSS';
 var chartConfig = {
     type: 'line',
     data: {
@@ -57,7 +57,7 @@ var chartConfig = {
                 position: 'left',
                 time: {
                     parser: timeFormat,
-                    tooltipFormat: 'mm:ss.SSS',
+                    //tooltipFormat: 'mm:ss.SSS',
                     unit: 'seconds',
                     stepSize : 2,
                     displayFormats: {
@@ -97,7 +97,7 @@ var chartConfig = {
                     labelString: 'Laps'
                 }
             }]
-        },
+        }
     }
 };
 
@@ -203,8 +203,8 @@ function showSessionData(message) {
             .removeClass("loc-green")
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
-    $("#timeZone").text(message.timeZone);
-    $("#utcOffset").text(moment().utcOffset() + ' min');
+    $("#timeZone").text('GMT' + moment().format('ZZ'));
+//    $("#utcOffset").text('GMT' + moment().format('ZZ'));
     if (message.lastLapData) {
         showLapData(message.lastLapData);
     }
@@ -237,7 +237,7 @@ function showRunData(message) {
     $("#remainingSessionTime").text(message.remainingSessionTime);
     $("#timeInLap").text(message.timeInLap)
     $("#lapNo").text(message.lapNo);
-    $("#localClock").text(message.localClock);
+    $("#localClock").text(localTime(message.localClock));
 }
 
 function showSyncData(message) {
@@ -311,7 +311,7 @@ function showPitData(message) {
         $("#pitStint-" + i).text(message[i].stintNo);
         $("#pitTimeLeft-" + i).text(message[i].raceTimeLeft);
         $("#pitLap-" + i).text(message[i].lapNo);
-        $("#pitTime-" + i).text(message[i].timePitted);
+        $("#pitTime-" + i).text(localTime(message[i].timePitted));
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
         $("#pitService-" + i).text(message[i].service);
         $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
@@ -355,6 +355,10 @@ function fuelPerLapChange(fuelPerLap) {
     var laps = $("#maxCarFuel").val() / fuelPerLap;
     $("#estimatedFuelLaps").text(laps.toFixed(2));
     setEstimatedFuelDelta($("#fuelLastLap").text())
+}
+
+function localTime(zonedTime) {
+    return moment(zonedTime, 'HH:mm:ssZZ').local().format('HH:mm:ss')
 }
 
 // $(function () {

@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 public class TimeTools {
 
     public static final String HH_MM_SS = "HH:mm:ss";
+    public static final String HH_MM_SS_XXX = "HH:mm:ssxxx";
     public static final ZoneId GMT = ZoneId.of("GMT");
-
     private static final List<String> TIME_PATTERNS = new ArrayList<>();
 
     static {

@@ -34,10 +34,12 @@ import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 @AllArgsConstructor
 @Builder
+@ToString
 public class LapDataView {
 	public static final String TABLE_SUCCESS = "table-success";
 	public static final String TABLE_DANGER = "table-danger";

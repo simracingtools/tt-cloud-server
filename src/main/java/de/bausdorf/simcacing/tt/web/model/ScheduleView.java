@@ -23,7 +23,9 @@ package de.bausdorf.simcacing.tt.web.model;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
@@ -62,6 +64,18 @@ public class ScheduleView {
 			validFrom = ZonedDateTime.of(LocalDate.MIN, time, TimeTools.GMT);
 		} else {
 			validFrom = ZonedDateTime.of(validFrom.toLocalDate(), time, validFrom.getZone());
+		}
+	}
+
+	public ZoneId getValidFromZone() {
+		return validFrom.getZone();
+	}
+
+	public void setValidFromZone(ZoneId zoneId) {
+		if (validFrom == null) {
+			validFrom = ZonedDateTime.of(LocalDateTime.MIN, zoneId);
+		} else {
+			validFrom = ZonedDateTime.of(validFrom.toLocalDateTime(), zoneId);
 		}
 	}
 }

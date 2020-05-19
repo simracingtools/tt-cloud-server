@@ -50,7 +50,6 @@ public class Stint {
 	public static final String REFUEL_AMOUNT = "refuelAmount";
 	public static final String LAPS = "laps";
 	public static final String PITSTOP_SERVICE = "pitstopService";
-	public static final String HH_MM_SS = "HH:mm:ss";
 
 	private String driverName;
 	private LocalDateTime todStartTime;
@@ -59,6 +58,7 @@ public class Stint {
 	private double refuelAmount;
 	private int laps;
 	private Optional<PitStop> pitStop;
+	private boolean lastStint;
 
 
 	public Duration getStintDuration(boolean includePitStopTimes) {
@@ -76,15 +76,15 @@ public class Stint {
 	}
 
 	public String getStartTimeString() {
-		return getStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
+		return getStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX));
 	}
 
 	public String getTodStartTimeString() {
-		return getTodStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
+		return getTodStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS));
 	}
 
 	public String getEndTimeString() {
-		return getEndTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
+		return getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX));
 	}
 
 	public Map<String, Object> toMap() {

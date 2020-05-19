@@ -23,6 +23,7 @@ package de.bausdorf.simcacing.tt.live.impl;
  */
 
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -173,6 +174,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
 		if (liveTopics.containsKey(subscriptionId)) {
 			LapDataView dataView = LapDataView.getLapDataView(clientData, controller);
+			log.debug("Send lap data: {}", dataView);
 			if (dataView != null) {
 				messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
 						dataView);
@@ -209,7 +211,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.lapNo(Integer.toUnsignedString(runData.getLapNo()))
 					.timeInLap(TimeTools.longDurationString(runData.getTimeInLap()))
-					.localClock(LocalTime.now().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
+					.localClock(ZonedDateTime.now().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.build());
 		}
 	}
@@ -382,11 +384,12 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		} else if (planParameters.size() > 1) {
 			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
 		} else {
+			RacePlanParameters serverZonedRacePlan = new RacePlanParameters(planParameters.get(0), ZoneId.systemDefault());
 			if (config.isShiftSessionStartTimeToNow()) {
-				planParameters.get(0).shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
+				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
 			}
-			log.info("Using race plan {}", planParameters.get(0).getId());
-			return RacePlan.createRacePlanTemplate(planParameters.get(0));
+			log.info("Using race plan {}", serverZonedRacePlan.getId());
+			return RacePlan.createRacePlanTemplate(serverZonedRacePlan);
 		}
 		return null;
 	}
@@ -396,7 +399,6 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		if( validator != null ) {
 			return validator.validate(message);
 		}
-		log.debug("No validator for message type " + message.getType().name());
 		switch(message.getType()) {
 			case LAP: return ModelFactory.fromLapMessage(message.getPayload());
 			case EVENT: return ModelFactory.getFromEventMessage(message.getPayload());
