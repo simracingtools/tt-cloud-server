@@ -76,15 +76,11 @@ public class Stint {
 	}
 
 	public String getStartTimeString() {
-		return getStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX));
+		return getStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS));
 	}
 
 	public String getTodStartTimeString() {
 		return getTodStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS));
-	}
-
-	public String getEndTimeString() {
-		return getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX));
 	}
 
 	public Map<String, Object> toMap() {
