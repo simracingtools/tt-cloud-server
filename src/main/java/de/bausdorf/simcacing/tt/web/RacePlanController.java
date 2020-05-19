@@ -24,11 +24,11 @@ package de.bausdorf.simcacing.tt.web;
 
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.Estimation;
+import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Roster;
 import de.bausdorf.simcacing.tt.planning.model.ScheduleEntry;
-import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.stock.CarRepository;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
@@ -419,6 +419,11 @@ public class RacePlanController extends BaseController {
         }
         for (int i = 0; i < planParameters.getStints().size(); i++) {
             planParameters.getStints().get(i).setDriverName(driverView.getStintDrivers().get(i));
+
+            PitStop pitstop = planParameters.getStints().get(i).getPitStop().orElse(null);
+            if (pitstop != null) {
+                pitstop.setService(driverView.getPitService(i));
+            }
         }
         planRepository.save(planParameters);
 
@@ -548,12 +553,7 @@ public class RacePlanController extends BaseController {
     }
 
     private StintDriverView createStintDriverView(RacePlanParameters planParameters) {
-        StintDriverView driverView = new StintDriverView(
-                planParameters.getId(),
-                planParameters.getStints().stream()
-                        .map(Stint::getDriverName)
-                        .collect(Collectors.toList())
-        );
+        StintDriverView driverView = new StintDriverView(planParameters);
         int colorIndex = 0;
         Map<String, String> driverColors = new HashMap<>();
         for (IRacingDriver driver : planParameters.getAllDrivers()) {

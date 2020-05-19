@@ -48,11 +48,10 @@ public class PitStop {
 	private Duration serviceDuration;
 	private Duration approach;
 	private Duration depart;
-	private Duration repairTime;
 
 	private Duration calculateServiceDuration() {
 		this.serviceDuration = Duration.ZERO;
-		service.stream().forEach(s -> serviceDuration = serviceDuration.plusSeconds(s.getSeconds()));
+		service.forEach(s -> serviceDuration = serviceDuration.plusSeconds(s.getSeconds()));
 		return serviceDuration;
 	}
 
@@ -74,14 +73,12 @@ public class PitStop {
 		return Duration.ZERO
 				.plus(approach)
 				.plus((serviceDuration == null) ? calculateServiceDuration() : serviceDuration)
-				.plus(repairTime)
 				.plus(depart);
 	}
 
 	public static PitStop defaultPitStop() {
 		return PitStop.builder()
 				.approach(Duration.ofSeconds(10))
-				.repairTime(Duration.ZERO)
 				.service(defaultService)
 				.depart(Duration.ofSeconds(5))
 				.build();

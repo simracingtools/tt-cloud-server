@@ -70,6 +70,7 @@
                                     <th style="vertical-align: middle;">Start ToD</th>
                                     <th style="vertical-align: middle;">Laps</th>
                                     <th style="vertical-align: middle;">Duration</th>
+                                    <th style="vertical-align: middle;">Pitstop</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -89,6 +90,11 @@
                                     <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
                                     <td th:text="${stint.getLaps()}">7</td>
                                     <td th:text="${stint.getStintDurationString(true)}">01:04:28</td>
+                                    <td>
+                                        <label>F&nbsp;</label><input th:field="*{fuel[__${stintStat.index}__]}" type="checkbox">
+                                        <label>&nbsp;T&nbsp;</label><input th:field="*{tyres[__${stintStat.index}__]}" type="checkbox">
+                                        <label>&nbsp;W&nbsp;</label><input th:field="*{ws[__${stintStat.index}__]}" type="checkbox">
+                                    </td>
                                 </tr>
                                 </tbody>
                             </table>

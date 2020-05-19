@@ -75,13 +75,18 @@ public class RacePlan {
 	public List<Stint> calculateStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
 		List<Stint> stints = new ArrayList<>();
 
+		int stintCount = 0;
 		while( raceClock.isBefore(raceTimeLeft) ) {
+			Stint existingStint = null;
+			if (currentRacePlan != null && currentRacePlan.size() > stintCount) {
+				existingStint = currentRacePlan.get(stintCount);
+			}
 			String currentDriver = getDriverForClock(raceClock);
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
-					planParameters.getMaxCarFuel(),
+					planParameters.getMaxCarFuel(), existingStint,
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			stints.add(nextStint);
-
+			stintCount++;
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			// Check for last Stint ?
@@ -97,7 +102,8 @@ public class RacePlan {
 		return stints;
 	}
 
-	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName, double amountFuel, Estimation estimation) {
+	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
+			double amountFuel, Stint existingStint, Estimation estimation) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
@@ -107,9 +113,12 @@ public class RacePlan {
 		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(maxLaps);
 
 
-		PitStop pitstop = PitStop.defaultPitStop();
-		stint.setPitStop(Optional.of(pitstop));
-		stint.setEndTime(stintStartTime.plus(stintDuration).plus(pitstop.getOverallDuration()));
+		PitStop pitstop = existingStint != null ? existingStint.getPitStop().orElse(null) : PitStop.defaultPitStop();
+		stint.setPitStop(Optional.ofNullable(pitstop));
+		stint.setEndTime(stintStartTime
+				.plus(stintDuration)
+				.plus(pitstop != null ? pitstop.getOverallDuration() : Duration.ZERO)
+		);
 
 		return stint;
 	}
