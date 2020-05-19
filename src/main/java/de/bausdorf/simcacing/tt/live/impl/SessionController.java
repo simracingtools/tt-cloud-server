@@ -60,6 +60,7 @@ public class SessionController {
 
 	private int currentLapNo;
 	private boolean uncleanLap;
+	private boolean onOutLap;
 
 	@Setter
 	private IRacingDriver currentDriver;
@@ -96,7 +97,10 @@ public class SessionController {
 		log.debug("New Lap: {}", newLap);
 		currentLapNo = newLap.getNo();
 		newLap.setUnclean(uncleanLap);
+		newLap.setPitStop(onOutLap);
 		uncleanLap = false;
+		onOutLap = false;
+
 		laps.put(currentLapNo, newLap);
 		Stint currentStint = stints.get(newLap.getStint());
 		if (currentStint == null) {
@@ -465,6 +469,7 @@ public class SessionController {
 				runData != null ? runData.getFuelLevel() : 0.0D)) {
 			log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
 			markPitstopLap();
+			onOutLap = true;
 			Optional<Stint> lastStint = getLastStint();
 			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
 					.no(stint.getNo() + 1)
