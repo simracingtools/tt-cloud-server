@@ -97,7 +97,7 @@ public class SessionController {
 		log.debug("New Lap: {}", newLap);
 		currentLapNo = newLap.getNo();
 		newLap.setUnclean(uncleanLap);
-		newLap.setPitStop(onOutLap);
+		newLap.setOutLap(onOutLap);
 		uncleanLap = false;
 		onOutLap = false;
 
@@ -291,6 +291,7 @@ public class SessionController {
 		double millis = laps.values().stream()
 				.filter(s -> !s.isPitStop())
 				.filter(s-> !s.isUnclean())
+				.filter(s-> !s.isOutLap())
 				.mapToDouble(s -> s.getLapTime().toMillis())
 				.max().orElse(0.0D);
 		return Duration.ofMillis((long) millis);
@@ -496,6 +497,7 @@ public class SessionController {
 	private void processApproachingPitsEvent(EventData eventData) {
 		if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
 			log.debug("Starting from box");
+			onOutLap = true;
 			return;
 		}
 		Pitstop newPitStop = getOrCreateNextPitstop();
