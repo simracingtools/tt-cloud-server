@@ -366,6 +366,8 @@ public class SessionController {
 					laps.values().stream()
 							.filter(s -> s.getStint() == stintNo)
 							.filter(s -> !s.getLapTime().isZero())
+							.filter(s -> !s.isPitStop())
+							.filter(s -> !s.isOutLap())
 			));
 		} catch (NoSuchElementException e) {
 			currentStint.setAvgLapTime(newLap.getLapTime());
