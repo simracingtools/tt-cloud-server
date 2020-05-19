@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.live.model.live.DriverChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.EventDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LapDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
@@ -259,6 +260,24 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 				.trackName("---")
 				.carName("---")
 				.build();
+	}
+
+	@MessageMapping("/driverchange")
+	public void respondDriverChange(DriverChangeMessage message) {
+		SessionController controller = getSessionControllerBySubscriptionId(message.getTeamId());
+		log.debug("Driver change message: {}", message);
+		int finishedStopsCount = controller.getPitStops().size();
+		int pitstopListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
+		try {
+			de.bausdorf.simcacing.tt.planning.model.Stint stintToModify = controller.getRacePlan().getCurrentRacePlan().get(pitstopListIndex - finishedStopsCount);
+			log.debug("Stint to modify: {}", stintToModify);
+			stintToModify.setDriverName(message.getDriverName());
+			List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
+			log.debug("{}", viewToSend);
+			sendPitstopData(viewToSend, message.getTeamId());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
 	@Scheduled(cron="0 0/30 * * * ?")

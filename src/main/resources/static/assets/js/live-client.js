@@ -148,27 +148,28 @@ function connect() {
             console.log(jsonMessage);
             showSessionData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/rundata', function (message) {
+        var teamId = $("#teamId").val();
+        stompClient.subscribe('/live/' + teamId + '/rundata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showRunData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/syncdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/syncdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showSyncData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/lapdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/lapdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showLapData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/eventdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/eventdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showEventData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/pitdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/pitdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showPitData(jsonMessage);
@@ -190,6 +191,11 @@ function disconnect() {
 
 function sendTeamId() {
     stompClient.send("/app/liveclient", {}, JSON.stringify({'teamId': $("#teamId").val(), 'text': 'Hello'}));
+}
+
+function sendDriverChange(driverSelect) {
+    var message = JSON.stringify({'teamId': $("#teamId").val(), 'selectId': driverSelect.id, 'driverName': driverSelect.value});
+    stompClient.send("/app/driverchange", {}, message);
 }
 
 function showSessionData(message) {

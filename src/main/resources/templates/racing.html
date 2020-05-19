@@ -182,7 +182,6 @@
                 <tr class="text-center">
                     <td></td>
                     <td style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">Planning estimation:
-<!--                        <input id="estimatedLapTimeInput" type="text" style="width: 95px;padding-right: 0;padding-left: 0;" placeholder="0:00.000">-->
                     </td>
                     <td id="estimatedLapTime" class="table-active" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
                     <td id="estimatedLapTimeDelta" class="table-danger" style="font-family: 'Roboto Mono', monospace;padding-right: 0;padding-left: 0;">--:--.---</td>
@@ -248,7 +247,7 @@
                     <td th:id="${'pitTimeLeft-' + tdStat.index}">22:55:04</td>
                     <td th:id="${'pitLap-' + tdStat.index}">7</td>
                     <td th:id="${'pitDriver-' + tdStat.index}">
-                        <select th:id="${'pitDriverSelect-' + tdStat.index}"></select>
+                        <select th:id="${'pitDriverSelect-' + tdStat.index}" onchange="sendDriverChange(this);"></select>
                     </td>
                     <td th:id="${'pitTime-' + tdStat.index}">01:04:56</td>
                     <td th:id="${'pitStopDuration-' + tdStat.index}">01:15:05</td>
@@ -269,7 +268,6 @@
 </footer>
 <script src="assets/js/jquery.min.js"></script>
 <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-<!--<script src="assets/js/chart.min.js"></script>-->
 <script src="assets/js/bs-init.js"></script>
 <script src="assets/js/Profile-Edit-Form.js"></script>
 <script src="/webjars/sockjs-client/sockjs.min.js"></script>
@@ -277,7 +275,7 @@
 <script src="/webjars/momentjs/moment.js"></script>
 <script src="/webjars/chartjs/Chart.min.js"></script>
 <script src="assets/js/live-client.js"></script>
-<script language='javascript'>
+<script>
     window.onload = function afterPageReload() {
         connect();
         var ctx = document.getElementById('charts').getContext('2d');

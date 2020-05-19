@@ -84,7 +84,7 @@ public class PitstopDataView {
 		}
 		List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
 				controller.getRacePlan().calculateStints(now, sessionToD, now.plus(controller.getRemainingSessionTime()));
-
+		controller.getRacePlan().setCurrentRacePlan(stints);
 		for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
 			clock.lapCount += stint.getLaps();
 			clock.stintNo++;
@@ -100,7 +100,7 @@ public class PitstopDataView {
 					.driver(stint.getDriverName())
 					.lapNo(stint.isLastStint() ? "(" + Integer.toUnsignedString(stint.getLaps()) + ")"
 							: Integer.toUnsignedString(clock.lapCount))
-					.timePitted(stint.getEndTimeString())
+					.timePitted(stint.getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.stintNo(Integer.toUnsignedString(clock.stintNo))
 					.allDrivers(driverList)
 					.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
