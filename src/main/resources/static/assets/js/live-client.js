@@ -319,7 +319,10 @@ function showPitData(message) {
         $("#pitLap-" + i).text(message[i].lapNo);
         $("#pitTime-" + i).text(localTime(message[i].timePitted));
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
-        $("#pitService-" + i).text(message[i].service);
+//        $("#pitService-" + i).text(message[i].service);
+        $("#pitServiceTyres-" + i).prop('checked', message[i].changeTyres);
+        $("#pitServiceFuel-" + i).prop('checked', message[i].refuel);
+        $("#pitServiceWs-" + i).prop('checked', message[i].clearWindshield);
         $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
         $("#pitRefuel-" + i).text(message[i].refuelAmount);
         $("#pitRepairTime-" + i).text(message[i].repairTime);
@@ -330,8 +333,17 @@ function showPitData(message) {
                     .appendTo("#pitDriverSelect-" + i);
         }
         $("#pitDriverSelect-" + i).val(message[i].driver);
-        if (message[i].pitStopDuration !== '') {
-            $("#pitDriverSelect-" + i).prop('disabled', 'disabled')
+        if (!message[i].plannedStint) {
+            $("#pitDriverSelect-" + i).prop('disabled', 'disabled');
+            $("#pitServiceTyres-" + i).prop('disabled', 'disabled');
+            $("#pitServiceFuel-" + i).prop('disabled', 'disabled');
+            $("#pitServiceWs-" + i).prop('disabled', 'disabled');
+        } else if (message[i].lastStint) {
+            $("#pitServiceTyres-" + i).prop('disabled', 'disabled');
+            $("#pitServiceFuel-" + i).prop('disabled', 'disabled');
+            $("#pitServiceWs-" + i).prop('disabled', 'disabled');
+        } else if (message[i].currentStint) {
+            $("#pitDriverSelect-" + i).prop('disabled', 'disabled');
         }
         rowsLeft -= 1;
     }

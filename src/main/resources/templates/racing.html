@@ -224,7 +224,7 @@
                     <th colspan="2" class="text-right">All pitting times local to:</th>
                     <th id="timeZone">GMT+2</th>
                     <th class="text-right" ></th>
-                    <th id="utcOffset" class="text-left" colspan="4"></th>
+                    <th id="utcOffset" class="text-left" colspan="6"></th>
                     <th class="text-right">Local clock:</th>
                     <th id="localClock">--:--:--</th>
                 </tr>
@@ -235,7 +235,9 @@
                     <th>Driver</th>
                     <th>Pitting time</th>
                     <th>Pitstop duration</th>
-                    <th>Service</th>
+                    <th>T</th>
+                    <th>F</th>
+                    <th>W</th>
                     <th>Service duration</th>
                     <th>Refuel amount</th>
                     <th>Repair time</th>
@@ -251,7 +253,15 @@
                     </td>
                     <td th:id="${'pitTime-' + tdStat.index}">01:04:56</td>
                     <td th:id="${'pitStopDuration-' + tdStat.index}">01:15:05</td>
-                    <td th:id="${'pitService-' + tdStat.index}">W F T</td>
+                    <td>
+                        <input th:id="${'pitServiceTyres-' + tdStat.index}" type="checkbox">
+                    </td>
+                    <td>
+                        <input th:id="${'pitServiceFuel-' + tdStat.index}" type="checkbox">
+                    </td>
+                    <td>
+                        <input th:id="${'pitServiceWs-' + tdStat.index}" type="checkbox">
+                    </td>
                     <td th:id="${'pitServiceDuration-' + tdStat.index}">00:00:53</td>
                     <td th:id="${'pitRefuel-' + tdStat.index}">99.999</td>
                     <td th:id="${'pitRepairTime-' + tdStat.index}">00:00:00</td>

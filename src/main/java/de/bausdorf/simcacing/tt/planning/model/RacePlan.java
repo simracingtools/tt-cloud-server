@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -75,23 +76,21 @@ public class RacePlan {
 	public List<Stint> calculateStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
 		List<Stint> stints = new ArrayList<>();
 
-		int stintCount = 0;
 		while( raceClock.isBefore(raceTimeLeft) ) {
-			Stint existingStint = null;
-			if (currentRacePlan != null && currentRacePlan.size() > stintCount) {
-				existingStint = currentRacePlan.get(stintCount);
-			}
-			String currentDriver = getDriverForClock(raceClock);
+
+			Optional<PitStop> pitStop = PlanningTools.pitstopAt(raceClock, planParameters.getStints());
+			String currentDriver = PlanningTools.driverNameAt(raceClock, planParameters.getStints());
+
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
-					planParameters.getMaxCarFuel(), existingStint,
+					planParameters.getMaxCarFuel(), pitStop,
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			stints.add(nextStint);
-			stintCount++;
+
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			// Check for last Stint ?
 			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
-				currentDriver = getDriverForClock(raceClock);
+				currentDriver = PlanningTools.driverNameAt(raceClock, planParameters.getStints());
 				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
 						Duration.between(raceClock, raceTimeLeft),
 						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
@@ -103,7 +102,7 @@ public class RacePlan {
 	}
 
 	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
-			double amountFuel, Stint existingStint, Estimation estimation) {
+			double amountFuel, Optional<PitStop> pitstop, Estimation estimation) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
@@ -112,12 +111,10 @@ public class RacePlan {
 		stint.setLaps(maxLaps);
 		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(maxLaps);
 
-
-		PitStop pitstop = existingStint != null ? existingStint.getPitStop().orElse(null) : PitStop.defaultPitStop();
-		stint.setPitStop(Optional.ofNullable(pitstop));
+		stint.setPitStop(pitstop);
 		stint.setEndTime(stintStartTime
 				.plus(stintDuration)
-				.plus(pitstop != null ? pitstop.getOverallDuration() : Duration.ZERO)
+				.plus(pitstop.isPresent() ? pitstop.get().getOverallDuration() : Duration.ZERO)
 		);
 
 		return stint;
@@ -143,17 +140,5 @@ public class RacePlan {
 				.todStartTime(todStartTime)
 				.pitStop(Optional.empty())
 				.build();
-	}
-
-	private String getDriverForClock(ZonedDateTime raceClock) {
-		log.debug("Get driver for clock: {}", raceClock.toString());
-		for (Stint stint : currentRacePlan) {
-			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
-			if (stint.getStartTime().isEqual(raceClock)
-					|| (raceClock.isAfter(stint.getStartTime()) && raceClock.isBefore(stint.getEndTime()))) {
-				return stint.getDriverName();
-			}
-		}
-		return "unassigned";
 	}
 }

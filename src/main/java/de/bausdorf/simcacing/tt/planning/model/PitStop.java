@@ -76,10 +76,18 @@ public class PitStop {
 				.plus(depart);
 	}
 
+	public String getServiceString() {
+		StringBuilder serviceString = new StringBuilder();
+		for (PitStopServiceType srv : service) {
+			serviceString.append(srv.getCode()).append(' ');
+		}
+		return serviceString.toString();
+	}
+
 	public static PitStop defaultPitStop() {
 		return PitStop.builder()
 				.approach(Duration.ofSeconds(10))
-				.service(defaultService)
+				.service(new ArrayList<>(defaultService))
 				.depart(Duration.ofSeconds(5))
 				.build();
 	}

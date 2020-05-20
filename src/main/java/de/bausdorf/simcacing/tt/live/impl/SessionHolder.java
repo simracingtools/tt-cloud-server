@@ -39,6 +39,7 @@ import de.bausdorf.simcacing.tt.live.model.live.PitstopDataView;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
@@ -269,9 +270,18 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		int finishedStopsCount = controller.getPitStops().size();
 		int pitstopListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
 		try {
-			de.bausdorf.simcacing.tt.planning.model.Stint stintToModify = controller.getRacePlan().getCurrentRacePlan().get(pitstopListIndex - finishedStopsCount);
-			log.debug("Stint to modify: {}", stintToModify);
-			stintToModify.setDriverName(message.getDriverName());
+			de.bausdorf.simcacing.tt.planning.model.Stint changedStint =
+					controller.getRacePlan().getCurrentRacePlan().get(pitstopListIndex - finishedStopsCount);
+			log.debug("Changed stint: {}", changedStint);
+			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+					PlanningTools.stintAt(changedStint.getStartTime(), controller.getRacePlan().getPlanParameters().getStints());
+			if (planToModify != null) {
+				log.debug("Changing stint: {}", planToModify);
+				planToModify.setDriverName(message.getDriverName());
+			} else {
+				log.info("No planned stint for {}", changedStint.getStartTime());
+			}
+
 			List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
 			log.debug("{}", viewToSend);
 			sendPitstopData(viewToSend, message.getTeamId());

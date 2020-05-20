@@ -38,7 +38,10 @@ import java.util.stream.Collectors;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.live.model.client.Pitstop;
 import de.bausdorf.simcacing.tt.live.model.client.RunData;
+import de.bausdorf.simcacing.tt.live.model.client.ServiceFlagType;
 import de.bausdorf.simcacing.tt.live.model.client.Stint;
+import de.bausdorf.simcacing.tt.planning.model.PitStop;
+import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
@@ -58,10 +61,15 @@ public class PitstopDataView {
 	private List<String> allDrivers;
 	private String timePitted;
 	private String pitStopDuration;
-	private String service;
+	private boolean refuel;
+	private boolean changeTyres;
+	private boolean clearWindshield;
 	private String serviceDuration;
 	private String refuelAmount;
 	private String repairTime;
+	private boolean currentStint;
+	private boolean lastStint;
+	private boolean plannedStint;
 
 	public static List<PitstopDataView> getPitstopDataView(SessionController controller) {
 		List<PitstopDataView> pitstopDataViews = new ArrayList<>();
@@ -96,6 +104,14 @@ public class PitstopDataView {
 					.collect(Collectors.toList());
 			driverList.add("unassigned");
 
+			String serviceDuration = "";
+			String pitstopDuration = "";
+			PitStop pitstop = stint.getPitStop().orElse(null);
+			if (pitstop != null) {
+				serviceDuration = TimeTools.shortDurationString(pitstop.getServiceDuration());
+				pitstopDuration = TimeTools.shortDurationString(pitstop.getOverallDuration());
+			}
+
 			PitstopDataView view = PitstopDataView.builder()
 					.driver(stint.getDriverName())
 					.lapNo(stint.isLastStint() ? "(" + Integer.toUnsignedString(stint.getLaps()) + ")"
@@ -104,11 +120,16 @@ public class PitstopDataView {
 					.stintNo(Integer.toUnsignedString(clock.stintNo))
 					.allDrivers(driverList)
 					.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
-					.pitStopDuration("")
+					.pitStopDuration(pitstopDuration)
 					.repairTime("")
-					.service("")
-					.serviceDuration("")
+					.refuel(pitstop != null && pitstop.getService().contains(PitStopServiceType.FUEL))
+					.changeTyres(pitstop != null && pitstop.getService().contains(PitStopServiceType.TYRES))
+					.clearWindshield(pitstop != null && pitstop.getService().contains(PitStopServiceType.WS))
+					.serviceDuration(serviceDuration)
 					.refuelAmount(String.format(Locale.US, "%.3f", stint.getRefuelAmount()))
+					.plannedStint(true)
+					.currentStint(stints.indexOf(stint) == 0)
+					.lastStint(stint.isLastStint())
 					.build();
 
 			pitstopDataViews.add(view);
@@ -139,10 +160,15 @@ public class PitstopDataView {
 					.stintNo(Integer.toUnsignedString(stint.getNo()))
 					.timePitted(ZonedDateTime.of(LocalDate.now(), pitstop.getEnterPits(), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.serviceDuration(TimeTools.shortDurationString(pitstop.getPitstopServiceTime()))
-					.service(pitstop.getServiceFlagsString())
+					.refuel(pitstop.getServiceFlags().contains(ServiceFlagType.FUEL))
+					.clearWindshield(pitstop.getServiceFlags().contains(ServiceFlagType.WS))
+					.changeTyres(pitstop.getServiceFlags().contains(ServiceFlagType.TYRES))
 					.repairTime(TimeTools.shortDurationString(pitstop.getRepairAndTowingTime()))
 					.pitStopDuration(TimeTools.shortDurationString(pitstop.getPitstopDuration()))
 					.refuelAmount(fuelString(pitstop.getRefuelAmount()))
+					.plannedStint(false)
+					.lastStint(false)
+					.currentStint(false)
 					.build();
 
 			pitstopDataViews.add(view);
