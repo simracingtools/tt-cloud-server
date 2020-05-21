@@ -40,6 +40,7 @@ import de.bausdorf.simcacing.tt.live.model.client.Pitstop;
 import de.bausdorf.simcacing.tt.live.model.client.RunData;
 import de.bausdorf.simcacing.tt.live.model.client.ServiceFlagType;
 import de.bausdorf.simcacing.tt.live.model.client.Stint;
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
@@ -75,23 +76,25 @@ public class PitstopDataView {
 		List<PitstopDataView> pitstopDataViews = new ArrayList<>();
 		if (controller != null) {
 			RaceClock clock = new PitstopDataView.RaceClock();
-			ZonedDateTime now = ZonedDateTime.now();
-			viewForPittedStints(controller, clock, pitstopDataViews);
+			ZonedDateTime from = viewForPittedStints(controller, clock, pitstopDataViews);
+			if (from == null) {
+				from = controller.getSessionRegistered();
+			}
 			if (controller.getRacePlan() != null) {
-				viewForPlannedStints(controller, now, clock, pitstopDataViews);
+				viewForPlannedStints(controller, from, clock, pitstopDataViews);
 			}
 		}
 		return pitstopDataViews;
 	}
 
-	private static void viewForPlannedStints(SessionController controller, ZonedDateTime now, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
+	private static void viewForPlannedStints(SessionController controller, ZonedDateTime from, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
 		RunData runData = controller.getRunData();
 		LocalDateTime sessionToD = controller.getRacePlan().getPlanParameters().getTodStartTime();
 		if (runData != null) {
 			sessionToD = LocalDateTime.of(sessionToD.toLocalDate(), runData.getSessionToD());
 		}
 		List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
-				controller.getRacePlan().calculateStints(now, sessionToD, now.plus(controller.getRemainingSessionTime()));
+				controller.getRacePlan().calculateStints(from, sessionToD, from.plus(controller.getRemainingSessionTime()));
 		controller.getRacePlan().setCurrentRacePlan(stints);
 		for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
 			clock.lapCount += stint.getLaps();
@@ -108,10 +111,11 @@ public class PitstopDataView {
 			String pitstopDuration = "";
 			PitStop pitstop = stint.getPitStop().orElse(null);
 			if (pitstop != null) {
-				serviceDuration = TimeTools.shortDurationString(pitstop.getServiceDuration());
-				pitstopDuration = TimeTools.shortDurationString(pitstop.getOverallDuration());
+				pitstopDuration = TimeTools.shortDurationString(pitstop.getOverallDuration(stint.getRefuelAmount()));
+				serviceDuration = TimeTools.shortDurationString(
+						PlanningTools.calculateServiceDuration(pitstop.getService(), stint.getRefuelAmount())
+				);
 			}
-
 			PitstopDataView view = PitstopDataView.builder()
 					.driver(stint.getDriverName())
 					.lapNo(stint.isLastStint() ? "(" + Integer.toUnsignedString(stint.getLaps()) + ")"
@@ -136,7 +140,8 @@ public class PitstopDataView {
 		}
 	}
 
-	private static void viewForPittedStints(SessionController controller, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
+	private static ZonedDateTime viewForPittedStints(SessionController controller, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
+		ZonedDateTime endTime = controller.getSessionRegistered();
 		for (Stint stint : controller.getStints().tailMap(0).values()) {
 			Pitstop pitstop = controller.getPitStops().get(stint.getNo());
 			if (pitstop == null || !pitstop.isComplete()) {
@@ -172,7 +177,9 @@ public class PitstopDataView {
 					.build();
 
 			pitstopDataViews.add(view);
+			endTime = stint.getEndTime();
 		}
+		return endTime;
 	}
 
 	private static String fuelString(double fuelAmount) {

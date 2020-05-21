@@ -27,16 +27,14 @@ import lombok.Getter;
 @Getter
 public enum PitStopServiceType {
 	WS("W", 5),
-	TYRES("T", 15),
+	TYRES("T", 20),
 	FUEL("F", 20),
 	FR("FR", 0);
 
-	private String code;
-	private long seconds;
+	private final String code;
 
 	private PitStopServiceType(String code, long seconds) {
 		this.code = code;
-		this.seconds = seconds;
 	}
 
 	public static PitStopServiceType ofCode(String c) {
@@ -46,6 +44,15 @@ public enum PitStopServiceType {
 			case "F": return FUEL;
 			case "FR": return FR;
 			default: throw new IllegalArgumentException("Unknown PitStopServiceType code " + c);
+		}
+	}
+
+	public static PitStopServiceType fromCheckId(String checkId) {
+		switch (checkId) {
+			case "pitServiceTyres": return TYRES;
+			case "pitServiceFuel": return FUEL;
+			case "pitServiceWs": return WS;
+			default: return null;
 		}
 	}
 }

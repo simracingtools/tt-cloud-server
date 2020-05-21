@@ -254,13 +254,13 @@
                     <td th:id="${'pitTime-' + tdStat.index}">01:04:56</td>
                     <td th:id="${'pitStopDuration-' + tdStat.index}">01:15:05</td>
                     <td>
-                        <input th:id="${'pitServiceTyres-' + tdStat.index}" type="checkbox">
+                        <input th:id="${'pitServiceTyres-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
                     </td>
                     <td>
-                        <input th:id="${'pitServiceFuel-' + tdStat.index}" type="checkbox">
+                        <input th:id="${'pitServiceFuel-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
                     </td>
                     <td>
-                        <input th:id="${'pitServiceWs-' + tdStat.index}" type="checkbox">
+                        <input th:id="${'pitServiceWs-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
                     </td>
                     <td th:id="${'pitServiceDuration-' + tdStat.index}">00:00:53</td>
                     <td th:id="${'pitRefuel-' + tdStat.index}">99.999</td>

@@ -198,6 +198,11 @@ function sendDriverChange(driverSelect) {
     stompClient.send("/app/driverchange", {}, message);
 }
 
+function sendServiceChange(serviceCheck) {
+    var message = JSON.stringify({'teamId': $("#teamId").val(), 'checkId': serviceCheck.id, 'checked': serviceCheck.checked});
+    stompClient.send("/app/servicechange", {}, message);
+}
+
 function showSessionData(message) {
     $("#sessionType").text(message.sessionType);
     $("#teamName").text(message.teamName);
@@ -210,7 +215,6 @@ function showSessionData(message) {
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
     $("#timeZone").text('GMT' + moment().format('ZZ'));
-//    $("#utcOffset").text('GMT' + moment().format('ZZ'));
     if (message.lastLapData) {
         showLapData(message.lastLapData);
     }
@@ -319,7 +323,6 @@ function showPitData(message) {
         $("#pitLap-" + i).text(message[i].lapNo);
         $("#pitTime-" + i).text(localTime(message[i].timePitted));
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
-//        $("#pitService-" + i).text(message[i].service);
         $("#pitServiceTyres-" + i).prop('checked', message[i].changeTyres);
         $("#pitServiceFuel-" + i).prop('checked', message[i].refuel);
         $("#pitServiceWs-" + i).prop('checked', message[i].clearWindshield);
@@ -344,6 +347,13 @@ function showPitData(message) {
             $("#pitServiceWs-" + i).prop('disabled', 'disabled');
         } else if (message[i].currentStint) {
             $("#pitDriverSelect-" + i).prop('disabled', 'disabled');
+            $("#pitServiceTyres-" + i).removeAttr('disabled');
+            $("#pitServiceFuel-" + i).removeAttr('disabled');
+            $("#pitServiceWs-" + i).removeAttr('disabled');
+        } else {
+            $("#pitServiceTyres-" + i).removeAttr('disabled');
+            $("#pitServiceFuel-" + i).removeAttr('disabled');
+            $("#pitServiceWs-" + i).removeAttr('disabled');
         }
         rowsLeft -= 1;
     }

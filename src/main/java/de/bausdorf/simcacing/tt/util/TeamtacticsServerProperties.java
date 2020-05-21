@@ -42,4 +42,7 @@ public class TeamtacticsServerProperties {
     private Long userRepositoryCacheMinutes;
     private Long inactiveSessionTimeoutMinutes;
     private boolean shiftSessionStartTimeToNow;
+    private int serviceDurationSecondsWs;
+    private int serviceDurationSecondsTyres;
+    private int serviceDurationSecondsFuel10l;
 }

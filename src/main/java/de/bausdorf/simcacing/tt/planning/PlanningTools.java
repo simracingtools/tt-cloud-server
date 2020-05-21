@@ -1,15 +1,23 @@
 package de.bausdorf.simcacing.tt.planning;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
+import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
+import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PlanningTools {
+
+	private static int wsServiceSeconds = 5;
+	private static int tyreServiceSeconds = 20;
+	private static int fuelServiceSeconds10l = 3;
 
 	private PlanningTools() {
 		super();
@@ -36,5 +44,44 @@ public class PlanningTools {
 			}
 		}
 		return null;
+	}
+
+	public static Stint stintToModify(SessionController controller, int liveIndex) {
+		try {
+			de.bausdorf.simcacing.tt.planning.model.Stint changedStint =
+					controller.getRacePlan().getCurrentRacePlan().get(liveIndex);
+			log.debug("Changed stint: {}", changedStint);
+			return PlanningTools.stintAt(changedStint.getStartTime(), controller.getRacePlan().getPlanParameters().getStints());
+		} catch (ArrayIndexOutOfBoundsException e) {
+			log.warn("No stint for live index {}", liveIndex);
+		}
+		return null;
+	}
+
+	public static Duration calculateServiceDuration(List<PitStopServiceType> serviceList, double amountRefuel) {
+		Duration serviceDuration = Duration.ZERO;
+		for (PitStopServiceType serviceType : serviceList) {
+			switch (serviceType) {
+				case TYRES:
+					serviceDuration = serviceDuration.plusSeconds(PlanningTools.tyreServiceSeconds);
+					break;
+				case WS:
+					serviceDuration = serviceDuration.plusSeconds(PlanningTools.wsServiceSeconds);
+					break;
+				case FUEL:
+					int refuelSeconds = (int)Math.ceil((amountRefuel / 10) * PlanningTools.fuelServiceSeconds10l);
+					serviceDuration = serviceDuration.plusSeconds(refuelSeconds);
+					break;
+				default:
+					break;
+			}
+		}
+		return serviceDuration;
+	}
+
+	public static void configureServiceDuration(TeamtacticsServerProperties config) {
+		fuelServiceSeconds10l = config.getServiceDurationSecondsFuel10l();
+		tyreServiceSeconds = config.getServiceDurationSecondsTyres();
+		wsServiceSeconds = config.getServiceDurationSecondsWs();
 	}
 }

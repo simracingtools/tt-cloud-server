@@ -26,6 +26,7 @@ import lombok.*;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @AllArgsConstructor
@@ -59,16 +60,17 @@ public class Stint {
 	private LocalTime todEnd;
 	@Setter
 	private double avgTrackTemp;
+	@Setter
+	private ZonedDateTime endTime;
 
-	public Duration addStintDuration(Duration toAdd) {
+	public void addStintDuration(Duration toAdd) {
 		if( currentStintDuration == null ) {
 			currentStintDuration = Duration.ZERO;
 		}
 		currentStintDuration = currentStintDuration.plus(toAdd);
-		return currentStintDuration;
 	}
 
-	public int increaseLapCount() {
-		return ++laps;
+	public void increaseLapCount() {
+		laps++;
 	}
 }

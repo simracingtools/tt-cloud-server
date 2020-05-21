@@ -64,7 +64,7 @@ public class Stint {
 	public Duration getStintDuration(boolean includePitStopTimes) {
 		if( startTime != null && endTime != null ) {
 			if( !includePitStopTimes && pitStop.isPresent() ) {
-				return Duration.between(startTime, endTime).minus(pitStop.get().getOverallDuration());
+				return Duration.between(startTime, endTime).minus(pitStop.get().getOverallDuration(refuelAmount));
 			}
 			return Duration.between(startTime, endTime);
 		}

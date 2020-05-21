@@ -37,10 +37,12 @@ import de.bausdorf.simcacing.tt.live.model.live.LapDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
 import de.bausdorf.simcacing.tt.live.model.live.PitstopDataView;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
+import de.bausdorf.simcacing.tt.live.model.live.ServiceChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
+import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
@@ -270,16 +272,11 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		int finishedStopsCount = controller.getPitStops().size();
 		int pitstopListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
 		try {
-			de.bausdorf.simcacing.tt.planning.model.Stint changedStint =
-					controller.getRacePlan().getCurrentRacePlan().get(pitstopListIndex - finishedStopsCount);
-			log.debug("Changed stint: {}", changedStint);
 			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
-					PlanningTools.stintAt(changedStint.getStartTime(), controller.getRacePlan().getPlanParameters().getStints());
+					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
 			if (planToModify != null) {
 				log.debug("Changing stint: {}", planToModify);
 				planToModify.setDriverName(message.getDriverName());
-			} else {
-				log.info("No planned stint for {}", changedStint.getStartTime());
 			}
 
 			List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
@@ -287,6 +284,36 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			sendPitstopData(viewToSend, message.getTeamId());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+		}
+	}
+
+	@MessageMapping("/servicechange")
+	public void respondServiceChange(ServiceChangeMessage message) {
+		SessionController controller = getSessionControllerBySubscriptionId(message.getTeamId());
+		log.debug("Service change message: {}", message);
+
+		int finishedStopsCount = controller.getPitStops().size();
+		String[] msgParts = message.getCheckId().split("-");
+		int pitstopListIndex = Integer.parseInt(msgParts[1]);
+		PitStopServiceType serviceType = PitStopServiceType.fromCheckId(msgParts[0]);
+
+		if (serviceType != null) {
+			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
+			if (planToModify != null) {
+				log.debug("Changing stint: {}", planToModify);
+				if (message.isChecked()) {
+					planToModify.getPitStop().ifPresent(s -> s.addService(serviceType));
+				} else {
+					planToModify.getPitStop().ifPresent(s -> s.removeService(serviceType));
+				}
+
+				List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
+				log.debug("{}", viewToSend);
+				sendPitstopData(viewToSend, message.getTeamId());
+			}
+		} else {
+			log.warn("Unknown checkId: {}", msgParts[0]);
 		}
 	}
 
@@ -326,6 +353,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			controller.setRacePlan(selectRacePlan(controller.getSessionData(), controller.getTeamId()));
 			data.put(key, controller);
 		}
+		PlanningTools.configureServiceDuration(config);
 	}
 
 	private void processLapData(SessionController controller, String sessionId, LapData lapData) {
@@ -390,7 +418,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 							.pitstop(pitstop)
 							.build()
 			);
-			sessionRepository.savePitstop(sessionId, pitstop);
+			sessionRepository.savePitstop(sessionId, pitstop, lastStint);
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
 			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
 		}

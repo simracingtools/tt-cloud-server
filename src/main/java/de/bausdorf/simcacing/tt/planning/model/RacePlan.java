@@ -114,7 +114,7 @@ public class RacePlan {
 		stint.setPitStop(pitstop);
 		stint.setEndTime(stintStartTime
 				.plus(stintDuration)
-				.plus(pitstop.isPresent() ? pitstop.get().getOverallDuration() : Duration.ZERO)
+				.plus(pitstop.isPresent() ? pitstop.get().getOverallDuration(stint.getRefuelAmount()) : Duration.ZERO)
 		);
 
 		return stint;

@@ -474,6 +474,7 @@ public class SessionController {
 			markPitstopLap();
 			onOutLap = true;
 			Optional<Stint> lastStint = getLastStint();
+			lastStint.ifPresent(stint -> stint.setEndTime(ZonedDateTime.now()));
 			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
 					.no(stint.getNo() + 1)
 					.todStart(sessionToD)
