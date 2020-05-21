@@ -49,6 +49,7 @@ public class LapData implements ClientData {
 	public static final String LAST_LAP_FUEL_USAGE = "lastLapFuelUsage";
 	public static final String STINT = "stint";
 	public static final String STINT_LAP = "stintLap";
+	public static final String OUT_LAP = "outLap";
 	private final int no;
 	private final String driver;
 	private final String driverId;
@@ -60,6 +61,8 @@ public class LapData implements ClientData {
 	private boolean pitStop;
 	@Setter
 	private boolean unclean;
+	@Setter
+	private boolean outLap;
 	@Setter
 	private double lastLapFuelUsage;
 	@Setter
@@ -77,6 +80,7 @@ public class LapData implements ClientData {
 		this.sessionTime = MapTools.timeFromMap(SESSION_TIME, data);
 		this.pitStop = MapTools.booleanFromMap(PIT_LAP, data, false);
 		this.unclean = MapTools.booleanFromMap(UNCLEAN, data, false);
+		this.outLap = MapTools.booleanFromMap(OUT_LAP, data, false);
 		this.lastLapFuelUsage = MapTools.doubleFromMap(LAST_LAP_FUEL_USAGE, data);
 		this.stint = MapTools.intFromMap(STINT, data);
 		this.stintLap = MapTools.intFromMap(STINT_LAP, data);
@@ -94,6 +98,7 @@ public class LapData implements ClientData {
 		data.put(SESSION_TIME, sessionTime.toString());
 		data.put(PIT_LAP, pitStop);
 		data.put(UNCLEAN, unclean);
+		data.put(OUT_LAP, outLap);
 		data.put(LAST_LAP_FUEL_USAGE, lastLapFuelUsage);
 		data.put(STINT, stint);
 		data.put(STINT_LAP, stintLap);

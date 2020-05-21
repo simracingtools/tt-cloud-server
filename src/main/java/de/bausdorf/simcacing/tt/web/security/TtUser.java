@@ -27,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.ZoneId;
 import java.util.*;
 
 @Data
@@ -46,6 +47,7 @@ public class TtUser implements UserDetails {
     public static final String ENABLED = "enabled";
     public static final String LOCKED = "locked";
     public static final String EXPIRED = "expired";
+    public static final String TIMEZONE = "timezone";
 
     private String id;
     private String name;
@@ -54,6 +56,7 @@ public class TtUser implements UserDetails {
     private String iRacingId;
     private String clientMessageAccessToken;
     private TtUserType userType;
+    private ZoneId timezone;
     private boolean enabled;
     private boolean locked;
     private boolean expired;
@@ -69,6 +72,7 @@ public class TtUser implements UserDetails {
         enabled = (Boolean) data.get(ENABLED);
         locked = (Boolean) data.get(LOCKED);
         expired = (Boolean) data.get(EXPIRED);
+        timezone = data.get(TIMEZONE) != null ? ZoneId.of((String)data.get(TIMEZONE)) : ZoneId.systemDefault();
     }
 
     public Map<String, Object> toObjectMap() {
@@ -83,6 +87,7 @@ public class TtUser implements UserDetails {
         map.put(ENABLED, enabled);
         map.put(LOCKED, locked);
         map.put(EXPIRED, expired);
+        map.put(TIMEZONE, timezone.toString());
         return map;
     }
 

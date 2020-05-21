@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.planning.model;
+package de.bausdorf.simcacing.tt.web.model;
 
 /*-
  * #%L
@@ -22,37 +22,28 @@ package de.bausdorf.simcacing.tt.planning.model;
  * #L%
  */
 
-import lombok.Getter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Locale;
 
-@Getter
-public enum PitStopServiceType {
-	WS("W", 5),
-	TYRES("T", 20),
-	FUEL("F", 20),
-	FR("FR", 0);
+import org.springframework.format.Formatter;
 
-	private final String code;
+public class ZonedDateTimeFormatter implements Formatter<ZonedDateTime> {
 
-	private PitStopServiceType(String code, long seconds) {
-		this.code = code;
+	@Override
+	public ZonedDateTime parse(String s, Locale locale) {
+		if (s == null) {
+			return ZonedDateTime.of(LocalDateTime.MIN, ZoneId.systemDefault());
+		}
+		return ZonedDateTime.parse(s);
 	}
 
-	public static PitStopServiceType ofCode(String c) {
-		switch(c) {
-			case "W": return WS;
-			case "T": return TYRES;
-			case "F": return FUEL;
-			case "FR": return FR;
-			default: throw new IllegalArgumentException("Unknown PitStopServiceType code " + c);
+	@Override
+	public String print(ZonedDateTime zonedDateTime, Locale locale) {
+		if (zonedDateTime == null) {
+			return ZonedDateTime.of(LocalDateTime.MIN, ZoneId.systemDefault()).toString();
 		}
-	}
-
-	public static PitStopServiceType fromCheckId(String checkId) {
-		switch (checkId) {
-			case "pitServiceTyres": return TYRES;
-			case "pitServiceFuel": return FUEL;
-			case "pitServiceWs": return WS;
-			default: return null;
-		}
+		return zonedDateTime.toString();
 	}
 }

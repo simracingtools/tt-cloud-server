@@ -57,7 +57,7 @@ var chartConfig = {
                 position: 'left',
                 time: {
                     parser: timeFormat,
-                    // tooltipFormat: 'mm:ss.SSS',
+                    //tooltipFormat: 'mm:ss.SSS',
                     unit: 'seconds',
                     stepSize : 2,
                     displayFormats: {
@@ -97,7 +97,7 @@ var chartConfig = {
                     labelString: 'Laps'
                 }
             }]
-        },
+        }
     }
 };
 
@@ -148,27 +148,28 @@ function connect() {
             console.log(jsonMessage);
             showSessionData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/rundata', function (message) {
+        var teamId = $("#teamId").val();
+        stompClient.subscribe('/live/' + teamId + '/rundata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showRunData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/syncdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/syncdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showSyncData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/lapdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/lapdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showLapData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/eventdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/eventdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showEventData(jsonMessage);
         });
-        stompClient.subscribe('/live/' + $("#teamId").val() + '/pitdata', function (message) {
+        stompClient.subscribe('/live/' + teamId + '/pitdata', function (message) {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showPitData(jsonMessage);
@@ -192,6 +193,16 @@ function sendTeamId() {
     stompClient.send("/app/liveclient", {}, JSON.stringify({'teamId': $("#teamId").val(), 'text': 'Hello'}));
 }
 
+function sendDriverChange(driverSelect) {
+    var message = JSON.stringify({'teamId': $("#teamId").val(), 'selectId': driverSelect.id, 'driverName': driverSelect.value});
+    stompClient.send("/app/driverchange", {}, message);
+}
+
+function sendServiceChange(serviceCheck) {
+    var message = JSON.stringify({'teamId': $("#teamId").val(), 'checkId': serviceCheck.id, 'checked': serviceCheck.checked});
+    stompClient.send("/app/servicechange", {}, message);
+}
+
 function showSessionData(message) {
     $("#sessionType").text(message.sessionType);
     $("#teamName").text(message.teamName);
@@ -203,7 +214,7 @@ function showSessionData(message) {
             .removeClass("loc-green")
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
-    $("#timeZone").text(message.timeZone);
+    $("#timeZone").text('GMT' + moment().format('ZZ'));
     if (message.lastLapData) {
         showLapData(message.lastLapData);
     }
@@ -236,7 +247,7 @@ function showRunData(message) {
     $("#remainingSessionTime").text(message.remainingSessionTime);
     $("#timeInLap").text(message.timeInLap)
     $("#lapNo").text(message.lapNo);
-    $("#localClock").text(message.localClock);
+    $("#localClock").text(localTime(message.localClock));
 }
 
 function showSyncData(message) {
@@ -310,9 +321,11 @@ function showPitData(message) {
         $("#pitStint-" + i).text(message[i].stintNo);
         $("#pitTimeLeft-" + i).text(message[i].raceTimeLeft);
         $("#pitLap-" + i).text(message[i].lapNo);
-        $("#pitTime-" + i).text(message[i].timePitted);
+        $("#pitTime-" + i).text(localTime(message[i].timePitted));
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
-        $("#pitService-" + i).text(message[i].service);
+        $("#pitServiceTyres-" + i).prop('checked', message[i].changeTyres);
+        $("#pitServiceFuel-" + i).prop('checked', message[i].refuel);
+        $("#pitServiceWs-" + i).prop('checked', message[i].clearWindshield);
         $("#pitServiceDuration-" + i).text(message[i].serviceDuration);
         $("#pitRefuel-" + i).text(message[i].refuelAmount);
         $("#pitRepairTime-" + i).text(message[i].repairTime);
@@ -323,8 +336,24 @@ function showPitData(message) {
                     .appendTo("#pitDriverSelect-" + i);
         }
         $("#pitDriverSelect-" + i).val(message[i].driver);
-        if (message[i].pitStopDuration !== '') {
-            $("#pitDriverSelect-" + i).prop('disabled', 'disabled')
+        if (!message[i].plannedStint) {
+            $("#pitDriverSelect-" + i).prop('disabled', 'disabled');
+            $("#pitServiceTyres-" + i).prop('disabled', 'disabled');
+            $("#pitServiceFuel-" + i).prop('disabled', 'disabled');
+            $("#pitServiceWs-" + i).prop('disabled', 'disabled');
+        } else if (message[i].lastStint) {
+            $("#pitServiceTyres-" + i).prop('disabled', 'disabled');
+            $("#pitServiceFuel-" + i).prop('disabled', 'disabled');
+            $("#pitServiceWs-" + i).prop('disabled', 'disabled');
+        } else if (message[i].currentStint) {
+            $("#pitDriverSelect-" + i).prop('disabled', 'disabled');
+            $("#pitServiceTyres-" + i).removeAttr('disabled');
+            $("#pitServiceFuel-" + i).removeAttr('disabled');
+            $("#pitServiceWs-" + i).removeAttr('disabled');
+        } else {
+            $("#pitServiceTyres-" + i).removeAttr('disabled');
+            $("#pitServiceFuel-" + i).removeAttr('disabled');
+            $("#pitServiceWs-" + i).removeAttr('disabled');
         }
         rowsLeft -= 1;
     }
@@ -354,6 +383,10 @@ function fuelPerLapChange(fuelPerLap) {
     var laps = $("#maxCarFuel").val() / fuelPerLap;
     $("#estimatedFuelLaps").text(laps.toFixed(2));
     setEstimatedFuelDelta($("#fuelLastLap").text())
+}
+
+function localTime(zonedTime) {
+    return moment(zonedTime, 'HH:mm:ssZZ').local().format('HH:mm:ss')
 }
 
 // $(function () {

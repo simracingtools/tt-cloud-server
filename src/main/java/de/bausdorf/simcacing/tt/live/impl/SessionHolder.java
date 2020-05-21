@@ -22,22 +22,27 @@ package de.bausdorf.simcacing.tt.live.impl;
  * #L%
  */
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.live.model.live.DriverChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.EventDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LapDataView;
 import de.bausdorf.simcacing.tt.live.model.live.LiveClientMessage;
 import de.bausdorf.simcacing.tt.live.model.live.PitstopDataView;
 import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
+import de.bausdorf.simcacing.tt.live.model.live.ServiceChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
+import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
@@ -173,6 +178,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	private void sendLapData(LapData clientData, SessionController controller, String subscriptionId) {
 		if (liveTopics.containsKey(subscriptionId)) {
 			LapDataView dataView = LapDataView.getLapDataView(clientData, controller);
+			log.debug("Send lap data: {}", dataView);
 			if (dataView != null) {
 				messagingTemplate.convertAndSend(LIVE_PREFIX + subscriptionId + "/lapdata",
 						dataView);
@@ -209,7 +215,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 					.timeOfDay(runData.getSessionToD().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
 					.lapNo(Integer.toUnsignedString(runData.getLapNo()))
 					.timeInLap(TimeTools.longDurationString(runData.getTimeInLap()))
-					.localClock(LocalTime.now().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS)))
+					.localClock(ZonedDateTime.now().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.build());
 		}
 	}
@@ -259,6 +265,58 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 				.build();
 	}
 
+	@MessageMapping("/driverchange")
+	public void respondDriverChange(DriverChangeMessage message) {
+		SessionController controller = getSessionControllerBySubscriptionId(message.getTeamId());
+		log.debug("Driver change message: {}", message);
+		int finishedStopsCount = controller.getPitStops().size();
+		int pitstopListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
+		try {
+			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
+			if (planToModify != null) {
+				log.debug("Changing stint: {}", planToModify);
+				planToModify.setDriverName(message.getDriverName());
+			}
+
+			List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
+			log.debug("{}", viewToSend);
+			sendPitstopData(viewToSend, message.getTeamId());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	@MessageMapping("/servicechange")
+	public void respondServiceChange(ServiceChangeMessage message) {
+		SessionController controller = getSessionControllerBySubscriptionId(message.getTeamId());
+		log.debug("Service change message: {}", message);
+
+		int finishedStopsCount = controller.getPitStops().size();
+		String[] msgParts = message.getCheckId().split("-");
+		int pitstopListIndex = Integer.parseInt(msgParts[1]);
+		PitStopServiceType serviceType = PitStopServiceType.fromCheckId(msgParts[0]);
+
+		if (serviceType != null) {
+			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
+			if (planToModify != null) {
+				log.debug("Changing stint: {}", planToModify);
+				if (message.isChecked()) {
+					planToModify.getPitStop().ifPresent(s -> s.addService(serviceType));
+				} else {
+					planToModify.getPitStop().ifPresent(s -> s.removeService(serviceType));
+				}
+
+				List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
+				log.debug("{}", viewToSend);
+				sendPitstopData(viewToSend, message.getTeamId());
+			}
+		} else {
+			log.warn("Unknown checkId: {}", msgParts[0]);
+		}
+	}
+
 	@Scheduled(cron="0 0/30 * * * ?")
 	public void removeInactiveSessions() {
 		List<SessionKey> inactiveSessions = new ArrayList<>();
@@ -295,6 +353,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			controller.setRacePlan(selectRacePlan(controller.getSessionData(), controller.getTeamId()));
 			data.put(key, controller);
 		}
+		PlanningTools.configureServiceDuration(config);
 	}
 
 	private void processLapData(SessionController controller, String sessionId, LapData lapData) {
@@ -359,7 +418,11 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 							.pitstop(pitstop)
 							.build()
 			);
-			sessionRepository.savePitstop(sessionId, pitstop);
+			sessionRepository.savePitstop(sessionId, pitstop, lastStint);
+			if (controller.getRacePlan() != null) {
+				PlanningTools.updatePitLaneDurations(pitstop.getApproachDuration(), pitstop.getDepartDuration(),
+						controller.getRacePlan().getPlanParameters());
+			}
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
 			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
 		}
@@ -382,11 +445,12 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		} else if (planParameters.size() > 1) {
 			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
 		} else {
+			RacePlanParameters serverZonedRacePlan = new RacePlanParameters(planParameters.get(0), ZoneId.systemDefault());
 			if (config.isShiftSessionStartTimeToNow()) {
-				planParameters.get(0).shiftSessionStartTime(LocalDateTime.now().minusMinutes(1));
+				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
 			}
-			log.info("Using race plan {}", planParameters.get(0).getId());
-			return RacePlan.createRacePlanTemplate(planParameters.get(0));
+			log.info("Using race plan {}", serverZonedRacePlan.getId());
+			return RacePlan.createRacePlanTemplate(serverZonedRacePlan);
 		}
 		return null;
 	}
@@ -396,7 +460,6 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		if( validator != null ) {
 			return validator.validate(message);
 		}
-		log.debug("No validator for message type " + message.getType().name());
 		switch(message.getType()) {
 			case LAP: return ModelFactory.fromLapMessage(message.getPayload());
 			case EVENT: return ModelFactory.getFromEventMessage(message.getPayload());

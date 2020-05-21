@@ -24,6 +24,7 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,21 +50,21 @@ public class Stint {
 	public static final String REFUEL_AMOUNT = "refuelAmount";
 	public static final String LAPS = "laps";
 	public static final String PITSTOP_SERVICE = "pitstopService";
-	public static final String HH_MM_SS = "HH:mm:ss";
 
 	private String driverName;
 	private LocalDateTime todStartTime;
-	private LocalDateTime startTime;
-	private LocalDateTime endTime;
+	private ZonedDateTime startTime;
+	private ZonedDateTime endTime;
 	private double refuelAmount;
 	private int laps;
 	private Optional<PitStop> pitStop;
+	private boolean lastStint;
 
 
 	public Duration getStintDuration(boolean includePitStopTimes) {
 		if( startTime != null && endTime != null ) {
 			if( !includePitStopTimes && pitStop.isPresent() ) {
-				return Duration.between(startTime, endTime).minus(pitStop.get().getOverallDuration());
+				return Duration.between(startTime, endTime).minus(pitStop.get().getOverallDuration(refuelAmount));
 			}
 			return Duration.between(startTime, endTime);
 		}
@@ -75,15 +76,11 @@ public class Stint {
 	}
 
 	public String getStartTimeString() {
-		return getStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
+		return getStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS));
 	}
 
 	public String getTodStartTimeString() {
-		return getTodStartTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
-	}
-
-	public String getEndTimeString() {
-		return getEndTime().format(DateTimeFormatter.ofPattern(HH_MM_SS));
+		return getTodStartTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS));
 	}
 
 	public Map<String, Object> toMap() {
@@ -95,9 +92,8 @@ public class Stint {
 		map.put(END_TIME, endTime.toString());
 		map.put(REFUEL_AMOUNT, refuelAmount);
 		map.put(LAPS, laps);
-		map.put(PITSTOP_SERVICE, pitStop.isPresent()
-				? pitStop.get().getService().stream().map(Enum::name).collect(Collectors.toList())
-				: null
+		map.put(PITSTOP_SERVICE,
+				pitStop.<Object>map(stop -> stop.getService().stream().map(Enum::name).collect(Collectors.toList())).orElse(null)
 		);
 
 		return map;

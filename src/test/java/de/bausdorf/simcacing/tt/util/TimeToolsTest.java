@@ -25,10 +25,19 @@ package de.bausdorf.simcacing.tt.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class TimeToolsTest {
 
 	@Test
@@ -93,5 +102,28 @@ public class TimeToolsTest {
 		d1 = d1.multipliedBy(-1);
 		delta = TimeTools.shortDurationString(d1);
 		assertThat(delta.startsWith("-")).isTrue();
+	}
+
+	@Test
+	public void zoneIdFormats() {
+		ZoneId zoneId = ZoneId.of("GMT+0");
+
+		log.info("{}", zoneId.toString());
+		log.info("{}", zoneId.getId());
+		log.info("{}", zoneId.getDisplayName(TextStyle.SHORT, Locale.US));
+		log.info("{}", zoneId.getDisplayName(TextStyle.NARROW, Locale.US));
+		log.info("{}", zoneId.getDisplayName(TextStyle.FULL, Locale.US));
+		log.info("{}", TimeTools.toShortZoneId(zoneId));
+	}
+
+	@Test
+	public void zonedTimeConversions() {
+		ZonedDateTime now = ZonedDateTime.of(LocalDateTime.now(), ZoneId.of("GMT+2"));
+
+		log.info("{}", now.toString());
+
+		log.info(now.withZoneSameInstant(ZoneId.of("GMT")).toString());
+
+		log.info("{}", now.format(DateTimeFormatter.ofPattern("HH:mm:ssxxx")));
 	}
 }

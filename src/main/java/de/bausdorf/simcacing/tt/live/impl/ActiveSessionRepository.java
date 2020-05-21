@@ -22,7 +22,7 @@ package de.bausdorf.simcacing.tt.live.impl;
  * #L%
  */
 
-import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import de.bausdorf.simcacing.tt.live.model.client.LapData;
 import de.bausdorf.simcacing.tt.live.model.client.Pitstop;
 import de.bausdorf.simcacing.tt.live.model.client.SessionData;
+import de.bausdorf.simcacing.tt.live.model.client.Stint;
 import de.bausdorf.simcacing.tt.live.model.client.TrackLocationType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
@@ -55,6 +56,8 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 	public static final String CURRENT_TRACK_LOCATION = "currentTrackLocation";
 	public static final String TEAM_ID = "teamId";
 	public static final String SESSION_TOD = "sessionToD";
+	public static final String SESSION_REGISTERED = "sessionRegistered";
+	public static final String LAST_PITSTOP_END_TIME = "lastPitstopEndTime";
 
 	public ActiveSessionRepository(@Autowired FirestoreDB db) {
 		super(db);
@@ -71,6 +74,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		controller.setLastUpdate(Long.parseLong(MapTools.stringFromMap(LAST_UPDATE, data)));
 		controller.setGreenFlagTime(MapTools.timeFromMap(GREEN_FLAG_TIME, data));
 		controller.setSessionToD(MapTools.timeFromMap(SESSION_TOD, data));
+		controller.setSessionRegistered(MapTools.zonedDateTimeFromMap(SESSION_REGISTERED, data));
 
 		Map<String, Object> lapMap = (Map<String, Object>)data.get(LAPS);
 		if (lapMap != null) {
@@ -96,6 +100,10 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		}
 		String locationString = MapTools.stringFromMap(CURRENT_TRACK_LOCATION, data);
 		controller.setCurrentTrackLocation(locationString != null ? TrackLocationType.valueOf(locationString) : null);
+		if (data.get(LAST_PITSTOP_END_TIME) != null) {
+			ZonedDateTime lastStintEnd = MapTools.zonedDateTimeFromMap(LAST_PITSTOP_END_TIME, data);
+			controller.getLastStint().ifPresent(stint -> stint.setEndTime(lastStintEnd));
+		}
 		return controller;
 	}
 
@@ -107,6 +115,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		dbData.put(TEAM_ID, object.getTeamId());
 		dbData.put(LAST_UPDATE, Long.toString(object.getLastUpdate()));
 		dbData.put(GREEN_FLAG_TIME, object.getGreenFlagTime() != null ? object.getGreenFlagTime().toString() : null);
+		dbData.put(SESSION_REGISTERED, object.getSessionRegistered() != null ? object.getSessionRegistered().toString() : null);
 		Map<String, Object> lapMap = new HashMap<>();
 		for (LapData lap : object.getLaps().values()) {
 			lapMap.put(Integer.toUnsignedString(lap.getNo()), lap.toMap());
@@ -120,14 +129,9 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		dbData.put(CURRENT_DRIVER, object.getCurrentDriver() != null ? object.getCurrentDriver().toMap() : null);
 		dbData.put(CURRENT_TRACK_LOCATION, object.getCurrentTrackLocation() != null ? object.getCurrentTrackLocation().name() : null);
 		dbData.put(SESSION_TOD, object.getSessionToD() != null ? object.getSessionToD().toString() : null);
+		Optional<Stint> lastStint = object.getLastStint();
+		dbData.put(LAST_PITSTOP_END_TIME, lastStint.<Object>map(stint -> stint.getEndTime().toString()).orElse(null));
 		return dbData;
-	}
-
-	public void saveGreenFlagTime(String sessionId, LocalTime greenFlagTime) {
-		Map<String, Object> updates = new HashMap<>();
-		updates.put(GREEN_FLAG_TIME, greenFlagTime.toString());
-		updates.put(LAST_UPDATE, Long.toString(System.currentTimeMillis()));
-		super.update(COLLECTION_NAME, sessionId, updates);
 	}
 
 	public void saveTrackLocation(String sessionId, TrackLocationType trackLocation) {
@@ -151,10 +155,11 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		super.update(COLLECTION_NAME, sessionId, updates);
 	}
 
-	public void savePitstop(String sessionId, Pitstop pitstop) {
+	public void savePitstop(String sessionId, Pitstop pitstop, Stint lastStint) {
 		Map<String, Object> updates = new HashMap<>();
 		updates.put(PIT_STOPS + "." + pitstop.getStint(), pitstop.toMap());
 		updates.put(LAST_UPDATE, Long.toString(System.currentTimeMillis()));
+		updates.put(LAST_PITSTOP_END_TIME, lastStint.getEndTime().toString());
 		super.update(COLLECTION_NAME, sessionId, updates);
 	}
 

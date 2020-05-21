@@ -24,11 +24,11 @@ package de.bausdorf.simcacing.tt.web;
 
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.Estimation;
+import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Roster;
 import de.bausdorf.simcacing.tt.planning.model.ScheduleEntry;
-import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.stock.CarRepository;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
@@ -50,6 +50,7 @@ import de.bausdorf.simcacing.tt.web.model.ScheduleView;
 import de.bausdorf.simcacing.tt.web.model.StintDriverView;
 import de.bausdorf.simcacing.tt.web.model.TeamEstimationView;
 import de.bausdorf.simcacing.tt.web.model.TeamScheduleView;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -63,6 +64,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +73,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 public class RacePlanController extends BaseController {
 
@@ -150,7 +153,7 @@ public class RacePlanController extends BaseController {
                 .carId(planView.getCarId())
                 .trackId(planView.getTrackId())
                 .teamId(planView.getTeamId())
-                .sessionStartTime(planView.getStartTime())
+                .sessionStartTime(ZonedDateTime.of(planView.getStartTime(), currentUser().getTimezone()))
                 .todStartTime(planView.getTodStartTime() == null ? planView.getStartTime() : planView.getTodStartTime())
                 .raceDuration(planView.getRaceDuration())
                 .name(planView.getPlanName())
@@ -193,6 +196,18 @@ public class RacePlanController extends BaseController {
         return PLANNING_VIEW;
     }
 
+    @GetMapping("/deleteplan")
+    public String deleteRacePlan(@RequestParam("planId") String planId, Model model) {
+        try {
+            planRepository.delete(planId);
+        } catch (Exception e) {
+            addError(e.getMessage(), model);
+            log.error(e.getMessage(), e);
+        }
+        prepareNewRacePlanView(model);
+        return NEWRACEPLAN_VIEW;
+    }
+
     @PostMapping("/planning")
     public String updatePlanning(@ModelAttribute(SELECTED_PLAN) RacePlanParameters viewPlanParameters,
             @ModelAttribute(TEAM_SCHEDULE) TeamScheduleView teamScheduleView,
@@ -204,6 +219,7 @@ public class RacePlanController extends BaseController {
         }
         prepareViewMode(mode, model);
 
+        viewPlanParameters.setTimeZone(currentUser().getTimezone());
         repoPlanParameters.updateData(viewPlanParameters);
         repoPlanParameters.updateDrivers(driverRepository);
         updateDriverSchedule(repoPlanParameters, teamScheduleView);
@@ -225,7 +241,7 @@ public class RacePlanController extends BaseController {
             return NEWRACEPLAN_VIEW;
         }
         prepareViewMode(mode, model);
-
+        teamScheduleView.setTimezone(currentUser().getTimezone());
         updateDriverSchedule(repoPlanParameters, teamScheduleView);
         RacePlan racePlan = RacePlan.createRacePlanTemplate(repoPlanParameters);
         repoPlanParameters.setStints(racePlan.getCurrentRacePlan());
@@ -333,19 +349,19 @@ public class RacePlanController extends BaseController {
         }
         Optional<IRacingDriver> driver = driverRepository.findById(newScheduleEntryView.getDriverId());
         if (driver.isPresent()) {
-            LocalDateTime sessionStartTime = planParameters.getSessionStartTime();
-            LocalDateTime dateTime;
+            ZonedDateTime sessionStartTime = planParameters.getSessionStartTime();
+            ZonedDateTime dateTime;
             LocalDate raceDate = sessionStartTime.toLocalDate();
             if (newScheduleEntryView.getTimeFrom().isAfter(sessionStartTime.toLocalTime())
                     || newScheduleEntryView.getTimeFrom().equals(sessionStartTime.toLocalTime())) {
-                dateTime = LocalDateTime.of(raceDate, newScheduleEntryView.getTimeFrom());
+                dateTime = ZonedDateTime.of(raceDate, newScheduleEntryView.getTimeFrom(), currentUser().getTimezone());
             } else {
-                dateTime = LocalDateTime.of(raceDate.plusDays(1), newScheduleEntryView.getTimeFrom());
+                dateTime = ZonedDateTime.of(raceDate.plusDays(1), newScheduleEntryView.getTimeFrom(), currentUser().getTimezone());
             }
             planParameters.getRoster().addScheduleEntry(ScheduleEntry.builder()
                     .driver(driver.get())
                     .status(newScheduleEntryView.getStatus())
-                    .from(dateTime)
+                    .from(dateTime.withZoneSameInstant(planParameters.getTimeZone()))
                     .build());
 
             planRepository.save(planParameters);
@@ -403,6 +419,11 @@ public class RacePlanController extends BaseController {
         }
         for (int i = 0; i < planParameters.getStints().size(); i++) {
             planParameters.getStints().get(i).setDriverName(driverView.getStintDrivers().get(i));
+
+            PitStop pitstop = planParameters.getStints().get(i).getPitStop().orElse(null);
+            if (pitstop != null) {
+                pitstop.setService(driverView.getPitService(i));
+            }
         }
         planRepository.save(planParameters);
 
@@ -502,7 +523,7 @@ public class RacePlanController extends BaseController {
                 roster.addScheduleEntry(ScheduleEntry.builder()
                         .driver(driver)
                         .status(scheduleView.getStatus())
-                        .from(scheduleView.getValidFrom())
+                        .from(scheduleView.getValidFrom().withZoneSameInstant(planParameters.getTimeZone()))
                         .build());
             }
         }
@@ -532,12 +553,7 @@ public class RacePlanController extends BaseController {
     }
 
     private StintDriverView createStintDriverView(RacePlanParameters planParameters) {
-        StintDriverView driverView = new StintDriverView(
-                planParameters.getId(),
-                planParameters.getStints().stream()
-                        .map(Stint::getDriverName)
-                        .collect(Collectors.toList())
-        );
+        StintDriverView driverView = new StintDriverView(planParameters);
         int colorIndex = 0;
         Map<String, String> driverColors = new HashMap<>();
         for (IRacingDriver driver : planParameters.getAllDrivers()) {
@@ -591,24 +607,26 @@ public class RacePlanController extends BaseController {
         );
     }
 
-    private PlanningViewModeType prepareViewMode(Optional<String> mode, Model model) {
+    private void prepareViewMode(Optional<String> mode, Model model) {
         if( mode.isPresent() ) {
             model.addAttribute(VIEW_MODE, mode.get());
         } else {
             model.addAttribute(VIEW_MODE, "TIME");
         }
-        return PlanningViewModeType.valueOf((String)model.getAttribute(VIEW_MODE));
     }
 
     private void prepareModel(RacePlanParameters racePlanParameters, Model model) {
         model.addAttribute(AUTHORIZED_DRIVERS, getAuthorizedDrivers(racePlanParameters.getTeamId()));
-        model.addAttribute(SELECTED_PLAN, racePlanParameters);
+        RacePlanParameters viewPlanParameters = new RacePlanParameters(racePlanParameters, currentUser().getTimezone());
+        viewPlanParameters.setStints(RacePlan.createRacePlanTemplate(viewPlanParameters).getCurrentRacePlan());
+
+        model.addAttribute(SELECTED_PLAN, viewPlanParameters);
         final PlanningViewModeType modelViewMode = viewModeFromModel(model);
         if (PlanningViewModeType.time == modelViewMode || PlanningViewModeType.variation == modelViewMode) {
-            model.addAttribute(STINT_DRIVERS, createStintDriverView(racePlanParameters));
+            model.addAttribute(STINT_DRIVERS, createStintDriverView(viewPlanParameters));
         }
         if (PlanningViewModeType.schedule == modelViewMode) {
-            model.addAttribute(TEAM_SCHEDULE, createTeamScheduleView(racePlanParameters));
+            model.addAttribute(TEAM_SCHEDULE, createTeamScheduleView(viewPlanParameters));
             model.addAttribute(NEW_SCHEDULE_ENTRY, new NewScheduleEntryView(racePlanParameters.getId()));
         }
         if (PlanningViewModeType.variation == modelViewMode) {

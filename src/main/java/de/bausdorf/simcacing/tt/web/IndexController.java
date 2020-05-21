@@ -22,7 +22,7 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,7 +63,6 @@ public class IndexController extends BaseController {
 
     TeamRepository teamRepository;
     RacePlanRepository planRepository;
-    TeamtacticsServerProperties config;
 
     RestTemplate restTemplate;
 
@@ -74,7 +73,6 @@ public class IndexController extends BaseController {
         this.planRepository = planRepository;
         this.teamRepository = teamRepository;
         this.sessionHolder = holder;
-        this.config = config;
         this.restTemplate = new RestTemplate();
         log.info("Shift session start to now is {}", config.isShiftSessionStartTimeToNow() ? "ON" : "OFF");
     }
@@ -174,7 +172,7 @@ public class IndexController extends BaseController {
                 Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
 
                 if (config.isShiftSessionStartTimeToNow()) {
-                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(LocalDateTime.now()));
+                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(ZonedDateTime.now()));
                 }
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }

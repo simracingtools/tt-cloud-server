@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Slf4j
@@ -48,6 +49,8 @@ public class SessionController {
 	@Setter
 	private RacePlan racePlan;
 	@Setter
+	private ZonedDateTime sessionRegistered;
+	@Setter
 	private LocalTime greenFlagTime;
 	private final SortedMap<Integer, Stint> stints = new TreeMap<>();
 	private final SortedMap<Integer, LapData> laps = new TreeMap<>();
@@ -57,6 +60,7 @@ public class SessionController {
 
 	private int currentLapNo;
 	private boolean uncleanLap;
+	private boolean onOutLap;
 
 	@Setter
 	private IRacingDriver currentDriver;
@@ -93,7 +97,10 @@ public class SessionController {
 		log.debug("New Lap: {}", newLap);
 		currentLapNo = newLap.getNo();
 		newLap.setUnclean(uncleanLap);
+		newLap.setOutLap(onOutLap);
 		uncleanLap = false;
+		onOutLap = false;
+
 		laps.put(currentLapNo, newLap);
 		Stint currentStint = stints.get(newLap.getStint());
 		if (currentStint == null) {
@@ -142,6 +149,7 @@ public class SessionController {
 			currentTrackLocation = eventData.getTrackLocationType();
 			return null;
 		}
+		Stint stint = null;
 		switch (eventData.getTrackLocationType()) {
 			case APPROACHING_PITS:
 				processApproachingPitsEvent(eventData);
@@ -150,14 +158,15 @@ public class SessionController {
 				processPitStallEvent(eventData);
 				break;
 			case ONTRACK:
-				return processOnTrackEvent(eventData);
+				stint = processOnTrackEvent(eventData);
+				break;
 			case OFF_WORLD:
 			case OFFTRACK:
 				processOffTrackEvent(eventData);
 		}
 		currentTrackLocation = eventData.getTrackLocationType();
 
-		return null;
+		return stint;
 	}
 
 	public Duration getRemainingSessionTime() {
@@ -213,7 +222,7 @@ public class SessionController {
 	public Duration getCurrentStintTime() {
 		Optional<Stint> lastStint = getLastStint();
 		if (lastStint.isPresent()) {
-			return lastStint.get().getCurrentStintDuration();
+			return lastStint.get().getCurrentStintDuration() != null ? lastStint.get().getCurrentStintDuration() : Duration.ZERO;
 		}
 		return Duration.ZERO;
 	}
@@ -282,6 +291,7 @@ public class SessionController {
 		double millis = laps.values().stream()
 				.filter(s -> !s.isPitStop())
 				.filter(s-> !s.isUnclean())
+				.filter(s-> !s.isOutLap())
 				.mapToDouble(s -> s.getLapTime().toMillis())
 				.max().orElse(0.0D);
 		return Duration.ofMillis((long) millis);
@@ -356,6 +366,8 @@ public class SessionController {
 					laps.values().stream()
 							.filter(s -> s.getStint() == stintNo)
 							.filter(s -> !s.getLapTime().isZero())
+							.filter(s -> !s.isPitStop())
+							.filter(s -> !s.isOutLap())
 			));
 		} catch (NoSuchElementException e) {
 			currentStint.setAvgLapTime(newLap.getLapTime());
@@ -459,12 +471,10 @@ public class SessionController {
 				&& pitStops.get(pitStops.lastKey()).update(eventData,
 				runData != null ? runData.getFuelLevel() : 0.0D)) {
 			log.debug("Pitstop completed: {}", pitStops.get(pitStops.lastKey()));
-			Optional<LapData> lastRecordedLap = getLastRecordedLap();
-			if (lastRecordedLap.isPresent()) {
-				log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
-				lastRecordedLap.get().setPitStop(true);
-			}
+			markPitstopLap();
+			onOutLap = true;
 			Optional<Stint> lastStint = getLastStint();
+			lastStint.ifPresent(stint -> stint.setEndTime(ZonedDateTime.now()));
 			lastStint.ifPresent(stint -> stints.put(stint.getNo() + 1, Stint.builder()
 					.no(stint.getNo() + 1)
 					.todStart(sessionToD)
@@ -490,6 +500,7 @@ public class SessionController {
 	private void processApproachingPitsEvent(EventData eventData) {
 		if (currentTrackLocation.equals(TrackLocationType.PIT_STALL) && pitStops.isEmpty()) {
 			log.debug("Starting from box");
+			onOutLap = true;
 			return;
 		}
 		Pitstop newPitStop = getOrCreateNextPitstop();
@@ -505,5 +516,13 @@ public class SessionController {
 		}
 		uncleanLap = true;
 		towTimeLeft = eventData.getTowingTime();
+	}
+
+	private void markPitstopLap() {
+		Optional<LapData> lastRecordedLap = getLastRecordedLap();
+		if (lastRecordedLap.isPresent()) {
+			log.debug("Set pit stop flag to lap {}", lastRecordedLap.get().getNo());
+			lastRecordedLap.get().setPitStop(true);
+		}
 	}
 }
