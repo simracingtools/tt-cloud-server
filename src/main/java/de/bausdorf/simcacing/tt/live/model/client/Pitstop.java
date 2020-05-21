@@ -152,6 +152,20 @@ public class Pitstop {
 		return flags.toString();
 	}
 
+	public Duration getApproachDuration() {
+		if (stopMoving != null && enterPits != null) {
+			return Duration.between(enterPits, stopMoving);
+		}
+		return Duration.ZERO;
+	}
+
+	public Duration getDepartDuration() {
+		if (startMoving != null && exitPits != null) {
+			return Duration.between(startMoving, exitPits);
+		}
+		return Duration.ZERO;
+	}
+
 	public boolean update(EventData event, double fuelLevel) {
 		switch( event.getTrackLocationType() ) {
 			case APPROACHING_PITS:

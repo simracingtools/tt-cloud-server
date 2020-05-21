@@ -419,6 +419,10 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 							.build()
 			);
 			sessionRepository.savePitstop(sessionId, pitstop, lastStint);
+			if (controller.getRacePlan() != null) {
+				PlanningTools.updatePitLaneDurations(pitstop.getApproachDuration(), pitstop.getDepartDuration(),
+						controller.getRacePlan().getPlanParameters());
+			}
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
 			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
 		}

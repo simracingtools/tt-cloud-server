@@ -30,6 +30,7 @@ import java.util.Optional;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
+import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -105,5 +106,15 @@ public class PlanningTools {
 		fuelServiceSeconds10l = config.getServiceDurationSecondsFuel10l();
 		tyreServiceSeconds = config.getServiceDurationSecondsTyres();
 		wsServiceSeconds = config.getServiceDurationSecondsWs();
+	}
+
+	public static void updatePitLaneDurations(Duration approach, Duration depart, RacePlanParameters planParameters) {
+		for (Stint stint : planParameters.getStints()) {
+			Optional<PitStop> pitstop = stint.getPitStop();
+			if (pitstop.isPresent()) {
+				pitstop.get().setApproach(approach);
+				pitstop.get().setDepart(depart);
+			}
+		}
 	}
 }
