@@ -68,10 +68,14 @@ public class StintDriverView {
 
 	public List<PitStopServiceType> getPitService(int index) {
 		List<PitStopServiceType> serviceList = new ArrayList<>();
-		if (index < ws.size()) {
-			if (Boolean.TRUE.equals(ws.get(index))) serviceList.add(PitStopServiceType.WS);
-			if (Boolean.TRUE.equals(fuel.get(index))) serviceList.add(PitStopServiceType.FUEL);
-			if (Boolean.TRUE.equals(tyres.get(index))) serviceList.add(PitStopServiceType.TYRES);
+		if (index < ws.size() && Boolean.TRUE.equals(ws.get(index))) {
+				serviceList.add(PitStopServiceType.WS);
+		}
+		if (index < fuel.size() && Boolean.TRUE.equals(fuel.get(index))) {
+				serviceList.add(PitStopServiceType.FUEL);
+		}
+		if (index < tyres.size() && Boolean.TRUE.equals(tyres.get(index))) {
+				serviceList.add(PitStopServiceType.TYRES);
 		}
 		return serviceList;
 	}

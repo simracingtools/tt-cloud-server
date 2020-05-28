@@ -55,7 +55,7 @@ public class PlanningTools {
 	public static Optional<PitStop> pitstopAt(ZonedDateTime clock, List<Stint> stints) {
 		log.debug("Get pitstop for clock: {}", clock.toString());
 		Stint stint = stintAt(clock, stints);
-		return stint != null ? stint.getPitStop() : Optional.of(PitStop.defaultPitStop());
+		return stint != null ? stint.getPitStop() : Optional.empty();
 	}
 
 	public static Stint stintAt(ZonedDateTime clock, List<Stint> stints) {

@@ -69,12 +69,4 @@ public class PitStop {
 				.plus(calculateServiceDuration(amountRefuel))
 				.plus(depart);
 	}
-
-	public static PitStop defaultPitStop() {
-		return PitStop.builder()
-				.approach(Duration.ofSeconds(10))
-				.service(new ArrayList<>(defaultService))
-				.depart(Duration.ofSeconds(5))
-				.build();
-	}
 }

@@ -238,6 +238,9 @@ public class Roster {
 	}
 
 	public Estimation getDriverEstimationAt(IRacingDriver driver, LocalDateTime todDateTime) {
+		if (driverEstimations == null ) {
+			return null;
+		}
 		List<Estimation> estimationList = driverEstimations.get(driver.getId());
 		if (estimationList == null) {
 			return null;

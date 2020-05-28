@@ -87,7 +87,7 @@ public class TtUser implements UserDetails {
         map.put(ENABLED, enabled);
         map.put(LOCKED, locked);
         map.put(EXPIRED, expired);
-        map.put(TIMEZONE, timezone.toString());
+        map.put(TIMEZONE, timezone != null ? timezone.toString() : null);
         return map;
     }
 

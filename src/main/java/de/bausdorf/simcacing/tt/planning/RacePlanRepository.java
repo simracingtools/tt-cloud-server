@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -129,8 +130,11 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
 
                 List<String> pitService = stringListFromMap(Stint.PITSTOP_SERVICE, stintMap);
                 if( pitService != null && !pitService.isEmpty() ) {
-                    PitStop pitstop = PitStop.defaultPitStop();
-                    pitstop.getService().clear();
+                    PitStop pitstop = PitStop.builder()
+                            .approach(Duration.ofSeconds(10))
+                            .service(new ArrayList<>())
+                            .depart(Duration.ofSeconds(5))
+                            .build();
                     pitService.forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
                     stint.setPitStop(Optional.of(pitstop));
                 }
