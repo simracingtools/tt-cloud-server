@@ -118,7 +118,7 @@ public class RacePlanTest {
 				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
 		);
 
-		List<Stint> stints = plan.calculateStints(
+		List<Stint> stints = plan.calculateLiveStints(
 				START_TIME.plusHours(2).plusMinutes(30),
 				START_TOD.plusHours(2).plusMinutes(30),
 				START_TIME.plusHours(6));
@@ -140,7 +140,7 @@ public class RacePlanTest {
 				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
 		);
 
-		List<Stint> stints = plan.calculateStints(
+		List<Stint> stints = plan.calculateLiveStints(
 				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30),
 				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30).toLocalDateTime(),
 				planParameters.getSessionStartTime().plusHours(6));
@@ -181,7 +181,7 @@ public class RacePlanTest {
 		planParameters.setStints(plan.getCurrentRacePlan());
 
 		assignDrivers();
-		plan.calculateStints();
+		plan.calculateLiveStints();
 		return plan;
 	}
 }

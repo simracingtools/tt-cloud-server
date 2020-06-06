@@ -55,50 +55,37 @@
                     </div>
 
                     <div th:if="${viewMode.equals('time') || viewMode.equals('variation')}" th:fragment="stint-table" class="table-responsive">
-                        <form method="post" th:object="${stintDriverView}"  th:action="@{/updateStintDrivers(viewMode=${viewMode})}">
-                            <input th:field="*{planId}" type="hidden">
-                            <table class="table table-striped">
-                                <thead style="vertical-align: middle;">
-                                <tr class="text-center">
-                                    <th style="vertical-align: middle;">Stint</th>
-                                    <th style="vertical-align: middle;">Driver
-                                        <button class="btn btn-primary" type="submit">
-                                            <i class="far fa-save"></i>
-                                        </button>
-                                    </th>
-                                    <th style="vertical-align: middle;">Start local</th>
-                                    <th style="vertical-align: middle;">Start ToD</th>
-                                    <th style="vertical-align: middle;">Laps</th>
-                                    <th style="vertical-align: middle;">Duration</th>
-                                    <th style="vertical-align: middle;">Pitstop</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="stint, stintStat: ${selectedPlan.getStints()}" class="text-center">
-                                    <td th:text="${stintStat.index + 1}">1</td>
-                                    <td>
-                                        <select th:field="*{stintDrivers[__${stintStat.index}__]}" th:value="*{stintDrivers[__${stintStat.index}__]}" th:style="*{styles[__${stintStat.index}__]}">
-                                            <option th:each="driver, driverStat : ${selectedPlan.getAvailableDrivers(stint.getStartTime())}"
-                                                    th:value="${driver.name}"
-                                                    th:selected="*{stintDrivers[__${stintStat.index}__]} == ${driver.name}"
-                                                    th:text="${driver.name}"
-                                                    th:class="${selectedPlan.getDriverStatusAt(driver.id, stint.getEndTime()).cssClassName()}">Dave</option>
-                                            <option th:selected="*{stintDrivers[__${stintStat.index}__].equals('N.N.')}" value="N.N.">unassigned</option>
-                                        </select>
-                                    </td>
-                                    <td th:text="${stint.getStartTimeString()}">00:04:53</td>
-                                    <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
-                                    <td th:text="${stint.getLaps()}">7</td>
-                                    <td th:text="${stint.getStintDurationString(true)}">01:04:28</td>
-                                    <td>
-                                        <label>F&nbsp;</label><input th:field="*{fuel[__${stintStat.index}__]}" type="checkbox">
-                                        <label>&nbsp;T&nbsp;</label><input th:field="*{tyres[__${stintStat.index}__]}" type="checkbox">
-                                        <label>&nbsp;W&nbsp;</label><input th:field="*{ws[__${stintStat.index}__]}" type="checkbox">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </form>
+                        <input id="selectedPlanId" th:value="${selectedPlan.id}" type="hidden">
+                        <table class="table table-striped">
+                            <thead style="vertical-align: middle;">
+                            <tr class="text-center">
+                                <th style="vertical-align: middle;">Stint</th>
+                                <th style="vertical-align: middle;">Driver</th>
+                                <th style="vertical-align: middle;">Start local</th>
+                                <th style="vertical-align: middle;">Start ToD</th>
+                                <th style="vertical-align: middle;">Laps</th>
+                                <th style="vertical-align: middle;">Duration</th>
+                                <th style="vertical-align: middle;">Pitstop</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="td,tdStat : ${stintTableRows}" th:id="${'stintRow-' + tdStat.index}" class="text-center hidden">
+                                <td th:text="${tdStat.index + 1}">1</td>
+                                <td th:id="${'stintDriver-' + tdStat.index}">
+                                    <select th:id="${'stintDriverSelect-' + tdStat.index}" onchange="sendDriverChange(this);"></select>
+                                </td>
+                                <td th:id="${'stintStartTime-' + tdStat.index}">00:04:53</td>
+                                <td th:id="${'stintStartToD-' + tdStat.index}">00:04:53</td>
+                                <td th:id="${'stintLaps-' + tdStat.index}">7</td>
+                                <td th:id="${'stintDuration-' + tdStat.index}">01:04:28</td>
+                                <td>
+                                    <label>F&nbsp;</label><input th:id="${'pitServiceFuel-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
+                                    <label>&nbsp;T&nbsp;</label><input th:id="${'pitServiceTyres-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
+                                    <label>&nbsp;W&nbsp;</label><input th:id="${'pitServiceWs-' + tdStat.index}" type="checkbox" onchange="sendServiceChange(this);">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -449,7 +436,18 @@
                 </div>
             </div>
         </div>
+        <script src="assets/js/jquery.min.js"></script>
         <script src="assets/js/bs-init.js"></script>
+        <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+        <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+        <script src="/webjars/momentjs/moment.js"></script>
+        <script src="assets/js/planning-client.js"></script>
+        <script>
+            window.onload = function afterPageReload() {
+                connect();
+            }
+        </script>
+
         <!-- End: Team content -->
 
         <div th:insert="index :: footer"></div>

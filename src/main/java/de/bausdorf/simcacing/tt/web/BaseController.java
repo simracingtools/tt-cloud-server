@@ -61,7 +61,7 @@ public class BaseController {
 
     protected TtUser currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Optional<TtUser> details = userService.findById(auth.getName());
+        Optional<TtUser> details = auth != null ? userService.findById(auth.getName()) : Optional.empty();
         return details.isPresent() ? details.get()
                 : TtUser.builder()
                 .name("Unknown")

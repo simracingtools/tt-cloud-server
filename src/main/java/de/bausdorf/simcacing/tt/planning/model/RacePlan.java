@@ -56,7 +56,7 @@ public class RacePlan {
 				.currentRacePlan(params.getStints() == null ? new ArrayList<>() : params.getStints())
 				.build();
 
-		newRacePlan.calculateStints();
+		newRacePlan.calculatePlannedStints();
 		return newRacePlan;
 	}
 
@@ -66,16 +66,58 @@ public class RacePlan {
 				.plusSeconds(sessionTime.toSecondOfDay());
 	}
 
-	public void calculateStints() {
+	public void calculateLiveStints() {
 		ZonedDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
-		currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime);
+		currentRacePlan = calculateLiveStints(raceClock, todClock, sessionEndTime);
 	}
 
-	public List<Stint> calculateStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
-		List<Stint> stints = new ArrayList<>();
+	public void calculatePlannedStints() {
+		ZonedDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
+		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
+		currentRacePlan = calculatePlannedStints(raceClock, todClock, sessionEndTime);
+	}
 
+	public List<Stint> calculatePlannedStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
+		List<Stint> stints = new ArrayList<>();
+		int stintIndex = 0;
+		while( raceClock.isBefore(raceTimeLeft) ) {
+
+			Optional<PitStop> pitStop = Optional.empty();
+			String currentDriver = "unassigned";
+
+			if (planParameters.getStints().size() > stintIndex) {
+				currentDriver = planParameters.getStints().get(stintIndex).getDriverName();
+				pitStop = planParameters.getStints().get(stintIndex).getPitStop();
+			}
+
+			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
+					planParameters.getMaxCarFuel(), pitStop,
+					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
+			stints.add(nextStint);
+
+			raceClock = raceClock.plus(nextStint.getStintDuration(true));
+			todClock = todClock.plus(nextStint.getStintDuration(true));
+			stintIndex++;
+			// Check for last Stint ?
+			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
+				if (planParameters.getStints().size() > stintIndex) {
+					currentDriver = planParameters.getStints().get(stintIndex).getDriverName();
+				}
+				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
+						Duration.between(raceClock, raceTimeLeft),
+						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
+				stints.add(lastStint);
+				break;
+			}
+		}
+		return stints;
+	}
+
+	public List<Stint> calculateLiveStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
+		List<Stint> stints = new ArrayList<>();
 		while( raceClock.isBefore(raceTimeLeft) ) {
 
 			Optional<PitStop> pitStop = PlanningTools.pitstopAt(raceClock, planParameters.getStints());

@@ -21,16 +21,16 @@ package de.bausdorf.simcacing.tt.web.model;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@NoArgsConstructor
 @Data
-@AllArgsConstructor
-@Builder
-public class StintDriverView {
+@ToString
+public class DriverChangeMessage {
+	private String planId;
+	private String selectId;
 	private String driverName;
-	private String driverId;
-	private String colorStyle;
-	private String availableStyle;
 }

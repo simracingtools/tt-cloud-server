@@ -147,7 +147,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 					break;
 				}
 				controller = data.get(sessionKey);
-				controller.setRacePlan(selectRacePlan(sessionData, sessionKey.getTeamId()));
+				controller.setRacePlan(selectRacePlan(sessionData, sessionKey.getTeamId(), controller.getSessionRegistered()));
 				sessionRepository.save(controller);
 				break;
 			default:
@@ -350,7 +350,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 					.sessionId(controller.getSessionData().getSessionId())
 					.build();
 			log.info("Loaded session {}", controller.getSessionData().getSessionId());
-			controller.setRacePlan(selectRacePlan(controller.getSessionData(), controller.getTeamId()));
+			controller.setRacePlan(selectRacePlan(controller.getSessionData(), controller.getTeamId(), controller.getSessionRegistered()));
 			data.put(key, controller);
 		}
 		PlanningTools.configureServiceDuration(config);
@@ -429,7 +429,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		sendEventData(eventData, subscriptionId);
 	}
 
-	private RacePlan selectRacePlan(SessionData sessionData, String teamId) {
+	private RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
 		List<RacePlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
 			planParameters = planRepository.findByFieldValue(RacePlanParameters.TRACK_ID, sessionData.getTrackId());
@@ -448,6 +448,8 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			RacePlanParameters serverZonedRacePlan = new RacePlanParameters(planParameters.get(0), ZoneId.systemDefault());
 			if (config.isShiftSessionStartTimeToNow()) {
 				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
+			} else {
+				serverZonedRacePlan.shiftSessionStartTime(sessionRegisteredTime);
 			}
 			log.info("Using race plan {}", serverZonedRacePlan.getId());
 			return RacePlan.createRacePlanTemplate(serverZonedRacePlan);

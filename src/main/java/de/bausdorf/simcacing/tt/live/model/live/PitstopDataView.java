@@ -94,7 +94,7 @@ public class PitstopDataView {
 			sessionToD = LocalDateTime.of(sessionToD.toLocalDate(), runData.getSessionToD());
 		}
 		List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
-				controller.getRacePlan().calculateStints(from, sessionToD, from.plus(controller.getRemainingSessionTime()));
+				controller.getRacePlan().calculateLiveStints(from, sessionToD, from.plus(controller.getRemainingSessionTime()));
 		controller.getRacePlan().setCurrentRacePlan(stints);
 		for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
 			clock.lapCount += stint.getLaps();

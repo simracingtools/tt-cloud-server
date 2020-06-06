@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.impl;
+package de.bausdorf.simcacing.tt.web.security;
 
 /*-
  * #%L
@@ -34,7 +34,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/live");
+        config.enableSimpleBroker("/live", "/plan");
         config.setApplicationDestinationPrefixes("/app");
     }
 
@@ -42,5 +42,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/liveclient");
         registry.addEndpoint("/liveclient").withSockJS();
+        registry.addEndpoint("/planclient");
+        registry.addEndpoint("/planclient").withSockJS();
     }
 }

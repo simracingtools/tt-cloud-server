@@ -30,6 +30,7 @@ import java.util.Optional;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
+import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
@@ -116,5 +117,11 @@ public class PlanningTools {
 				pitstop.get().setDepart(depart);
 			}
 		}
+	}
+
+	public static void recalculateStints(RacePlanParameters parameters) {
+		RacePlan plan = RacePlan.createRacePlanTemplate(parameters);
+		plan.calculatePlannedStints();
+		parameters.setStints(plan.getCurrentRacePlan());
 	}
 }
