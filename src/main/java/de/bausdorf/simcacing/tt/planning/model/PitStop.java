@@ -59,4 +59,9 @@ public class PitStop {
 				.plus(calculateServiceDuration(amountRefuel))
 				.plus(depart);
 	}
+
+	public void updatePitLaneDuration(Duration pitLaneDuration) {
+		approach = pitLaneDuration.dividedBy(2L);
+		depart = pitLaneDuration.dividedBy(2L);
+	}
 }

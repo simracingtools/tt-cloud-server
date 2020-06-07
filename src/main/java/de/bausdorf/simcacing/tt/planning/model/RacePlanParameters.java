@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.planning.model;
  * #L%
  */
 
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
@@ -336,6 +337,7 @@ public class RacePlanParameters {
 		}
 		if (update.getAvgPitLaneTime() != null) {
 			avgPitLaneTime = update.getAvgPitLaneTime();
+			PlanningTools.updatePitLaneDurations(avgPitLaneTime.dividedBy(2L), avgPitLaneTime.dividedBy(2L), this);
 		}
 		if (update.getCarId() != null) {
 			carId = update.getCarId();

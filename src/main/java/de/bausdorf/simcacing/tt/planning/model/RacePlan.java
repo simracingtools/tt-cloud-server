@@ -97,6 +97,10 @@ public class RacePlan {
 			if (planParameters.getStints().size() > stintIndex) {
 				currentDriver = planParameters.getStints().get(stintIndex).getDriverName();
 				pitStop = planParameters.getStints().get(stintIndex).getPitStop();
+				if(pitStop.isPresent() && Duration.ZERO.equals(pitStop.get().getApproach())
+						&& Duration.ZERO.equals(pitStop.get().getDepart())) {
+					pitStop.get().updatePitLaneDuration(planParameters.getAvgPitLaneTime());
+				}
 			}
 
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
