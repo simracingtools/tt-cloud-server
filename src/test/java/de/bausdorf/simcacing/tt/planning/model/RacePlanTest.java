@@ -51,7 +51,7 @@ public class RacePlanTest {
 				.avgFuelPerLap(16.8)
 				.maxCarFuel(115.5)
 				.avgLapTime(Duration.ofMinutes(8).plusSeconds(45))
-				.avgPitStopTime(Duration.ofMinutes(1))
+				.avgPitLaneTime(Duration.ofMinutes(1))
 				.carId("55")
 				.id("47110815")
 				.name("Testplan")

@@ -141,7 +141,7 @@ public class RacePlanController extends BaseController {
 				.todStartTime(planView.getTodStartTime() == null ? planView.getStartTime() : planView.getTodStartTime())
 				.raceDuration(planView.getRaceDuration())
 				.name(planView.getPlanName())
-				.avgPitStopTime(Duration.ofMinutes(1))
+				.avgPitLaneTime(Duration.ofMinutes(1))
 				.avgLapTime(TimeTools.durationFromString(track.get().getNominalLapTime()))
 				.maxCarFuel(car.get().getMaxFuel())
 				.avgFuelPerLap(0.0D)

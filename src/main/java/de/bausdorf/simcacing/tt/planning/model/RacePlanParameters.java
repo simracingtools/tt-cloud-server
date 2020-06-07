@@ -81,7 +81,7 @@ public class RacePlanParameters {
 	private LocalDateTime todStartTime;
 	private LocalTime greenFlagOffsetTime;
 	private Duration avgLapTime;
-	private Duration avgPitStopTime;
+	private Duration avgPitLaneTime;
 	private Double avgFuelPerLap;
 	private Double maxCarFuel;
 	private List<Stint> stints;
@@ -98,7 +98,7 @@ public class RacePlanParameters {
 		this.todStartTime = other.todStartTime;
 		this.greenFlagOffsetTime = other.greenFlagOffsetTime;
 		this.avgLapTime = other.avgLapTime;
-		this.avgPitStopTime = other.avgPitStopTime;
+		this.avgPitLaneTime = other.avgPitLaneTime;
 		this.avgFuelPerLap = other.avgFuelPerLap;
 		this.maxCarFuel = other.maxCarFuel;
 		this.stints = new ArrayList<>();
@@ -126,7 +126,7 @@ public class RacePlanParameters {
 		map.put(RACE_DURATION, raceDuration.toString());
 		map.put(SESSION_START_TIME, sessionStartTime.toString());
 		map.put(AGV_LAP_TIME, avgLapTime.toString());
-		map.put(AVG_PIT_STOP_TIME, avgPitStopTime.toString());
+		map.put(AVG_PIT_STOP_TIME, avgPitLaneTime.toString());
 		map.put(AVG_FUEL_PER_LAP, avgFuelPerLap);
 		map.put(MAX_CAR_FUEL, maxCarFuel);
 		map.put(TOD_START_TIME, todStartTime.toString());
@@ -334,8 +334,8 @@ public class RacePlanParameters {
 		if (update.getTodStartTime() != null) {
 			todStartTime = update.getTodStartTime();
 		}
-		if (update.getAvgPitStopTime() != null) {
-			avgPitStopTime = update.getAvgPitStopTime();
+		if (update.getAvgPitLaneTime() != null) {
+			avgPitLaneTime = update.getAvgPitLaneTime();
 		}
 		if (update.getCarId() != null) {
 			carId = update.getCarId();

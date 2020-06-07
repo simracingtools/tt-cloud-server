@@ -39,5 +39,4 @@ public class Assumption {
     private Optional<Double> avgFuelPerLap;
     private double carFuel;
     private Optional<Duration> avgLapTime;
-    private Optional<Duration> avgPitStopTime;
 }

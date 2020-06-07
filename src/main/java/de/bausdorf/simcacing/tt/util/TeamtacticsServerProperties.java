@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component;
 @Data
 public class TeamtacticsServerProperties {
     private String version;
-    private String assumptionResource;
     private String userCollectionName;
     private Long driverRepositoryCacheMinutes;
     private Long teamRepositoryCacheMinutes;

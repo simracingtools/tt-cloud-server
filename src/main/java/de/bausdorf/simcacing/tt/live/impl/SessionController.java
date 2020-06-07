@@ -462,7 +462,6 @@ public class SessionController {
 				.avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))
 				.avgLapTime(Optional.ofNullable(estimation == null ? null : estimation.getAvgLapTime()))
 				.carFuel(racePlan == null ? 0.0D : racePlan.getPlanParameters().getMaxCarFuel())
-				.avgPitStopTime(Optional.ofNullable(racePlan == null ? null : racePlan.getPlanParameters().getAvgPitStopTime()))
 				.build();
 	}
 

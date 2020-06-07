@@ -23,7 +23,6 @@ package de.bausdorf.simcacing.tt.planning.model;
  */
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
@@ -35,15 +34,6 @@ import lombok.Data;
 @AllArgsConstructor
 @Builder
 public class PitStop {
-
-	protected static final List<PitStopServiceType> defaultService;
-
-	static {
-		defaultService = new ArrayList<>();
-		defaultService.add(PitStopServiceType.FUEL);
-		defaultService.add(PitStopServiceType.TYRES);
-		defaultService.add(PitStopServiceType.WS);
-	}
 
 	private List<PitStopServiceType> service;
 	private Duration approach;

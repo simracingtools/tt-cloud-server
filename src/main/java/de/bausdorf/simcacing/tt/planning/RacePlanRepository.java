@@ -74,7 +74,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .carId(stringFromMap(RacePlanParameters.CAR_ID, data))
                 .avgFuelPerLap(doubleFromMap(RacePlanParameters.AVG_FUEL_PER_LAP, data))
                 .avgLapTime(durationFromMap(RacePlanParameters.AGV_LAP_TIME, data))
-                .avgPitStopTime(durationFromMap(RacePlanParameters.AVG_PIT_STOP_TIME, data))
+                .avgPitLaneTime(durationFromMap(RacePlanParameters.AVG_PIT_STOP_TIME, data))
                 .maxCarFuel(doubleFromMap(RacePlanParameters.MAX_CAR_FUEL, data))
                 .greenFlagOffsetTime(timeFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
                 .todStartTime(dateTimeFromMap(RacePlanParameters.TOD_START_TIME, data))
