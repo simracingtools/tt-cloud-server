@@ -61,7 +61,8 @@
                                 </select>
                             </div>
                             <div class="form-group text-center">
-                                <label>5. Race date and time</label>
+                                <label>5. Race date and time&nbsp;</label>
+                                <i data-toggle="tooltip" class="far fa-question-circle" title="Format depends on your locale.&#010;Use Chrome/Chromium for best experience.&#010;Firefox currently does not support HTML5 datetime fields." style="color: rgb(0,123,255);"></i>
                                 <input th:field="*{startTime}" class="form-control" type="datetime-local" required="">
                             </div>
                         </div>
@@ -77,7 +78,8 @@
                                 <input th:field="*{raceDuration}" class="form-control" type="text" placeholder="00:00" required="" pattern="^(?:(?:([0-9]?\d|2[0-9]):)?([0-5]?\d)$">
                             </div>
                             <div class="form-group text-center">
-                                <label>6. Simulated date and time</label>
+                                <label>6. Simulated date and time&nbsp;</label>
+                                <i data-toggle="tooltip" class="far fa-question-circle" title="Format depends on your locale.&#010;Use Chrome/Chromium for best experience.&#010;Firefox currently does not support HTML5 datetime fields." style="color: rgb(0,123,255);"></i>
                                 <input th:field="*{todStartTime}" class="form-control" type="datetime-local">
                             </div>
                         </div>
