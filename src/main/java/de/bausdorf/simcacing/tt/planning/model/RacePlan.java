@@ -77,7 +77,9 @@ public class RacePlan {
 		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
-		currentRacePlan = calculatePlannedStints(raceClock, todClock, sessionEndTime);
+		if (!Duration.ZERO.equals(planParameters.getAvgLapTime())) {
+			currentRacePlan = calculatePlannedStints(raceClock, todClock, sessionEndTime);
+		}
 	}
 
 	public List<Stint> calculatePlannedStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
@@ -85,7 +87,11 @@ public class RacePlan {
 		int stintIndex = 0;
 		while( raceClock.isBefore(raceTimeLeft) ) {
 
-			Optional<PitStop> pitStop = Optional.empty();
+			Optional<PitStop> pitStop = Optional.of(PitStop.builder()
+					.depart(planParameters.getAvgPitLaneTime().dividedBy(2L))
+					.approach(planParameters.getAvgPitLaneTime().dividedBy(2L))
+					.service(Arrays.asList(PitStopServiceType.WS, PitStopServiceType.FUEL, PitStopServiceType.TYRES))
+					.build());
 			String currentDriver = "unassigned";
 
 			if (planParameters.getStints().size() > stintIndex) {

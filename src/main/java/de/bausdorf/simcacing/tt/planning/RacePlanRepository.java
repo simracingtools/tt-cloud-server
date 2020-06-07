@@ -27,7 +27,6 @@ import static de.bausdorf.simcacing.tt.util.MapTools.doubleFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.durationFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.stringFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.stringListFromMap;
-import static de.bausdorf.simcacing.tt.util.MapTools.timeFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.zonedDateTimeFromMap;
 
 import de.bausdorf.simcacing.tt.planning.model.PitStop;
@@ -64,7 +63,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         if( data == null) {
             return null;
         }
-        return RacePlanParameters.builder()
+        RacePlanParameters planParameters = RacePlanParameters.builder()
                 .id(stringFromMap(RacePlanParameters.ID, data))
                 .name(stringFromMap(RacePlanParameters.NAME, data))
                 .raceDuration(durationFromMap(RacePlanParameters.RACE_DURATION, data))
@@ -81,6 +80,11 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .stints(stintsFromMap(data))
                 .roster(new Roster((Map<String, Object>)data.get(RacePlanParameters.ROSTER)))
                 .build();
+
+        PlanningTools.updatePitLaneDurations(planParameters.getAvgPitLaneTime().dividedBy(2L),
+                planParameters.getAvgPitLaneTime().dividedBy(2L), planParameters);
+
+        return planParameters;
     }
 
     @Override
@@ -131,9 +135,9 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 List<String> pitService = stringListFromMap(Stint.PITSTOP_SERVICE, stintMap);
                 if( pitService != null && !pitService.isEmpty() ) {
                     PitStop pitstop = PitStop.builder()
-                            .approach(Duration.ofSeconds(10))
+                            .approach(Duration.ZERO)
+                            .depart(Duration.ZERO)
                             .service(new ArrayList<>())
-                            .depart(Duration.ofSeconds(5))
                             .build();
                     pitService.forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
                     stint.setPitStop(Optional.of(pitstop));
