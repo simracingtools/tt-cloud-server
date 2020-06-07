@@ -153,13 +153,13 @@ public class Roster {
 	}
 
 	public void addDriver(IRacingDriver driver) {
-		if (!drivers.contains(driver)) {
+		if (!containsDriverId(driver)) {
 			drivers.add(driver);
 		}
 	}
 
 	public void removeDriver(IRacingDriver driver) {
-		if (!drivers.contains(driver)) {
+		if (!containsDriverId(driver)) {
 			return;
 		}
 		drivers.remove(driver);
@@ -303,6 +303,15 @@ public class Roster {
 			}
 		}
 		return null;
+	}
+
+	private boolean containsDriverId(IRacingDriver driver) {
+		for (IRacingDriver existingDriver : drivers) {
+			if (existingDriver.getId().equalsIgnoreCase(driver.getId())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private List<ScheduleEntry> sortScheduleEntries(List<ScheduleEntry> schedule) {

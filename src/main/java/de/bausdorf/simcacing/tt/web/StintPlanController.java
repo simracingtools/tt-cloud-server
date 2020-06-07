@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.security;
+package de.bausdorf.simcacing.tt.web;
 
 /*-
  * #%L
@@ -155,7 +155,7 @@ public class StintPlanController {
 					.startToD(stint.getTodStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
 					.laps(Integer.toUnsignedString(stint.getLaps()))
 					.duration(TimeTools.shortDurationString(stint.getStintDuration(true)))
-					.availableDrivers(racePlanParameters.getAvailableDrivers(stint.getEndTime()).stream()
+					.availableDrivers(racePlanParameters.getAvailableDrivers(stint).stream()
 							.map(s -> StintDriverView.builder()
 									.driverName(s.getName())
 									.driverId(s.getId())

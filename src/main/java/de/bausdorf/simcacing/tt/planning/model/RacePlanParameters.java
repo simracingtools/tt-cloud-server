@@ -171,9 +171,11 @@ public class RacePlanParameters {
 		return null;
 	}
 
-	public List<IRacingDriver> getAvailableDrivers(ZonedDateTime forTime) {
+	public List<IRacingDriver> getAvailableDrivers(Stint stint) {
 		if (roster != null ) {
-			return roster.getAvailableDrivers(forTime);
+			return roster.getAvailableDrivers(stint.getStartTime()).stream()
+					.filter(s -> roster.getDriverStatusAt(s.getId(), stint.getEndTime()) != ScheduleDriverOptionType.BLOCKED)
+					.collect(Collectors.toList());
 		}
 		return Collections.singletonList(NN_DRIVER);
 	}
