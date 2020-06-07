@@ -62,19 +62,19 @@ public class RacePlan {
 
 	public LocalDateTime getTodRaceTime(LocalTime sessionTime) {
 		return planParameters.getTodStartTime()
-				.plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay())
+				.plus(planParameters.getGreenFlagOffsetTime())
 				.plusSeconds(sessionTime.toSecondOfDay());
 	}
 
 	public void calculateLiveStints() {
-		ZonedDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		currentRacePlan = calculateLiveStints(raceClock, todClock, sessionEndTime);
 	}
 
 	public void calculatePlannedStints() {
-		ZonedDateTime raceClock = planParameters.getSessionStartTime().plusSeconds(planParameters.getGreenFlagOffsetTime().toSecondOfDay());
+		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
 		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		currentRacePlan = calculatePlannedStints(raceClock, todClock, sessionEndTime);

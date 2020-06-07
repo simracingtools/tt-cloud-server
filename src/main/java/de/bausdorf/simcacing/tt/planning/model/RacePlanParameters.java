@@ -79,7 +79,7 @@ public class RacePlanParameters {
 	private Duration raceDuration;
 	private ZonedDateTime sessionStartTime;
 	private LocalDateTime todStartTime;
-	private LocalTime greenFlagOffsetTime;
+	private Duration greenFlagOffsetTime;
 	private Duration avgLapTime;
 	private Duration avgPitLaneTime;
 	private Double avgFuelPerLap;

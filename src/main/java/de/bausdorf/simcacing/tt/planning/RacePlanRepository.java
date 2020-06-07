@@ -76,7 +76,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .avgLapTime(durationFromMap(RacePlanParameters.AGV_LAP_TIME, data))
                 .avgPitLaneTime(durationFromMap(RacePlanParameters.AVG_PIT_STOP_TIME, data))
                 .maxCarFuel(doubleFromMap(RacePlanParameters.MAX_CAR_FUEL, data))
-                .greenFlagOffsetTime(timeFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
+                .greenFlagOffsetTime(durationFromMap(RacePlanParameters.GREEN_FLAG_OFFSET_TIME, data))
                 .todStartTime(dateTimeFromMap(RacePlanParameters.TOD_START_TIME, data))
                 .stints(stintsFromMap(data))
                 .roster(new Roster((Map<String, Object>)data.get(RacePlanParameters.ROSTER)))

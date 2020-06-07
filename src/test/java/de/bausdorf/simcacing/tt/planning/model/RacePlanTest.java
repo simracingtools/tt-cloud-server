@@ -57,7 +57,7 @@ public class RacePlanTest {
 				.name("Testplan")
 				.raceDuration(Duration.ofHours(6))
 				.sessionStartTime(START_TIME)
-				.greenFlagOffsetTime(LocalTime.MIN)
+				.greenFlagOffsetTime(Duration.ZERO)
 				.todStartTime(START_TOD)
 				.teamId("4711")
 				.trackId("252")

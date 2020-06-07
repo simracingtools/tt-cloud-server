@@ -145,7 +145,7 @@ public class RacePlanController extends BaseController {
 				.avgLapTime(TimeTools.durationFromString(track.get().getNominalLapTime()))
 				.maxCarFuel(car.get().getMaxFuel())
 				.avgFuelPerLap(0.0D)
-				.greenFlagOffsetTime(LocalTime.MIN)
+				.greenFlagOffsetTime(Duration.ZERO)
 				.stints(new ArrayList<>())
 				.roster(new Roster())
 				.build();
