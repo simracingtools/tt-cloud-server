@@ -22,12 +22,15 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.web.model.UserProfileView;
+
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,27 +47,33 @@ public class UserContentController extends BaseController {
     public static final String PROFILE_VIEW = "profile";
 
     @GetMapping("/acknewuser")
+    @Secured({ "ROLE_TT_NEW"})
     public String showUserAck() {
         return "acknewuser";
     }
 
     @PostMapping("/acknewuser")
+    @Secured({ "ROLE_TT_NEW"})
     public String showProfileAfterAck() {
         return PROFILE_VIEW;
     }
 
     @GetMapping("/profile")
-    public String showUserProfile() {
+    @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
+    public String showUserProfile(Principal principal) {
+
         return PROFILE_VIEW;
     }
 
     @PostMapping("/profile")
+    @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String saveUserProfile(@ModelAttribute UserProfileView user, Model model) {
         saveUser(user, model);
         return PROFILE_VIEW;
     }
 
     @PostMapping("/saveuser")
+    @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String saveUser(@ModelAttribute UserProfileView profileView, Model model) {
         if( profileView.getUserType().equalsIgnoreCase(TtUserType.TT_NEW.toText()) ) {
             profileView.setUserType(TtUserType.TT_REGISTERED.toText());

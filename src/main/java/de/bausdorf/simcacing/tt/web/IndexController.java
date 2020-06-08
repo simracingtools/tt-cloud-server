@@ -44,6 +44,7 @@ import de.bausdorf.simcacing.tt.web.model.SessionView;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,11 +79,15 @@ public class IndexController extends BaseController {
     }
 
     @GetMapping({"/", "/index", "index.html"})
-    public String index() {
+    public String index(@RequestParam Optional<String> error, @RequestParam Optional<String> warning, Model model) {
+
+        error.ifPresent(s -> addError(s, model));
+        warning.ifPresent(s -> addWarning(s, model));
         return INDEX_VIEW;
     }
 
     @GetMapping({"/setup"})
+    @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String setup(Model model) {
 
         Map<String, Object> json = restTemplate.getForObject("https://api.github.com/repos/simracingtools/teamtactics/releases/latest", Map.class);
@@ -97,6 +102,7 @@ public class IndexController extends BaseController {
     }
 
     @GetMapping("/racing")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String getLive(@RequestParam("subscriptionId") Optional<String> subscriptionId,
             @RequestParam Optional<String> planId, Model model) {
         if (!subscriptionId.isPresent()) {
@@ -115,6 +121,7 @@ public class IndexController extends BaseController {
     }
 
     @PostMapping("/racing")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String postLive(@ModelAttribute("SessionView") SessionView sessionView, Model model) {
         if (sessionView != null) {
             return "redirect:racing?subscriptionId=" + sessionView.getSelectedSession()

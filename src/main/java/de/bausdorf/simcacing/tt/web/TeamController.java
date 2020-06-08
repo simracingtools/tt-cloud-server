@@ -28,6 +28,7 @@ import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.web.model.NewDriver;
 import de.bausdorf.simcacing.tt.web.model.TeamView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,6 +57,7 @@ public class TeamController extends BaseController {
     }
 
     @GetMapping("/teams")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String teamsOverview(@RequestParam("teamId") Optional<String> teamId, Model model) {
         if( teamId.isPresent() ) {
             Optional<IRacingTeam> repoTeam = teamRepository.findById(teamId.get());
@@ -76,6 +78,7 @@ public class TeamController extends BaseController {
     }
 
     @PostMapping("/teams")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String saveTeam(@ModelAttribute(SELECTED_TEAM) TeamView resultTeam, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(resultTeam.getId());
         if( existingTeam.isPresent() ) {
@@ -108,6 +111,7 @@ public class TeamController extends BaseController {
     }
 
     @GetMapping("/deleteTeam")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String deleteTeam(@RequestParam String teamId, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
         if( !existingTeam.isPresent() ) {
@@ -125,6 +129,7 @@ public class TeamController extends BaseController {
     }
 
     @GetMapping("/removeTeamMember")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String removeTeamMember(@RequestParam String teamId, @RequestParam String teamMemberId, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
         if( !existingTeam.isPresent() ) {
@@ -146,6 +151,7 @@ public class TeamController extends BaseController {
     }
 
     @PostMapping("/newDriver")
+    @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String addNewDriver(@ModelAttribute("newDriver") NewDriver newDriver, Model model) {
         Optional<IRacingDriver> existingDriver = driverRepository.findById(newDriver.getId());
         if( !existingDriver.isPresent() ) {

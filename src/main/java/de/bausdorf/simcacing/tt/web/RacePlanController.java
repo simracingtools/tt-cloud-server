@@ -51,6 +51,7 @@ import de.bausdorf.simcacing.tt.web.model.TeamScheduleView;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -105,12 +106,14 @@ public class RacePlanController extends BaseController {
 	}
 
 	@GetMapping("/newraceplan")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String viewNewRacePlan(Model model) {
 		prepareNewRacePlanView(model);
 		return NEWRACEPLAN_VIEW;
 	}
 
 	@PostMapping("/newraceplan")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String createNewRacePlan(@ModelAttribute PlanParametersView planView, Model model) {
 		if (planView.getId() != null) {
 			return doPlanning(planView, Optional.of("time"), Optional.empty(), model);
@@ -158,6 +161,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@GetMapping("/planning")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String doPlanning(@ModelAttribute(SELECTED_PLAN) PlanParametersView planView,
 			@RequestParam(VIEW_MODE) Optional<String> mode,
 			@RequestParam("planId") Optional<String> planId,
@@ -181,6 +185,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@GetMapping("/deleteplan")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String deleteRacePlan(@RequestParam("planId") String planId, Model model) {
 		try {
 			planRepository.delete(planId);
@@ -193,6 +198,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@PostMapping("/planning")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String updatePlanning(@ModelAttribute(SELECTED_PLAN) RacePlanParameters viewPlanParameters,
 			@ModelAttribute(TEAM_SCHEDULE) TeamScheduleView teamScheduleView,
 			@RequestParam(VIEW_MODE) Optional<String> mode,
@@ -217,6 +223,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@PostMapping("/updateSchedule")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String updateSchedule(@ModelAttribute(TEAM_SCHEDULE) TeamScheduleView teamScheduleView,
 			@RequestParam(VIEW_MODE) Optional<String> mode,
 			Model model) {
@@ -237,6 +244,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@PostMapping("/updateEstimations")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String updateEstimations(@ModelAttribute(TEAM_ESTIMATIONS) TeamEstimationView teamEstimationView,
 			@RequestParam(VIEW_MODE) Optional<String> mode,
 			Model model) {
@@ -257,6 +265,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@GetMapping("/deleteScheduleEntry")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String deleteScheduleEntry(@RequestParam("driverId") String driverId,
 			@RequestParam("viewMode") Optional<String> viewMode,
 			@RequestParam("timeslot") String timeslot,
@@ -292,6 +301,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@GetMapping("/deleteEstimationEntry")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String deleteEstimationEntry(@RequestParam("driverId") String driverId,
 			@RequestParam("viewMode") Optional<String> viewMode,
 			@RequestParam("timeslot") String timeslot,
@@ -325,6 +335,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@PostMapping("/addScheduleEntry")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String addScheduleEntry(@RequestParam(VIEW_MODE) Optional<String> viewMode,
 			@ModelAttribute(NEW_SCHEDULE_ENTRY) NewScheduleEntryView newScheduleEntryView,
 			Model model) {
@@ -358,6 +369,7 @@ public class RacePlanController extends BaseController {
 	}
 
 	@PostMapping("/addEstimationEntry")
+	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String addEstimationEntry(@RequestParam(VIEW_MODE) Optional<String> viewMode,
 			@ModelAttribute(NEW_ESTIMATION_ENTRY) NewEstimationEntryView newEstimationEntryView,
 			Model model) {

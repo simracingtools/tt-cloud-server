@@ -22,30 +22,43 @@ package de.bausdorf.simcacing.tt.web.security;
  * #L%
  */
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	private GoogleUserService userService;
-//	private ClientRegistrationRepository registrationRepository;
+	public static final String ROLE_PREFIX = "ROLE_";
+
+	private final GoogleUserService userService;
+	private final TtClientRegistrationRepository registrationRepository;
 
 	public WebSecurityConfig(@Autowired GoogleUserService userService,
-			@Autowired	ClientRegistrationRepository registrationRepository) {
+			@Autowired	TtClientRegistrationRepository registrationRepository) {
 		super(false);
 		this.userService = userService;
-//		this.registrationRepository = registrationRepository;
+		this.registrationRepository = registrationRepository;
 	}
 
 	@Override
-	public void configure(WebSecurity web) throws Exception {
+	public void configure(WebSecurity web) {
 		web.ignoring().antMatchers("/clientmessage", "/_ah/**", "/live/**", "/plan/**", "/app/**", "/liveclient", "/planclient");
 	}
 
@@ -67,8 +80,45 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //								registrationRepository))
 				.and()
 				.userInfoEndpoint()
-				.oidcUserService(userService);
+					.userAuthoritiesMapper(this.userAuthoritiesMapper())
+				.oidcUserService(userService)
+				.and()
+				.and()
+				.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
+
 
 	}
 
+	@Bean
+	public AccessDeniedHandler accessDeniedHandler() {
+		return new TtAccessDeniedHandler();
+	}
+
+	private GrantedAuthoritiesMapper userAuthoritiesMapper() {
+		return authorities -> {
+			Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+
+			authorities.forEach(authority -> {
+				if (authority instanceof OidcUserAuthority) {
+					OidcUserAuthority oidcUserAuthority = (OidcUserAuthority)authority;
+
+					TtUser ttUser = registrationRepository.findById(oidcUserAuthority.getIdToken().getSubject()).orElse(null);
+					if (ttUser != null){
+						String roleName = ROLE_PREFIX + ttUser.getUserType().name();
+						mappedAuthorities.add(new SimpleGrantedAuthority(roleName));
+					}
+				} else if (authority instanceof OAuth2UserAuthority) {
+					OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority)authority;
+
+					TtUser ttUser = registrationRepository.findById(oauth2UserAuthority.getAttributes().get("sub").toString()).orElse(null);
+					if (ttUser != null){
+						String roleName = ROLE_PREFIX + ttUser.getUserType().name();
+						mappedAuthorities.add(new SimpleGrantedAuthority(roleName));
+					}
+				}
+			});
+
+			return mappedAuthorities;
+		};
+	}
 }

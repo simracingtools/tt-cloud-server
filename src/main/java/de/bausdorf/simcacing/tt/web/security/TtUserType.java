@@ -28,12 +28,12 @@ public enum TtUserType implements GrantedAuthority {
     TT_SYSADMIN("Sysadmin"),
     TT_TEAMADMIN("Team admin"),
     TT_MEMBER("Member"),
-    TT_REGISTERED("Registered"),
+    TT_REGISTERED("Registered user"),
     TT_NEW("New user");
 
     private String name;
 
-    private TtUserType(String name) {
+    TtUserType(String name) {
         this.name = name;
     }
 
