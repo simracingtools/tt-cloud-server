@@ -19,9 +19,20 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-// $(document).ready(function(){
-// 	$('[data-bs-tooltip]').tooltip();
-// });
+
+function saveUser(index) {
+	var url = '/savesiteuser?userId=' + $("#userId-" + index).val()
+			+ '&role=' + $("#role-" + index).val()
+			+ '&enabled=' + $("#enabled-" + index).prop('checked')
+			+ '&locked=' + $("#locked-" + index).prop('checked')
+			+ '&expired=' + $("#expired-" + index).prop('checked');
+
+	window.location = url;
+}
+
+function confirmUserRemove(index) {
+	$("#user-remove-confirm-" + index).modal('show');
+}
 
 function confirmMemberRemove(index) {
 	$("#member-remove-confirm-" + index).modal('show');

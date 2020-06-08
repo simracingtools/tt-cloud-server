@@ -31,7 +31,9 @@ import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 
 import lombok.extern.slf4j.Slf4j;
@@ -104,6 +106,21 @@ public abstract class SimpleRepository<T> {
 		List<T> objectList = new ArrayList<>();
 		if (fieldName != null && fieldValue != null) {
 			List<QueryDocumentSnapshot> list = firestore.findByArrayContains(collectionName, fieldName, fieldValue);
+			for (QueryDocumentSnapshot docSnap : list) {
+				objectList.add(fromMap(docSnap.getData()));
+			}
+		}
+		return objectList;
+	}
+
+	public CollectionReference getCollectionReference(String collectionName) {
+		return firestore.getCollectionReference(collectionName);
+	}
+
+	public List<T> findByQuery(Query query) {
+		List<T> objectList = new ArrayList<>();
+		if (query != null) {
+			List<QueryDocumentSnapshot> list = firestore.findByQuery(query);
 			for (QueryDocumentSnapshot docSnap : list) {
 				objectList.add(fromMap(docSnap.getData()));
 			}

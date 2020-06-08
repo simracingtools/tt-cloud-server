@@ -25,6 +25,7 @@ package de.bausdorf.simcacing.tt.web.security;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
+import de.bausdorf.simcacing.tt.web.model.SearchView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.Query;
 
 @Component
 @Slf4j
@@ -74,6 +79,35 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
     public List<TtUser> findByUserEmail(String email) {
         return super.findByFieldValue(userCollectionName,
                 "email", email);
+    }
+
+    public List<TtUser> findBySearchView(SearchView searchView) {
+        CollectionReference colRef = super.getCollectionReference(userCollectionName);
+        Query query = colRef.limit(100);
+        if (!searchView.getUserRole().equalsIgnoreCase("*")) {
+            query = query.whereEqualTo("userType", searchView.getUserRole());
+        }
+        if (searchView.isEnabled()) {
+            query = query.whereEqualTo("enabled", true);
+        }
+        if (searchView.isExpired()) {
+            query = query.whereEqualTo("expired", true);
+        }
+        if (searchView.isLocked()) {
+            query = query.whereEqualTo("locked", true);
+        }
+        List<TtUser> users = super.findByQuery(query);
+        if (!searchView.getUserName().isEmpty()) {
+            users = users.stream()
+                    .filter(s -> s.getName().toLowerCase().contains(searchView.getUserName().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        if (!searchView.getEmail().isEmpty()) {
+            users = users.stream()
+                    .filter(s -> s.getEmail().toLowerCase().contains(searchView.getEmail().toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        return users;
     }
 
     public void save(TtUser user) {

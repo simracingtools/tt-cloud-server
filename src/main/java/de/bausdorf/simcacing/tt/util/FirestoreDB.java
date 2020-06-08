@@ -91,6 +91,22 @@ public class FirestoreDB {
         }
     }
 
+    public CollectionReference getCollectionReference(String collectionName) {
+        return firestore.collection(collectionName);
+    }
+
+    public List<QueryDocumentSnapshot> findByQuery(Query query) {
+        ApiFuture<QuerySnapshot> future = query.get();
+        try {
+            return future.get().getDocuments();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FirestoreException(e.getMessage(), e);
+        } catch (ExecutionException e) {
+            throw new FirestoreException(e.getMessage(), e);
+        }
+    }
+
     public Timestamp updateDocument(String collectionName, String documentName, Map<String, Object> updates) {
         ApiFuture<WriteResult> future = firestore.collection(collectionName).document(documentName).update(updates);
         try {

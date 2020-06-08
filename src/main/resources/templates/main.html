@@ -32,6 +32,9 @@
         <a class="d-block" href="/teams">
           <button class="btn btn-primary" type="button" style="margin-top: 10px;">Manage Teams</button>
         </a>
+        <a th:if="${user.userType == 'Sysadmin'}" class="d-block" href="/admin">
+          <button class="btn btn-danger" type="button" style="margin-top: 10px;">Manage Users</button>
+        </a>
         <div class="clearfix"></div>
         <form method="post" th:object="${sessionView}" th:action="@{/racing}" class="border rounded" style="padding: 5px;margin-top: 10px;">
           <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
