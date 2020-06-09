@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,17 +38,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
+import de.bausdorf.simcacing.tt.web.security.WebSecurityConfig;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 public class UserContentController extends BaseController {
 
 
     public static final String PROFILE_VIEW = "profile";
+    public static final String ACKNEWUSER_VIEW = "acknewuser";
 
     @GetMapping("/acknewuser")
     @Secured({ "ROLE_TT_NEW"})
     public String showUserAck() {
-        return "acknewuser";
+        return ACKNEWUSER_VIEW;
     }
 
     @PostMapping("/acknewuser")
@@ -60,7 +63,7 @@ public class UserContentController extends BaseController {
 
     @GetMapping("/profile")
     @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
-    public String showUserProfile(Principal principal) {
+    public String showUserProfile() {
 
         return PROFILE_VIEW;
     }
@@ -73,10 +76,11 @@ public class UserContentController extends BaseController {
     }
 
     @PostMapping("/saveuser")
-    @Secured({ "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
+    @Secured({ "ROLE_TT_NEW", "ROLE_TT_REGISTERED", "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String saveUser(@ModelAttribute UserProfileView profileView, Model model) {
         if( profileView.getUserType().equalsIgnoreCase(TtUserType.TT_NEW.toText()) ) {
             profileView.setUserType(TtUserType.TT_REGISTERED.toText());
+            WebSecurityConfig.updateCurrentUserRole(TtUserType.TT_REGISTERED);
         }
 
         if( profileView.getClientMessageAccessToken() == null ) {
@@ -108,6 +112,7 @@ public class UserContentController extends BaseController {
             }
         }
         model.addAttribute("user", profileView);
-        return "acknewuser";
+        return ACKNEWUSER_VIEW;
     }
+
 }

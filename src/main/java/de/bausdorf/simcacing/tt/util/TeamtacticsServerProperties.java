@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 public class TeamtacticsServerProperties {
     private String version;
     private String userCollectionName;
+    private String serverBaseUrl;
     private Long driverRepositoryCacheMinutes;
     private Long teamRepositoryCacheMinutes;
     private Long userRepositoryCacheMinutes;

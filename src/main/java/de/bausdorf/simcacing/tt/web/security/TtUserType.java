@@ -46,7 +46,7 @@ public enum TtUserType implements GrantedAuthority {
             case "Sysadmin": return TT_SYSADMIN;
             case "Team admin": return TT_TEAMADMIN;
             case "Member": return TT_MEMBER;
-            case "Registered": return TT_REGISTERED;
+            case "Registered user": return TT_REGISTERED;
             case "New user": return TT_NEW;
             default:
                 throw new IllegalArgumentException("Unknown TtUserType: " + text);

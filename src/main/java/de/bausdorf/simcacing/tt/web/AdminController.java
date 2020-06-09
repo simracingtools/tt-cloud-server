@@ -69,6 +69,20 @@ public class AdminController extends BaseController {
 		return searchUsers(searchView, model);
 	}
 
+	@GetMapping("/deletesiteuser")
+	public String deleteUser(@RequestParam String userId, Model model) {
+		SearchView searchView = new SearchView();
+		if (userId != null) {
+			Optional<TtUser> existingUser = userService.findById(userId);
+			if (existingUser.isPresent()) {
+				userService.delete(userId);
+				addInfo("User " + existingUser.get().getName() + " deleted", model);
+				searchView.setUserRole(existingUser.get().getUserType().name());
+			}
+		}
+		return searchUsers(searchView, model);
+	}
+
 	@ModelAttribute("userTypes")
 	public TtUserType[] userTypes() {
 		return TtUserType.values();

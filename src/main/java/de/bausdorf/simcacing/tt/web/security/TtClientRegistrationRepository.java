@@ -88,7 +88,7 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
             query = query.whereEqualTo("userType", searchView.getUserRole());
         }
         if (searchView.isEnabled()) {
-            query = query.whereEqualTo("enabled", true);
+            query = query.whereEqualTo("enabled", false);
         }
         if (searchView.isExpired()) {
             query = query.whereEqualTo("expired", true);

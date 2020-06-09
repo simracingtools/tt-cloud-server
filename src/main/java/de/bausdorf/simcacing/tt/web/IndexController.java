@@ -62,8 +62,8 @@ public class IndexController extends BaseController {
     public static final String SETUP_VIEW = "setup";
     SessionHolder sessionHolder;
 
-    TeamRepository teamRepository;
-    RacePlanRepository planRepository;
+    final TeamRepository teamRepository;
+    final RacePlanRepository planRepository;
 
     RestTemplate restTemplate;
 
@@ -94,6 +94,7 @@ public class IndexController extends BaseController {
         try {
             String clientVersion = (String) json.get("tag_name");
             model.addAttribute("currentClientVersion", clientVersion);
+            model.addAttribute("serverBaseUrl", config.getServerBaseUrl());
         } catch (Exception e) {
             log.warn("Error getting client version from Github: {}", e.getMessage());
             model.addAttribute("currentClientVersion", "unknown");

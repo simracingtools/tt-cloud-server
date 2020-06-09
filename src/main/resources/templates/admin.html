@@ -50,15 +50,15 @@
                     </div>
                     <div
                         class="col">
-                        <div class="form-group" style="margin-bottom: 0px;margin-top: 5px;">
-                            <div class="form-check text-left"><input th:field="*{enabled}" class="form-check-input" type="checkbox" id="formCheck-2"><label class="form-check-label" for="formCheck-2">Enabled</label></div>
+                        <div class="form-group" style="margin-bottom: 0;margin-top: 5px;">
+                            <div class="form-check text-left"><input th:field="*{enabled}" class="form-check-input" type="checkbox" id="formCheck-2"><label class="form-check-label" for="formCheck-2">Disabled</label></div>
                         </div>
                         <div class="clearfix"></div>
-                        <div class="form-group" style="margin-bottom: 0px;">
+                        <div class="form-group" style="margin-bottom: 0;">
                             <div class="form-check text-left"><input th:field="*{locked}" class="form-check-input" type="checkbox" id="formCheck-1"><label class="form-check-label" for="formCheck-1">Locked</label></div>
                         </div>
                         <div class="clearfix"></div>
-                        <div class="form-group" style="margin-bottom: 0px;">
+                        <div class="form-group" style="margin-bottom: 0;">
                             <div class="form-check text-left"><input th:field="*{expired}" class="form-check-input" type="checkbox" id="formCheck-3"><label class="form-check-label" for="formCheck-3">Expired</label></div>
                         </div>
                     </div>
@@ -76,6 +76,8 @@
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>States</th>
+                                <th></th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody th:if="${!userList.isEmpty()}" >
@@ -96,9 +98,11 @@
                                     <div class="form-check"><input th:id="${'expired-' + userStat.index}" th:checked="${user.expired}" class="form-check-input" type="checkbox"><label class="form-check-label">Expired</label></div>
                                 </td>
                                 <td>
-                                    <button class="btn btn-primary" type="button" style="margin-bottom: 5px;" th:onclick="'saveUser(' + ${userStat.index} + ')'">
+                                    <button class="btn btn-primary" type="button" th:onclick="'saveUser(' + ${userStat.index} + ')'">
                                         <i class="far fa-save" style="font-size: 20px;"></i>
                                     </button>
+                                </td>
+                                <td>
                                     <button class="btn btn-primary" type="button" th:onclick="'confirmUserRemove(' + ${userStat.index} + ')'">
                                         <i class="far fa-trash-alt" style="font-size: 20px;"></i>
                                     </button>
@@ -115,7 +119,7 @@
                                                     <p th:text="'Do you really want to delete user ' + ${user.name} + ' ?'">Do you really want to remove team member ?</p>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <a th:href="@{/deleteUser(userId=${user.id})}">
+                                                    <a th:href="@{/deletesiteuser(userId=${user.id})}">
                                                         <button class="btn btn-primary" type="button">Remove</button>
                                                     </a>
                                                     <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>

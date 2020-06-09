@@ -47,7 +47,7 @@
         <span th:text="'Current TeamTactics-Client Version: ' + ${currentClientVersion}">Current TeamTactics-Client Version: </span>
         <p><br>During installation you will need your iRacing ID and your personal <br>client access token. The following values are saved in your&nbsp;<a href="/profile">profile</a>:<br><br>iRacing ID:&nbsp;<span th:text="${user.iRacingId}" style="font-family: 'Roboto Mono', monospace;">123456</span><br>Client access token:&nbsp;<span th:text="${user.clientMessageAccessToken}" style="font-family: 'Roboto Mono', monospace;">client access token</span><br></p>
         <p>You may now complete your software setup.</p>
-        <p>Start the client software (There should be an Icon on your desktop) and go racing. Follow your team members data on the <a href="https://iracing-team-tactics.appspot.com" target="_blank">TeamTactics Server</a>.</p>
+        <p>Start the client software (There should be an Icon on your desktop) and go racing. Follow your team members data on the <a th:href="${serverBaseUrl}" target="_blank">TeamTactics Server</a>.</p>
       </div>
     </div>
     <script src="assets/js/bs-init.js"></script>
