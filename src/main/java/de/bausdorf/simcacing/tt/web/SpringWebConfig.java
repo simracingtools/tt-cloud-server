@@ -33,6 +33,7 @@ import de.bausdorf.simcacing.tt.web.model.LocalDateFormatter;
 import de.bausdorf.simcacing.tt.web.model.LocalDateTimeFormatter;
 import de.bausdorf.simcacing.tt.web.model.LocalTimeFormatter;
 import de.bausdorf.simcacing.tt.web.model.ScheduleDriverOptionTypeFormatter;
+import de.bausdorf.simcacing.tt.web.model.SubscriptionTypeFormatter;
 import de.bausdorf.simcacing.tt.web.model.TtUserTypeFormatter;
 import de.bausdorf.simcacing.tt.web.model.ZonedDateTimeFormatter;
 
@@ -50,5 +51,6 @@ public class SpringWebConfig implements WebMvcConfigurer {
 		registry.addFormatter(new LocalDateTimeFormatter());
 		registry.addFormatter(new ZonedDateTimeFormatter());
 		registry.addFormatter(new TtUserTypeFormatter());
+		registry.addFormatter(new SubscriptionTypeFormatter());
 	}
 }

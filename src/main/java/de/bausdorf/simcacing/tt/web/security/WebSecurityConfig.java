@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.web.security;
  * #L%
  */
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -107,24 +108,37 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				if (authority instanceof OidcUserAuthority) {
 					OidcUserAuthority oidcUserAuthority = (OidcUserAuthority)authority;
 
-					TtUser ttUser = registrationRepository.findById(oidcUserAuthority.getIdToken().getSubject()).orElse(null);
-					if (ttUser != null){
-						String roleName = ROLE_PREFIX + ttUser.getUserType().name();
-						mappedAuthorities.add(new SimpleGrantedAuthority(roleName));
+					SimpleGrantedAuthority userRole = determineUserRole(oidcUserAuthority.getIdToken().getSubject());
+					if (userRole != null){
+						mappedAuthorities.add(userRole);
 					}
 				} else if (authority instanceof OAuth2UserAuthority) {
 					OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority)authority;
 
-					TtUser ttUser = registrationRepository.findById(oauth2UserAuthority.getAttributes().get("sub").toString()).orElse(null);
-					if (ttUser != null){
-						String roleName = ROLE_PREFIX + ttUser.getUserType().name();
-						mappedAuthorities.add(new SimpleGrantedAuthority(roleName));
+					SimpleGrantedAuthority userRole = determineUserRole(oauth2UserAuthority.getAttributes().get("sub").toString());
+					if (userRole != null){
+						mappedAuthorities.add(userRole);
 					}
 				}
 			});
 
 			return mappedAuthorities;
 		};
+	}
+
+	private SimpleGrantedAuthority determineUserRole(String userId) {
+		TtUser ttUser = registrationRepository.findById(userId).orElse(null);
+		if (ttUser != null) {
+			ttUser.setLastAccess(ZonedDateTime.now());
+			String roleName = ROLE_PREFIX + ttUser.getUserType().name();
+			if (!ttUser.isEnabled()) {
+				roleName = ROLE_PREFIX + TtUserType.TT_NEW.name();
+				ttUser.setUserType(TtUserType.TT_NEW);
+			}
+			registrationRepository.save(ttUser);
+			return new SimpleGrantedAuthority(roleName);
+		}
+		return null;
 	}
 
 	public static void updateCurrentUserRole(TtUserType newRole) {

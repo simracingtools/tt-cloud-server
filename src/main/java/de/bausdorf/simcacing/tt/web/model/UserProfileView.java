@@ -25,6 +25,7 @@ package de.bausdorf.simcacing.tt.web.model;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
+import de.bausdorf.simcacing.tt.web.security.SubscriptionType;
 import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,8 @@ public class UserProfileView {
     private String driverNick;
     private String clientMessageAccessToken;
     private String userType;
+    private SubscriptionType subscriptionType;
+    private String subscriptionExpiration;
     private String timezone;
     private Boolean enabled;
     private Boolean locked;
@@ -70,6 +73,10 @@ public class UserProfileView {
         this.expired = user.isExpired();
         this.username = user.getUsername();
         this.timezone = user.getTimezone() != null ? TimeTools.toShortZoneId(user.getTimezone()) : "";
+        this.subscriptionType = user.getSubscriptionType();
+        this.subscriptionExpiration = subscriptionType != SubscriptionType.NONE
+                ? user.getLastSubscription().plus(this.subscriptionType.getDuration()).toLocalDate().toString()
+                : "Not relevant";
 
         Optional<IRacingDriver> driver = driverRepository.findById(iRacingId);
         this.driverNick = driver.isPresent() ? driver.get().getName() : "";
@@ -88,6 +95,10 @@ public class UserProfileView {
                 .iRacingId(iRacingId != null ? iRacingId : merge.getIRacingId())
                 .userType(userType != null ? TtUserType.ofText(userType) : merge.getUserType())
                 .timezone(timezone != null ? ZoneId.of(timezone) : merge.getTimezone())
+                .created(merge.getCreated())
+                .lastAccess(merge.getLastAccess())
+                .lastSubscription(merge.getLastSubscription())
+                .subscriptionType(merge.getSubscriptionType())
                 .build();
     }
 

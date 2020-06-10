@@ -22,12 +22,15 @@ package de.bausdorf.simcacing.tt.web.security;
  * #L%
  */
 
+import de.bausdorf.simcacing.tt.util.MapTools;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Data
@@ -48,6 +51,10 @@ public class TtUser implements UserDetails {
     public static final String LOCKED = "locked";
     public static final String EXPIRED = "expired";
     public static final String TIMEZONE = "timezone";
+    public static final String CREATED = "created";
+    public static final String LAST_ACCESS = "lastAccess";
+    public static final String LAST_SUBSCRIPTION = "lastSubscription";
+    public static final String SUBSCRIPTION = "subscriptionType";
 
     private String id;
     private String name;
@@ -57,22 +64,33 @@ public class TtUser implements UserDetails {
     private String clientMessageAccessToken;
     private TtUserType userType;
     private ZoneId timezone;
+    private ZonedDateTime created;
+    private ZonedDateTime lastAccess;
+    private ZonedDateTime lastSubscription;
+    private SubscriptionType subscriptionType;
     private boolean enabled;
     private boolean locked;
     private boolean expired;
 
     public TtUser(Map<String, Object> data) {
-        id = (String)data.get(ID);
-        name = (String)data.get(NAME);
-        imageUrl = (String)data.get(IMAGE_URL);
-        email = (String)data.get(EMAIL);
-        iRacingId = (String)data.get(I_RACING_ID);
-        userType = TtUserType.valueOf((String)data.get(USER_TYPE));
-        clientMessageAccessToken = (String)data.get(CLIENT_MESSAGE_ACCESS_TOKEN);
-        enabled = (Boolean) data.get(ENABLED);
-        locked = (Boolean) data.get(LOCKED);
-        expired = (Boolean) data.get(EXPIRED);
+        id = MapTools.stringFromMap(ID, data);
+        name = MapTools.stringFromMap(NAME, data);
+        imageUrl = MapTools.stringFromMap(IMAGE_URL, data);
+        email = MapTools.stringFromMap(EMAIL, data);
+        iRacingId = MapTools.stringFromMap(I_RACING_ID, data);
+        userType = TtUserType.valueOf(MapTools.stringFromMap(USER_TYPE, data));
+        clientMessageAccessToken = MapTools.stringFromMap(CLIENT_MESSAGE_ACCESS_TOKEN, data);
+        enabled = MapTools.booleanFromMap(ENABLED, data, false);
+        locked = MapTools.booleanFromMap(LOCKED, data, false);
+        expired = MapTools.booleanFromMap(EXPIRED, data, false);
         timezone = data.get(TIMEZONE) != null ? ZoneId.of((String)data.get(TIMEZONE)) : ZoneId.systemDefault();
+        created = MapTools.zonedDateTimeFromMap(CREATED, data);
+        lastAccess = MapTools.zonedDateTimeFromMap(LAST_ACCESS, data);
+        lastSubscription = MapTools.zonedDateTimeFromMap(LAST_SUBSCRIPTION, data);
+        subscriptionType = SubscriptionType.valueOf(MapTools.stringFromMapWithDefault(SUBSCRIPTION, data, "NONE"));
+        if (LocalDateTime.MIN.equals(created.toLocalDateTime())) {
+            created = ZonedDateTime.now();
+        }
     }
 
     public Map<String, Object> toObjectMap() {
@@ -88,6 +106,10 @@ public class TtUser implements UserDetails {
         map.put(LOCKED, locked);
         map.put(EXPIRED, expired);
         map.put(TIMEZONE, timezone != null ? timezone.toString() : null);
+        map.put(CREATED, created.toString());
+        map.put(LAST_ACCESS, lastAccess.toString());
+        map.put(LAST_SUBSCRIPTION, lastSubscription.toString());
+        map.put(SUBSCRIPTION, subscriptionType.name());
         return map;
     }
 

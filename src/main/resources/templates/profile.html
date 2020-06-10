@@ -46,7 +46,7 @@
                     <div class="col-md-8">
                         <h1>Profile </h1>
                         <h6 th:text="*{userType}"></h6>
-                        <hr>
+                        <hr/>
                         <div class="form-row">
                             <div class="col-sm-12 col-md-6">
                                 <div class="form-group"><label>Name</label><input th:field="*{name}" class="form-control" type="text"/></div>
@@ -95,14 +95,29 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-sm-12 col-md-6">
+                                <div class="form-group">
+                                    <label>Subscription</label>
+                                    <select th:field="*{subscriptionType}" class="form-control" disabled readonly="true">
+                                        <option th:each="subscription : ${subscriptions}" th:value="${subscription}" th:text="${subscription.description}"></option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <hr>
                         <div class="form-row">
-                            <div class="col-md-12 content-right"><button class="btn btn-primary form-btn" type="submit">SAVE </button></div>
+                            <p>Your subscription expires: <span th:text="*{subscriptionExpiration}"></span></p>
                         </div>
-                        <a class="d-block" href="/setup">
-                            <button class="btn btn-primary" type="button" style="margin-top: 10px;" th:disabled="*{driverNick == ''}" title="If this link is disabled,&#010;you have to save your profile&#010;with an non-empty driver nick">Setup client software</button>
-                        </a>
+                        <hr/>
+                        <div class="form-row">
+                            <div class="col-sm-12 col-md-6">
+                                <a class="d-block" href="/setup">
+                                    <button class="btn btn-primary" type="button" th:disabled="*{driverNick == ''}" title="If this link is disabled,&#010;you have to save your profile&#010;with an non-empty driver nick">Setup client software</button>
+                                </a>
+                            </div>
+                            <div class="col-sm-12 col-md-6 content-right">
+                                <button class="btn btn-primary form-btn" type="submit">SAVE </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>

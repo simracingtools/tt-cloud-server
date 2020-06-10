@@ -52,6 +52,15 @@ public class MapTools {
 		return "";
 	}
 
+	public static String stringFromMapWithDefault(String key, Map<String, Object> data, String defaultString) {
+		try {
+			return data.get(key) != null ? (String)data.get(key) : "NONE";
+		} catch( Exception e ) {
+			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+		}
+		return defaultString;
+	}
+
 	public static double doubleFromMap(String key, Map<String, Object> data) {
 		try {
 			return (Double)data.get(key);

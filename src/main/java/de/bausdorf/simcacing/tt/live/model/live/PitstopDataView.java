@@ -118,8 +118,7 @@ public class PitstopDataView {
 			}
 			PitstopDataView view = PitstopDataView.builder()
 					.driver(stint.getDriverName())
-					.lapNo(stint.isLastStint() ? "(" + Integer.toUnsignedString(stint.getLaps()) + ")"
-							: Integer.toUnsignedString(clock.lapCount))
+					.lapNo(stint.isLastStint() ? "(" + stint.getLaps() + ")" : Integer.toString(clock.lapCount))
 					.timePitted(stint.getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.stintNo(Integer.toUnsignedString(clock.stintNo))
 					.allDrivers(driverList)

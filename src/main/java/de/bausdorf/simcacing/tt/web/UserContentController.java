@@ -22,6 +22,8 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import de.bausdorf.simcacing.tt.web.security.SubscriptionType;
 import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import de.bausdorf.simcacing.tt.web.security.WebSecurityConfig;
@@ -95,7 +98,9 @@ public class UserContentController extends BaseController {
             List<TtUser> existingUser = userService.findByIracingId(newIRacingId);
             if (existingUser.isEmpty()) {
                 profileView.setClientMessageAccessToken(UUID.randomUUID().toString());
-                userService.save(profileView.getUser(currentUser()));
+                TtUser userToSave = profileView.getUser(currentUser());
+                userToSave.setCreated(ZonedDateTime.now());
+                userService.save(userToSave);
                 addInfo("iRacing ID changed in profile. A new token was generated - change your TeamTactics client config", model);
             } else {
                 addError("iRacingId " + newIRacingId + " is already registered", model);
@@ -115,4 +120,8 @@ public class UserContentController extends BaseController {
         return ACKNEWUSER_VIEW;
     }
 
+    @ModelAttribute("subscriptions")
+    public List<SubscriptionType> allSubscriptions() {
+        return Arrays.asList(SubscriptionType.values());
+    }
 }
