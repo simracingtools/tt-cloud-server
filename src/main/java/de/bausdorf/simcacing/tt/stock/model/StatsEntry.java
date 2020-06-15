@@ -73,7 +73,7 @@ public class StatsEntry {
 		data.put(TOD_START, todStart != null ? todStart.toString() : null);
 		data.put(TOD_END, todEnd != null ? todEnd.toString() : null);
 		data.put(STINT_LAPS, stintLaps);
-		data.put(AVG_LAP_TIME, avgLapTime != null ? avgLapTime.toString() : Duration.ZERO);
+		data.put(AVG_LAP_TIME, avgLapTime != null ? avgLapTime.toString() : Duration.ZERO.toString());
 		data.put(AVG_FUEL_PER_LAP, avgFuelPerLap);
 		data.put(AVG_TRACK_TEMP, avgTrackTemp);
 		data.put(PITSTOP, pitstop != null ? pitstop.toMap() : null);

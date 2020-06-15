@@ -271,6 +271,9 @@ public class SessionController {
 	}
 
 	public Duration getCurrentDriverBestLap() {
+		if (currentDriver == null) {
+			return Duration.ZERO;
+		}
 		double millis = laps.values().stream()
 				.filter(s -> s.getDriverId().equalsIgnoreCase(currentDriver.getId()))
 				.filter(s-> s.getLapTime().getSeconds() > 0)
@@ -298,7 +301,7 @@ public class SessionController {
 	}
 
 	public Estimation getCurrentDriverEstimation() {
-		if (racePlan != null) {
+		if (racePlan != null && sessionToD != null) {
 			LocalDateTime todStartTime = racePlan.getPlanParameters().getTodStartTime();
 			LocalDate todDate = todStartTime.toLocalDate();
 			if (sessionToD.isBefore(todStartTime.toLocalTime())) {
