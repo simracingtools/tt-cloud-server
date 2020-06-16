@@ -29,7 +29,6 @@ import static de.bausdorf.simcacing.tt.util.MapTools.stringFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.stringListFromMap;
 import static de.bausdorf.simcacing.tt.util.MapTools.zonedDateTimeFromMap;
 
-import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Roster;
@@ -41,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +61,7 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
         if( data == null) {
             return null;
         }
-        RacePlanParameters planParameters = RacePlanParameters.builder()
+        return RacePlanParameters.builder()
                 .id(stringFromMap(RacePlanParameters.ID, data))
                 .name(stringFromMap(RacePlanParameters.NAME, data))
                 .raceDuration(durationFromMap(RacePlanParameters.RACE_DURATION, data))
@@ -80,11 +78,6 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                 .stints(stintsFromMap(data))
                 .roster(new Roster((Map<String, Object>)data.get(RacePlanParameters.ROSTER)))
                 .build();
-
-        PlanningTools.updatePitLaneDurations(planParameters.getAvgPitLaneTime().dividedBy(2L),
-                planParameters.getAvgPitLaneTime().dividedBy(2L), planParameters);
-
-        return planParameters;
     }
 
     @Override
@@ -129,18 +122,12 @@ public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters>
                         .endTime(zonedDateTimeFromMap(Stint.END_TIME, stintMap))
                         .laps(((Long)stintMap.get(Stint.LAPS)).intValue())
                         .refuelAmount(doubleFromMap(Stint.REFUEL_AMOUNT, stintMap))
-                        .pitStop(Optional.empty())
+                        .service(new ArrayList<>())
                         .build();
 
                 List<String> pitService = stringListFromMap(Stint.PITSTOP_SERVICE, stintMap);
                 if( pitService != null && !pitService.isEmpty() ) {
-                    PitStop pitstop = PitStop.builder()
-                            .approach(Duration.ZERO)
-                            .depart(Duration.ZERO)
-                            .service(new ArrayList<>())
-                            .build();
-                    pitService.forEach(s -> pitstop.addService(PitStopServiceType.valueOf(s)));
-                    stint.setPitStop(Optional.of(pitstop));
+                    pitService.forEach(s -> stint.getService().add(PitStopServiceType.valueOf(s)));
                 }
 
                 stints.put(Integer.parseInt(stintEntry.getKey()), stint);

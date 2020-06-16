@@ -33,6 +33,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
+@Deprecated
 public class PitStop {
 
 	private List<PitStopServiceType> service;

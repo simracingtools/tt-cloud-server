@@ -41,7 +41,6 @@ import de.bausdorf.simcacing.tt.live.model.client.RunData;
 import de.bausdorf.simcacing.tt.live.model.client.ServiceFlagType;
 import de.bausdorf.simcacing.tt.live.model.client.Stint;
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
-import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
@@ -107,15 +106,13 @@ public class PitstopDataView {
 					.collect(Collectors.toList());
 			driverList.add("unassigned");
 
-			String serviceDuration = "";
-			String pitstopDuration = "";
-			PitStop pitstop = stint.getPitStop().orElse(null);
-			if (pitstop != null) {
-				pitstopDuration = TimeTools.shortDurationString(pitstop.getOverallDuration(stint.getRefuelAmount()));
-				serviceDuration = TimeTools.shortDurationString(
-						PlanningTools.calculateServiceDuration(pitstop.getService(), stint.getRefuelAmount())
-				);
-			}
+			String pitstopDuration = TimeTools.shortDurationString(
+					controller.getRacePlan().getPlanParameters().getAvgPitLaneTime().plus(
+						PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount()))
+					);
+			String serviceDuration = TimeTools.shortDurationString(
+					PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount()));
+
 			PitstopDataView view = PitstopDataView.builder()
 					.driver(stint.getDriverName())
 					.lapNo(stint.isLastStint() ? "(" + stint.getLaps() + ")" : Integer.toString(clock.lapCount))
@@ -125,9 +122,9 @@ public class PitstopDataView {
 					.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
 					.pitStopDuration(pitstopDuration)
 					.repairTime("")
-					.refuel(pitstop != null && pitstop.getService().contains(PitStopServiceType.FUEL))
-					.changeTyres(pitstop != null && pitstop.getService().contains(PitStopServiceType.TYRES))
-					.clearWindshield(pitstop != null && pitstop.getService().contains(PitStopServiceType.WS))
+					.refuel(stint.getService().contains(PitStopServiceType.FUEL))
+					.changeTyres(stint.getService().contains(PitStopServiceType.TYRES))
+					.clearWindshield(stint.getService().contains(PitStopServiceType.WS))
 					.serviceDuration(serviceDuration)
 					.refuelAmount(String.format(Locale.US, "%.3f", stint.getRefuelAmount()))
 					.plannedStint(true)

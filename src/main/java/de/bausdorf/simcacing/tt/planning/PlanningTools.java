@@ -53,11 +53,11 @@ public class PlanningTools {
 		return stint != null ? stint.getDriverName() : "unassigned";
 	}
 
-	public static Optional<PitStop> pitstopAt(ZonedDateTime clock, List<Stint> stints) {
-		log.debug("Get pitstop for clock: {}", clock.toString());
-		Stint stint = stintAt(clock, stints);
-		return stint != null ? stint.getPitStop() : Optional.empty();
-	}
+//	public static Optional<PitStop> pitstopAt(ZonedDateTime clock, List<Stint> stints) {
+//		log.debug("Get pitstop for clock: {}", clock.toString());
+//		Stint stint = stintAt(clock, stints);
+//		return stint != null ? stint.getPitStop() : Optional.empty();
+//	}
 
 	public static Stint stintAt(ZonedDateTime clock, List<Stint> stints) {
 		for (Stint stint : stints) {
@@ -84,20 +84,22 @@ public class PlanningTools {
 
 	public static Duration calculateServiceDuration(List<PitStopServiceType> serviceList, double amountRefuel) {
 		Duration serviceDuration = Duration.ZERO;
-		for (PitStopServiceType serviceType : serviceList) {
-			switch (serviceType) {
-				case TYRES:
-					serviceDuration = serviceDuration.plusSeconds(PlanningTools.tyreServiceSeconds);
-					break;
-				case WS:
-					serviceDuration = serviceDuration.plusSeconds(PlanningTools.wsServiceSeconds);
-					break;
-				case FUEL:
-					int refuelSeconds = (int)Math.ceil((amountRefuel / 10) * PlanningTools.fuelServiceSeconds10l);
-					serviceDuration = serviceDuration.plusSeconds(refuelSeconds);
-					break;
-				default:
-					break;
+		if (serviceList != null) {
+			for (PitStopServiceType serviceType : serviceList) {
+				switch (serviceType) {
+					case TYRES:
+						serviceDuration = serviceDuration.plusSeconds(PlanningTools.tyreServiceSeconds);
+						break;
+					case WS:
+						serviceDuration = serviceDuration.plusSeconds(PlanningTools.wsServiceSeconds);
+						break;
+					case FUEL:
+						int refuelSeconds = (int) Math.ceil((amountRefuel / 10) * PlanningTools.fuelServiceSeconds10l);
+						serviceDuration = serviceDuration.plusSeconds(refuelSeconds);
+						break;
+					default:
+						break;
+				}
 			}
 		}
 		return serviceDuration;
@@ -109,15 +111,15 @@ public class PlanningTools {
 		wsServiceSeconds = config.getServiceDurationSecondsWs();
 	}
 
-	public static void updatePitLaneDurations(Duration approach, Duration depart, RacePlanParameters planParameters) {
-		for (Stint stint : planParameters.getStints()) {
-			Optional<PitStop> pitstop = stint.getPitStop();
-			if (pitstop.isPresent()) {
-				pitstop.get().setApproach(approach);
-				pitstop.get().setDepart(depart);
-			}
-		}
-	}
+//	public static void updatePitLaneDurations(Duration approach, Duration depart, RacePlanParameters planParameters) {
+//		for (Stint stint : planParameters.getStints()) {
+//			Optional<PitStop> pitstop = stint.getPitStop();
+//			if (pitstop.isPresent()) {
+//				pitstop.get().setApproach(approach);
+//				pitstop.get().setDepart(depart);
+//			}
+//		}
+//	}
 
 	public static void recalculateStints(RacePlanParameters parameters) {
 		RacePlan plan = RacePlan.createRacePlanTemplate(parameters);

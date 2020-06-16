@@ -27,10 +27,12 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,14 +59,14 @@ public class Stint {
 	private ZonedDateTime endTime;
 	private double refuelAmount;
 	private int laps;
-	private Optional<PitStop> pitStop;
+	private List<PitStopServiceType> service;
 	private boolean lastStint;
 
 
 	public Duration getStintDuration(boolean includePitStopTimes) {
-		if( startTime != null && endTime != null ) {
-			if( !includePitStopTimes && pitStop.isPresent() ) {
-				return Duration.between(startTime, endTime).minus(pitStop.get().getOverallDuration(refuelAmount));
+		if (startTime != null && endTime != null) {
+			if (!includePitStopTimes) {
+				return Duration.between(startTime, endTime).minus(PlanningTools.calculateServiceDuration(service, refuelAmount));
 			}
 			return Duration.between(startTime, endTime);
 		}
@@ -92,8 +94,8 @@ public class Stint {
 		map.put(END_TIME, endTime.toString());
 		map.put(REFUEL_AMOUNT, refuelAmount);
 		map.put(LAPS, laps);
-		map.put(PITSTOP_SERVICE,
-				pitStop.<Object>map(stop -> stop.getService().stream().map(Enum::name).collect(Collectors.toList())).orElse(null)
+		map.put(PITSTOP_SERVICE, service != null ?
+				service.stream().map(Enum::name).collect(Collectors.toList()) : null
 		);
 
 		return map;

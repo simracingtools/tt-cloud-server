@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import lombok.AllArgsConstructor;
@@ -87,24 +86,17 @@ public class RacePlan {
 		int stintIndex = 0;
 		while( raceClock.isBefore(raceTimeLeft) ) {
 
-			Optional<PitStop> pitStop = Optional.of(PitStop.builder()
-					.depart(planParameters.getAvgPitLaneTime().dividedBy(2L))
-					.approach(planParameters.getAvgPitLaneTime().dividedBy(2L))
-					.service(Arrays.asList(PitStopServiceType.WS, PitStopServiceType.FUEL, PitStopServiceType.TYRES))
-					.build());
+			List<PitStopServiceType> service = Arrays.asList(
+					PitStopServiceType.WS, PitStopServiceType.FUEL, PitStopServiceType.TYRES);
 			String currentDriver = "unassigned";
 
 			if (planParameters.getStints().size() > stintIndex) {
 				currentDriver = planParameters.getStints().get(stintIndex).getDriverName();
-				pitStop = planParameters.getStints().get(stintIndex).getPitStop();
-				if(pitStop.isPresent() && Duration.ZERO.equals(pitStop.get().getApproach())
-						&& Duration.ZERO.equals(pitStop.get().getDepart())) {
-					pitStop.get().updatePitLaneDuration(planParameters.getAvgPitLaneTime());
-				}
+				service = planParameters.getStints().get(stintIndex).getService();
 			}
 
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
-					planParameters.getMaxCarFuel(), pitStop,
+					planParameters.getMaxCarFuel(), service,
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			stints.add(nextStint);
 
@@ -130,11 +122,12 @@ public class RacePlan {
 		List<Stint> stints = new ArrayList<>();
 		while( raceClock.isBefore(raceTimeLeft) ) {
 
-			Optional<PitStop> pitStop = PlanningTools.pitstopAt(raceClock, planParameters.getStints());
+			Stint existingStint = PlanningTools.stintAt(raceClock, planParameters.getStints());
 			String currentDriver = PlanningTools.driverNameAt(raceClock, planParameters.getStints());
 
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
-					planParameters.getMaxCarFuel(), pitStop,
+					planParameters.getMaxCarFuel(),
+					existingStint != null ? existingStint.getService() : new ArrayList<>(),
 					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
 			stints.add(nextStint);
 
@@ -154,7 +147,7 @@ public class RacePlan {
 	}
 
 	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
-			double amountFuel, Optional<PitStop> pitstop, Estimation estimation) {
+			double amountFuel, List<PitStopServiceType> service, Estimation estimation) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
 		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
@@ -163,10 +156,11 @@ public class RacePlan {
 		stint.setLaps(maxLaps);
 		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(maxLaps);
 
-		stint.setPitStop(pitstop);
+		stint.setService(service);
 		stint.setEndTime(stintStartTime
 				.plus(stintDuration)
-				.plus(pitstop.isPresent() ? pitstop.get().getOverallDuration(stint.getRefuelAmount()) : Duration.ZERO)
+				.plus(planParameters.getAvgPitLaneTime())
+				.plus(PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount()))
 		);
 
 		return stint;
@@ -190,7 +184,7 @@ public class RacePlan {
 				.driverName(driverName)
 				.startTime(stintStartTime)
 				.todStartTime(todStartTime)
-				.pitStop(Optional.empty())
+				.service(new ArrayList<>())
 				.build();
 	}
 }

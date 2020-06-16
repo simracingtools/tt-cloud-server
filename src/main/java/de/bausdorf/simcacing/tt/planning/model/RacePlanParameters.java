@@ -111,7 +111,7 @@ public class RacePlanParameters {
 					.endTime(stint.getEndTime().withZoneSameInstant(displayZoneId))
 					.laps(stint.getLaps())
 					.refuelAmount(stint.getRefuelAmount())
-					.pitStop(stint.getPitStop())
+					.service(stint.getService())
 					.build());
 		}
 		this.roster = new Roster(other.roster, displayZoneId);
@@ -337,7 +337,6 @@ public class RacePlanParameters {
 		}
 		if (update.getAvgPitLaneTime() != null) {
 			avgPitLaneTime = update.getAvgPitLaneTime();
-			PlanningTools.updatePitLaneDurations(avgPitLaneTime.dividedBy(2L), avgPitLaneTime.dividedBy(2L), this);
 		}
 		if (update.getCarId() != null) {
 			carId = update.getCarId();
