@@ -25,10 +25,8 @@ package de.bausdorf.simcacing.tt.planning;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
-import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlan;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
@@ -53,12 +51,6 @@ public class PlanningTools {
 		return stint != null ? stint.getDriverName() : "unassigned";
 	}
 
-//	public static Optional<PitStop> pitstopAt(ZonedDateTime clock, List<Stint> stints) {
-//		log.debug("Get pitstop for clock: {}", clock.toString());
-//		Stint stint = stintAt(clock, stints);
-//		return stint != null ? stint.getPitStop() : Optional.empty();
-//	}
-
 	public static Stint stintAt(ZonedDateTime clock, List<Stint> stints) {
 		for (Stint stint : stints) {
 			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
@@ -68,6 +60,17 @@ public class PlanningTools {
 			}
 		}
 		return null;
+	}
+
+	public static int stintIndexAt(ZonedDateTime clock, List<Stint> stints) {
+		for (Stint stint : stints) {
+			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
+			if (stint.getStartTime().isEqual(clock)
+					|| (clock.isAfter(stint.getStartTime()) && clock.isBefore(stint.getEndTime()))) {
+				return stints.indexOf(stint);
+			}
+		}
+		return 0;
 	}
 
 	public static Stint stintToModify(SessionController controller, int liveIndex) {
@@ -110,16 +113,6 @@ public class PlanningTools {
 		tyreServiceSeconds = config.getServiceDurationSecondsTyres();
 		wsServiceSeconds = config.getServiceDurationSecondsWs();
 	}
-
-//	public static void updatePitLaneDurations(Duration approach, Duration depart, RacePlanParameters planParameters) {
-//		for (Stint stint : planParameters.getStints()) {
-//			Optional<PitStop> pitstop = stint.getPitStop();
-//			if (pitstop.isPresent()) {
-//				pitstop.get().setApproach(approach);
-//				pitstop.get().setDepart(depart);
-//			}
-//		}
-//	}
 
 	public static void recalculateStints(RacePlanParameters parameters) {
 		RacePlan plan = RacePlan.createRacePlanTemplate(parameters);

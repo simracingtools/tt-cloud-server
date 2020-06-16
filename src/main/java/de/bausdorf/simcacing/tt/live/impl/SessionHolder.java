@@ -303,9 +303,9 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			if (planToModify != null) {
 				log.debug("Changing stint: {}", planToModify);
 				if (message.isChecked()) {
-					planToModify.getPitStop().ifPresent(s -> s.addService(serviceType));
+					planToModify.addService(serviceType);
 				} else {
-					planToModify.getPitStop().ifPresent(s -> s.removeService(serviceType));
+					planToModify.removeService(serviceType);
 				}
 
 				List<PitstopDataView> viewToSend = PitstopDataView.getPitstopDataView(controller);
@@ -381,7 +381,10 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			controller.setCurrentDriver(driver);
 			sessionRepository.saveCurrentDriver(controller.getSessionData().getSessionId().toString(), driver);
 		}
-		controller.updateRunData(runData);
+		if (controller.updateRunData(runData) && controller.getRacePlan() != null) {
+			// real greenFlagTime changed !
+			controller.getRacePlan().getPlanParameters().shiftGreenFlagOffsetTime(controller.getGreenFlagTime());
+		}
 		String subscriptionId = controller.getSessionData().getSessionId().getSubscriptionId();
 		sendRunData(runData, controller, subscriptionId, driver);
 
@@ -419,10 +422,6 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 							.build()
 			);
 			sessionRepository.savePitstop(sessionId, pitstop, lastStint);
-			if (controller.getRacePlan() != null) {
-				PlanningTools.updatePitLaneDurations(pitstop.getApproachDuration(), pitstop.getDepartDuration(),
-						controller.getRacePlan().getPlanParameters());
-			}
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
 			sendPitstopData(PitstopDataView.getPitstopDataView(controller), subscriptionId);
 		}

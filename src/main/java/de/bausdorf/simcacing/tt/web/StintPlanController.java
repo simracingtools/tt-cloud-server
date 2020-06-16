@@ -39,7 +39,6 @@ import org.springframework.stereotype.Controller;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
-import de.bausdorf.simcacing.tt.planning.model.PitStop;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
@@ -106,9 +105,9 @@ public class StintPlanController {
 			try {
 				Stint selectedStint = racePlanParameters.get().getStints().get(stintListIndex);
 				if (message.isChecked()) {
-					selectedStint.getPitStop().ifPresent(s -> s.addService(serviceType));
+					selectedStint.addService(serviceType);
 				} else {
-					selectedStint.getPitStop().ifPresent(s -> s.removeService(serviceType));
+					selectedStint.removeService(serviceType);
 				}
 
 				recalculateSaveAndSend(racePlanParameters.get(), message.getPlanId());
@@ -165,13 +164,11 @@ public class StintPlanController {
 							.collect(Collectors.toList())
 					)
 					.lastStint(racePlanParameters.getStints().indexOf(stint) == (racePlanParameters.getStints().size()-1))
+					.refuel(stint.hasService(PitStopServiceType.FUEL))
+					.changeTyres(stint.hasService(PitStopServiceType.TYRES))
+					.clearWindshield(stint.hasService(PitStopServiceType.WS))
 					.build();
-			Optional<PitStop> pitStop = stint.getPitStop();
-			if (pitStop.isPresent()) {
-				stintView.setRefuel(pitStop.get().getService().contains(PitStopServiceType.FUEL));
-				stintView.setChangeTyres(pitStop.get().getService().contains(PitStopServiceType.TYRES));
-				stintView.setClearWindshield(pitStop.get().getService().contains(PitStopServiceType.WS));
-			}
+
 			stintsViews.add(stintView);
 		}
 		return stintsViews;

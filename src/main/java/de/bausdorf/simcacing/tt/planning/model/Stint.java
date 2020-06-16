@@ -26,10 +26,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
@@ -99,6 +99,26 @@ public class Stint {
 		);
 
 		return map;
+	}
+
+	public void addService(PitStopServiceType serviceType) {
+		if (service == null) {
+			service = new ArrayList<>();
+		}
+		service.add(serviceType);
+	}
+
+	public void removeService(PitStopServiceType serviceType) {
+		if (service != null) {
+			service.remove(serviceType);
+		}
+	}
+
+	public boolean hasService(PitStopServiceType serviceType) {
+		if (service != null) {
+			return service.contains(serviceType);
+		}
+		return false;
 	}
 
 	public String shortInfo() {

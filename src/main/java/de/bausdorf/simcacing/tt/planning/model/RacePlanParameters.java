@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.planning.model;
  * #L%
  */
 
-import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
@@ -370,6 +369,11 @@ public class RacePlanParameters {
 			stint.setStartTime(stint.getStartTime().plus(timeShift));
 			stint.setEndTime(stint.getEndTime().plus(timeShift));
 		}
+	}
+
+
+	public void shiftGreenFlagOffsetTime(LocalTime realGreenFlagTime) {
+		greenFlagOffsetTime = Duration.between(sessionStartTime.toLocalTime(), realGreenFlagTime);
 	}
 
 	private void updateSessionStartTime(ZonedDateTime newStartTime) {

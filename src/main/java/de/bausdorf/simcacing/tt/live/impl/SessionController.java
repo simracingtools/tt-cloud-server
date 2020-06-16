@@ -129,12 +129,14 @@ public class SessionController {
 		log.debug("Current stint: {}", currentStint);
 	}
 
-	public void updateRunData(RunData runData) {
+	public boolean updateRunData(RunData runData) {
 		this.runData = runData;
 		this.sessionToD = runData.getSessionToD();
 		if (greenFlagTime == null && runData.getFlags().contains(FlagType.GREEN)) {
 			greenFlagTime = runData.getSessionTime();
+			return true;
 		}
+		return false;
 	}
 
 	public void updateSyncData(SyncData syncData) {
