@@ -30,13 +30,17 @@ import de.bausdorf.simcacing.tt.planning.model.Roster;
 import de.bausdorf.simcacing.tt.planning.model.ScheduleEntry;
 import de.bausdorf.simcacing.tt.stock.CarRepository;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
+import de.bausdorf.simcacing.tt.stock.DriverStatsRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.TrackRepository;
+import de.bausdorf.simcacing.tt.stock.model.DriverStats;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
+import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.TimeTools;
+import de.bausdorf.simcacing.tt.util.UnitConverter;
 import de.bausdorf.simcacing.tt.web.model.DriverEstimationView;
 import de.bausdorf.simcacing.tt.web.model.DriverScheduleView;
 import de.bausdorf.simcacing.tt.web.model.EstimationView;
@@ -88,21 +92,24 @@ public class RacePlanController extends BaseController {
 	public static final String TEAM_ESTIMATIONS = "teamEstimations";
 	public static final String NEW_ESTIMATION_ENTRY = "newEstimationEntry";
 
-	TrackRepository trackRepository;
-	CarRepository carRepository;
-	TeamRepository teamRepository;
-	RacePlanRepository planRepository;
+	final TrackRepository trackRepository;
+	final CarRepository carRepository;
+	final TeamRepository teamRepository;
+	final RacePlanRepository planRepository;
+	final DriverStatsRepository statsRepository;
 
 	public RacePlanController(@Autowired TrackRepository trackRepository,
 			@Autowired CarRepository carRepository,
 			@Autowired TeamRepository teamRepository,
 			@Autowired DriverRepository driverRepository,
-			@Autowired RacePlanRepository racePlanRepository) {
+			@Autowired RacePlanRepository racePlanRepository,
+			@Autowired DriverStatsRepository statsRepository) {
 		this.trackRepository = trackRepository;
 		this.carRepository = carRepository;
 		this.teamRepository = teamRepository;
 		this.driverRepository = driverRepository;
 		this.planRepository = racePlanRepository;
+		this.statsRepository = statsRepository;
 	}
 
 	@GetMapping("/newraceplan")
@@ -403,6 +410,34 @@ public class RacePlanController extends BaseController {
 		}
 
 		prepareModel(planParameters, model);
+		return PLANNING_VIEW;
+	}
+
+	@GetMapping("/checkdriverstats")
+	public String checkDriverStats(@RequestParam String driverId, @RequestParam String planId, Model model) {
+
+		prepareViewMode(Optional.of(PlanningViewModeType.variation.name()), model);
+
+		if (planId == null || planId.isEmpty()) {
+			addError("No plan id given", model);
+			return NEWRACEPLAN_VIEW;
+		}
+		Optional<RacePlanParameters> planParameters = planRepository.findById(planId);
+		if (planParameters.isPresent()) {
+			prepareModel(planParameters.get(), model);
+			Optional<DriverStats> driverStats = statsRepository.findByDriverTrackCar(driverId,
+					planParameters.get().getTrackId(), planParameters.get().getCarId());
+			if (driverStats.isPresent()) {
+				StatsEntry entry = driverStats.get().getFastestEntry();
+				NewEstimationEntryView newEstimationEntryView = (NewEstimationEntryView) model.getAttribute(NEW_ESTIMATION_ENTRY);
+				if (entry != null && newEstimationEntryView != null) {
+					newEstimationEntryView.setDriverId(driverId);
+					newEstimationEntryView.setAvgFuelPerLap(UnitConverter.round(entry.getAvgFuelPerLap(), 2));
+					newEstimationEntryView.setAvgLapTime(entry.getAvgLapTime());
+					newEstimationEntryView.setTimeFrom(entry.getTodStart());
+				}
+			}
+		}
 		return PLANNING_VIEW;
 	}
 

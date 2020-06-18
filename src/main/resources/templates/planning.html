@@ -247,7 +247,7 @@
                                 <div class="col">
                                     <div class="form-group">
                                         <select th:field="*{allDriverIds}" class="form-control" multiple style="height: 10em;">
-                                            <option th:each="driver : ${authorizedDrivers}" th:value="${driver.getId()}" th:text="${driver.getName()}" selected="*{allDrivers.contains(driver)}">Dave</option>
+                                            <option th:each="driver : ${authorizedDrivers}" th:value="${driver.getId()}" th:text="${driver.getName()}">Dave</option>
                                         </select>
                                     </div>
                                 </div>
@@ -382,7 +382,7 @@
                                             <div class="form-group">
                                                 <label>Avg. lap time&nbsp;</label>
                                                 <i data-toggle="tooltip" class="far fa-question-circle" title="Use format like m:s.S (3:25.5, 0:54.0, 1:9.6 ...)" style="color: rgb(0,123,255);"></i>
-                                                <input type="text" th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].avgLapTime}" class="form-control" patter="^(?:(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d).)?([0-9]?\d)$"/>
+                                                <input type="text" th:field="*{teamEstimations[__${estimationStat.index}__].estimationEntries[__${entryStat.index}__].avgLapTime}" class="form-control" pattern="^(?:(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d).)?([0-9]?\d)$"/>
                                             </div>
                                         </div>
                                         <div class="col">
@@ -412,6 +412,15 @@
                                     <select th:field="*{driverId}" class="form-control" name="car" readonly="" style="margin-top: 5px;">
                                         <option th:each="driver : ${selectedPlan.allDrivers}" th:value="${driver.id}" th:text="${driver.name}">Dave</option>
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <button class="btn btn-danger btn-block" type="button" title="Check driver stats" th:onclick="'checkDriverStats()'">
+                                        <i class="fas fa-chart-line" style="font-size: 20px;"></i>&nbsp;Check stats
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -30,6 +30,13 @@ function saveUser(index) {
 	window.location = url;
 }
 
+function checkDriverStats() {
+	var url = '/checkdriverstats?driverId=' + $("#driverId").val()
+			+ '&planId=' + $("#planId").val();
+
+	window.location = url;
+}
+
 function confirmUserRemove(index) {
 	$("#user-remove-confirm-" + index).modal('show');
 }

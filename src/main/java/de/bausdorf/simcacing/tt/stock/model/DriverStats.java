@@ -22,6 +22,8 @@ package de.bausdorf.simcacing.tt.stock.model;
  * #L%
  */
 
+import java.time.Duration;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,5 +81,12 @@ public class DriverStats {
 				.append('-').append(track)
 				.append('-').append(car)
 				.toString();
+	}
+
+	public StatsEntry getFastestEntry() {
+		return stats.stream()
+				.filter(s -> s.getAvgLapTime() != Duration.ZERO)
+				.min(Comparator.comparing(StatsEntry::getAvgLapTime))
+				.orElse(null);
 	}
 }
