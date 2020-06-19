@@ -106,10 +106,10 @@ public class TtUser implements UserDetails {
         map.put(LOCKED, locked);
         map.put(EXPIRED, expired);
         map.put(TIMEZONE, timezone != null ? timezone.toString() : null);
-        map.put(CREATED, created != null ? created.toString() : ZonedDateTime.now());
-        map.put(LAST_ACCESS, lastAccess.toString());
-        map.put(LAST_SUBSCRIPTION, lastSubscription.toString());
-        map.put(SUBSCRIPTION, subscriptionType.name());
+        map.put(CREATED, created != null ? created.toString() : ZonedDateTime.now().toString());
+        map.put(LAST_ACCESS, lastAccess != null ? lastAccess.toString() : ZonedDateTime.now().toString());
+        map.put(LAST_SUBSCRIPTION, lastSubscription != null ? lastSubscription.toString() : null);
+        map.put(SUBSCRIPTION, subscriptionType != null ? subscriptionType.name() : SubscriptionType.NONE.name());
         return map;
     }
 

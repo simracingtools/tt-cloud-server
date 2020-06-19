@@ -137,8 +137,10 @@ public class PitstopDataView {
 	}
 
 	private static ZonedDateTime viewForPittedStints(SessionController controller, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
-		ZonedDateTime endTime = controller.getSessionRegistered()
-				.plus(controller.getRacePlan().getPlanParameters().getGreenFlagOffsetTime());
+		ZonedDateTime endTime = controller.getSessionRegistered();
+		if (controller.getRacePlan() != null) {
+			endTime = endTime.plus(controller.getRacePlan().getPlanParameters().getGreenFlagOffsetTime());
+		}
 		for (Stint stint : controller.getStints().tailMap(0).values()) {
 			Pitstop pitstop = controller.getPitStops().get(stint.getNo());
 			if (pitstop == null || !pitstop.isComplete()) {
