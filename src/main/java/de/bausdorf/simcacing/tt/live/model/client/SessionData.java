@@ -79,6 +79,9 @@ public class SessionData implements ClientData {
 			return Optional.empty();
 		}
 		double iRacingSecondOfDay = Double.parseDouble(sessionTime);
+		if (iRacingSecondOfDay > 86399.0D) {
+			iRacingSecondOfDay = 86399.0D;
+		}
 		return Optional.of(LocalTime.ofSecondOfDay((long)iRacingSecondOfDay));
 	}
 
