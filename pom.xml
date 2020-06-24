@@ -9,7 +9,7 @@
   </parent>
   <groupId>de.bausdorf.simcacing</groupId>
   <artifactId>tt-cloud-server</artifactId>
-  <version>0.13.3</version>
+  <version>0.13.4-SNAPSHOT</version>
   <name>tt-cloud-server</name>
   <organization>
     <name>bausdorf engineering</name>
@@ -265,7 +265,7 @@
     <connection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</connection>
     <url>scm:git:git@github.com:simracingtools/tt-cloud-server.git</url>
     <developerConnection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</developerConnection>
-    <tag>v0.13.3</tag>
+    <tag>HEAD</tag>
   </scm>
   <distributionManagement>
     <repository>
