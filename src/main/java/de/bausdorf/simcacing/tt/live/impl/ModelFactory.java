@@ -44,7 +44,7 @@ public class ModelFactory {
                 .lapTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.LAP_TIME)))
                 .no((Integer)messagePayload.get(MessageConstants.LapData.LAP))
                 .trackTemp((Double)messagePayload.get(MessageConstants.LapData.TRACK_TEMP))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
                 .driverId(stringOfNumberOrString(messagePayload.get(MessageConstants.LapData.DRIVER_ID)))
                 .build();
     }
@@ -53,13 +53,16 @@ public class ModelFactory {
         return RunData.builder()
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
                 .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
                         .map(FlagType::valueOf)
                         .collect(Collectors.toList()))
                 .lapNo((Integer)messagePayload.get(MessageConstants.RunData.LAP_NO))
                 .timeInLap(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.TIME_IN_LAP)))
+                .sessionTimeRemaining(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.TIME_REMAINING)))
+                .sessionState(SessionStateType.ofCode((Integer)messagePayload.get(MessageConstants.RunData.SESSION_STATE)))
+                .lapsRemaining((Integer)messagePayload.get(MessageConstants.RunData.LAPS_REMAINING))
                 .build();
     }
 
@@ -67,7 +70,7 @@ public class ModelFactory {
         return EventData.builder()
                 .flags(FlagType.fromIrBitmask((Integer)messagePayload.get(MessageConstants.EventData.FLAGS)))
                 .trackLocationType(TrackLocationType.forIrCode((Integer)messagePayload.get(MessageConstants.EventData.TRACK_LOCATION)))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
                 .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .optRepairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.OPT_REPAIR_TIME)))
                 .repairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.REPAIR_TIME)))
@@ -94,7 +97,7 @@ public class ModelFactory {
     public static SyncData getFromSyncMessage(Map<String, Object> payload) {
         return SyncData.builder()
                 .clientId((String)payload.get(MessageConstants.SyncData.CLIENT_ID))
-                .sessionTime(getFromIracingSessionTime(payload.get(MessageConstants.SyncData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(payload.get(MessageConstants.SyncData.SESSION_TIME)))
                 .isInCar((Boolean)payload.get(MessageConstants.SyncData.IN_CAR))
                 .build();
     }

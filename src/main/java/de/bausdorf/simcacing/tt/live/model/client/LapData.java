@@ -27,7 +27,6 @@ import de.bausdorf.simcacing.tt.util.MapTools;
 import lombok.*;
 
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +55,7 @@ public class LapData implements ClientData {
 	private final double fuelLevel;
 	private final Duration lapTime;
 	private final double trackTemp;
-	private final LocalTime sessionTime;
+	private final Duration sessionTime;
 	@Setter
 	private boolean pitStop;
 	@Setter
@@ -77,7 +76,7 @@ public class LapData implements ClientData {
 		this.fuelLevel = MapTools.doubleFromMap(FUEL_LEVEL, data);
 		this.lapTime = MapTools.durationFromMap(LAP_TIME, data);
 		this.trackTemp = MapTools.doubleFromMap(TRACK_TEMP, data);
-		this.sessionTime = MapTools.timeFromMap(SESSION_TIME, data);
+		this.sessionTime = MapTools.durationFromMap(SESSION_TIME, data);
 		this.pitStop = MapTools.booleanFromMap(PIT_LAP, data, false);
 		this.unclean = MapTools.booleanFromMap(UNCLEAN, data, false);
 		this.outLap = MapTools.booleanFromMap(OUT_LAP, data, false);

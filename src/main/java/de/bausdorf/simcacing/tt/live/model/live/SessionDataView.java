@@ -22,9 +22,8 @@ package de.bausdorf.simcacing.tt.live.model.live;
  * #L%
  */
 
-import java.time.LocalTime;
+import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,8 +64,7 @@ public class SessionDataView implements ClientData {
 		return SessionDataView.builder()
 				.carName(controller.getSessionData().getCarName())
 				.trackName(controller.getSessionData().getTrackName())
-				.sessionDuration(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN)
-						.format(DateTimeFormatter.ofPattern("HH:mm")))
+				.sessionDuration(TimeTools.shortDurationString(controller.getSessionData().getSessionDuration().orElse(Duration.ZERO)))
 				.sessionType(controller.getSessionData().getSessionType())
 				.teamName(controller.getSessionData().getTeamName())
 				.sessionId(controller.getSessionData().getSessionId().getSubscriptionId())

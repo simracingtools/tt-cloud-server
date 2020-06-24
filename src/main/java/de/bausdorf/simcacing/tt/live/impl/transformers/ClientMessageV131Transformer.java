@@ -27,37 +27,30 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
-import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.EventData;
-import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.LapData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants.RunData;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageProcessor;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageTransformer;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageType;
 
 @Component
-public class ClientMessageV130Transformer extends MessageTransformer {
+public class ClientMessageV131Transformer extends MessageTransformer {
 
-	public ClientMessageV130Transformer(@Autowired MessageProcessor processor) {
+	public ClientMessageV131Transformer(@Autowired MessageProcessor processor) {
 		super(processor);
 	}
 
 	@Override
 	public String supportedMessageVersion() {
-		return "1.30";
+		return "1.31";
 	}
 
 	@Override
 	public ClientMessage transform(ClientMessage message) {
-		if (message.getType() == MessageType.EVENT) {
-			message.getPayload().put(EventData.SERVICE_FLAGS, 0);
-		} else if (message.getType() == MessageType.LAP) {
-			message.getPayload().put(LapData.DRIVER_ID, "");
-		} else if (message.getType() == MessageType.RUN_DATA) {
+		if (message.getType() == MessageType.RUN_DATA) {
 			message.getPayload().put(RunData.LAPS_REMAINING, 0);
 			message.getPayload().put(RunData.SESSION_STATE, 0);
 			message.getPayload().put(RunData.TIME_REMAINING, 0.0);
 		}
-
 		return message;
 	}
 

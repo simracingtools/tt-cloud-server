@@ -371,11 +371,6 @@ public class RacePlanParameters {
 		}
 	}
 
-
-	public void shiftGreenFlagOffsetTime(LocalTime realGreenFlagTime) {
-		greenFlagOffsetTime = Duration.between(sessionStartTime.toLocalTime(), realGreenFlagTime);
-	}
-
 	private void updateSessionStartTime(ZonedDateTime newStartTime) {
 		if (roster != null) {
 			for (List<ScheduleEntry> schedule : roster.getDriverAvailability().values()) {

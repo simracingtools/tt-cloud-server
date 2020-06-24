@@ -72,7 +72,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 		SessionController controller = new SessionController(sessionData);
 		controller.setTeamId(MapTools.stringFromMap(TEAM_ID, data));
 		controller.setLastUpdate(Long.parseLong(MapTools.stringFromMap(LAST_UPDATE, data)));
-		controller.setGreenFlagTime(MapTools.timeFromMap(GREEN_FLAG_TIME, data));
+		controller.setGreenFlagTime(MapTools.durationFromMap(GREEN_FLAG_TIME, data));
 		controller.setSessionToD(MapTools.timeFromMap(SESSION_TOD, data));
 		controller.setSessionRegistered(MapTools.zonedDateTimeFromMap(SESSION_REGISTERED, data));
 

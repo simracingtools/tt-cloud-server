@@ -25,7 +25,6 @@ package de.bausdorf.simcacing.tt.live.model.live;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -153,7 +152,7 @@ public class PitstopDataView {
 			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(stintDuration);
 			Duration raceDuration = controller.getRacePlan() != null
 					? controller.getRacePlan().getPlanParameters().getRaceDuration()
-					: Duration.ofSeconds(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN).toSecondOfDay());
+					: controller.getSessionData().getSessionDuration().orElse(Duration.ZERO);
 			Duration raceTimeLeft = raceDuration.minus(clock.accumulatedStintDuration);
 
 			PitstopDataView view = PitstopDataView.builder()
