@@ -24,7 +24,6 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,15 +54,15 @@ public class RacePlan {
 		return newRacePlan;
 	}
 
-	public LocalDateTime getTodRaceTime(LocalTime sessionTime) {
+	public LocalDateTime getTodRaceTime(Duration sessionTime) {
 		return planParameters.getTodStartTime()
 				.plus(planParameters.getGreenFlagOffsetTime())
-				.plusSeconds(sessionTime.toSecondOfDay());
+				.plus(sessionTime);
 	}
 
 	public void calculateLiveStints() {
 		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
-		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
+		LocalDateTime todClock = getTodRaceTime(Duration.ZERO);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		currentRacePlan = calculateLiveStints(raceClock, todClock, sessionEndTime);
 	}
@@ -75,7 +74,7 @@ public class RacePlan {
 
 	public void calculatePlannedStints() {
 		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
-		LocalDateTime todClock = getTodRaceTime(LocalTime.MIN);
+		LocalDateTime todClock = getTodRaceTime(Duration.ZERO);
 		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		if (!Duration.ZERO.equals(planParameters.getAvgLapTime())) {
 			currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime, 0);
@@ -97,59 +96,46 @@ public class RacePlan {
 
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
 					planParameters.getMaxCarFuel(), service,
-					planParameters.getDriverNameEstimationAt(currentDriver, todClock));
+					planParameters.getDriverNameEstimationAt(currentDriver, todClock),
+					Duration.between(raceClock, raceTimeLeft));
 			stints.add(nextStint);
 
 			raceClock = raceClock.plus(nextStint.getStintDuration(true));
 			todClock = todClock.plus(nextStint.getStintDuration(true));
 			stintIndex++;
-			// Check for last Stint ?
-			if( raceClock.plus(nextStint.getStintDuration(false)).isAfter(raceTimeLeft) ) {
-				if (planParameters.getStints().size() > stintIndex) {
-					currentDriver = planParameters.getStints().get(stintIndex).getDriverName();
-				}
-				Stint lastStint = calculateLastStint(raceClock, todClock, currentDriver,
-						Duration.between(raceClock, raceTimeLeft),
-						planParameters.getDriverNameEstimationAt(currentDriver, todClock));
-				stints.add(lastStint);
-				break;
-			}
 		}
 		return stints;
 	}
 
 	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
-			double amountFuel, List<PitStopServiceType> service, Estimation estimation) {
+			double amountFuel, List<PitStopServiceType> service, Estimation estimation, Duration timeLeft) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
-		int maxLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
-		double fuelLeft = amountFuel - (estimation.getAvgFuelPerLap() * maxLaps);
-		stint.setRefuelAmount(amountFuel - fuelLeft);
-		stint.setLaps(maxLaps);
-		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(maxLaps);
+		int stintLaps = (int)Math.floor(amountFuel / estimation.getAvgFuelPerLap());
+		double fuelLeft = amountFuel - (estimation.getAvgFuelPerLap() * stintLaps);
+		Duration stintDuration = estimation.getAvgLapTime().multipliedBy(stintLaps);
 
+		if (stintDuration.toMillis() > timeLeft.toMillis()) {
+			// This is the last stint
+			stintLaps = (int)Math.ceil((double)timeLeft.toMillis() / estimation.getAvgLapTime().toMillis());
+			stintDuration = estimation.getAvgLapTime().multipliedBy(stintLaps);
+			double neededFuel = stintLaps * estimation.getAvgFuelPerLap();
+			stint.setRefuelAmount(neededFuel);
+			stint.setEndTime(stintStartTime.plus(stintDuration));
+			stint.setLastStint(true);
+		} else {
+			// There are further stints
+			stint.setService(service);
+			stint.setRefuelAmount(amountFuel - fuelLeft);
+			stint.setEndTime(stintStartTime
+					.plus(stintDuration)
+					.plus(planParameters.getAvgPitLaneTime())
+					.plus(PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount())));
+		}
 
-		stint.setService(service);
-		stint.setEndTime(stintStartTime
-				.plus(stintDuration)
-				.plus(planParameters.getAvgPitLaneTime())
-				.plus(PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount()))
-		);
+		stint.setLaps(stintLaps);
 
 		return stint;
-	}
-
-	private Stint calculateLastStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName, Duration timeLeft, Estimation estimation) {
-		Stint lastStint = newStintForDriver(stintStartTime, todStartTime, driverName);
-
-		int lapsLeft = (int)Math.ceil((double)timeLeft.toMillis() / estimation.getAvgLapTime().toMillis());
-		double neededFuel = lapsLeft * estimation.getAvgFuelPerLap();
-		lastStint.setRefuelAmount(neededFuel);
-		lastStint.setLaps(lapsLeft);
-		lastStint.setEndTime(stintStartTime.plus(estimation.getAvgLapTime().multipliedBy(lapsLeft)));
-		lastStint.setLastStint(true);
-
-		return lastStint;
 	}
 
 	private Stint newStintForDriver(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {

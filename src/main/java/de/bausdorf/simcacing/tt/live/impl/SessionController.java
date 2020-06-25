@@ -185,8 +185,8 @@ public class SessionController {
 		return Duration.ZERO;
 	}
 
-	public LocalTime getCurrentSessionTime() {
-		return runData == null ? LocalTime.MIN : LocalTime.MIN.plus(runData.getSessionTime());
+	public Duration getCurrentSessionTime() {
+		return runData == null ? Duration.ZERO : runData.getSessionTime();
 	}
 
 	public LocalTime getCurrentRaceSessionTime() {
