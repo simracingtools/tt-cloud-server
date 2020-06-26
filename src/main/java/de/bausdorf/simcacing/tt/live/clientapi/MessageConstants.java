@@ -30,6 +30,7 @@ public class MessageConstants {
         public static final String RUN_DATA_NAME = "runData";
         public static final String EVENTDATA_NAME = "event";
         public static final String SYNCDATA_NAME = "syncData";
+        public static final String TYRES_NAME ="tyres";
         public static final String PING_NAME = "ping";
 
         private MessageType() {}
@@ -99,7 +100,24 @@ public class MessageConstants {
 
         private SessionData() {}
     }
-    
+
+    public static class TyreData {
+        public static final String WEAR_LFO = "lfOwear";
+        public static final String WEAR_LFM = "lfMwear";
+        public static final String WEAR_LFI = "lfIwear";
+        public static final String WEAR_RFO = "rfOwear";
+        public static final String WEAR_RFM = "rfMwear";
+        public static final String WEAR_RFI = "rfIwear";
+        public static final String WEAR_LRO = "lrOwear";
+        public static final String WEAR_LRM = "lrMwear";
+        public static final String WEAR_LRI = "lrIwear";
+        public static final String WEAR_RRO = "rrOwear";
+        public static final String WEAR_RRM = "rrMwear";
+        public static final String WEAR_RRI = "rrIwear";
+
+        private TyreData() {}
+    }
+
     public static class SyncData {
         public static final String SESSION_TIME = "sessionTime";
         public static final String CLIENT_ID = "irid";

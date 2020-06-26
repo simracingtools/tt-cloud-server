@@ -94,6 +94,23 @@ public class ModelFactory {
                 .build();
     }
 
+    public static TyreData getFromTyreMessage(Map<String, Object> messagePayload) {
+        return TyreData.builder()
+                .wearLFI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFI))
+                .wearLFM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFM))
+                .wearLFO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFO))
+                .wearRFI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFI))
+                .wearRFM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFM))
+                .wearRFO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFO))
+                .wearLRI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRI))
+                .wearLRM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRM))
+                .wearLRO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRO))
+                .wearRRI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRI))
+                .wearRRM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRM))
+                .wearRRO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRO))
+                .build();
+    }
+
     public static SyncData getFromSyncMessage(Map<String, Object> payload) {
         return SyncData.builder()
                 .clientId((String)payload.get(MessageConstants.SyncData.CLIENT_ID))

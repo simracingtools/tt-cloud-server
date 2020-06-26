@@ -40,6 +40,7 @@ import de.bausdorf.simcacing.tt.live.model.live.RunDataView;
 import de.bausdorf.simcacing.tt.live.model.live.ServiceChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
+import de.bausdorf.simcacing.tt.live.model.live.TyreDataView;
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
@@ -133,6 +134,11 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 				controller = getSessionController(sessionKey);
 				controller.setLastUpdate(System.currentTimeMillis());
 				processEventData(controller, (EventData)clientData);
+				break;
+			case TYRES:
+				controller = getSessionController(sessionKey);
+				controller.setLastUpdate(System.currentTimeMillis());
+				processTyreData(controller, (TyreData)clientData);
 				break;
 			case SYNC:
 				controller = getSessionController(sessionKey);
@@ -237,6 +243,14 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 				.timestamp(TimeTools.shortDurationString(syncData.getSessionTime()))
 				.stateCssClass(getSyncState(syncData.getSessionTime(), syncData.getSessionTime()))
 				.inCarCssClass(syncData.isInCar() ? "table-info" : "")
+				.build());
+	}
+
+	public void sendTyreData(TyreData tyreData, String teamId) {
+		messagingTemplate.convertAndSend(LIVE_PREFIX + teamId + "/tyredata", TyreDataView.builder()
+				.innerWear(tyreData.getInnerWear())
+				.middleWear(tyreData.getMiddleWear())
+				.outerWear(tyreData.getOuterWear())
 				.build());
 	}
 
@@ -428,6 +442,11 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		sendEventData(eventData, subscriptionId);
 	}
 
+	private void processTyreData(SessionController controller, TyreData tyreData) {
+		controller.updateTyreData(tyreData);
+		sendTyreData(tyreData, controller.getSessionData().getSessionId().getSubscriptionId());
+	}
+
 	private RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
 		List<RacePlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
@@ -466,6 +485,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 			case EVENT: return ModelFactory.getFromEventMessage(message.getPayload());
 			case RUN_DATA: return ModelFactory.fromRunDataMessage(message.getPayload());
 			case SESSION_INFO: return ModelFactory.getFromSessionMessage(message.getPayload());
+			case TYRES: return ModelFactory.getFromTyreMessage(message.getPayload());
 			case SYNC: return ModelFactory.getFromSyncMessage(message.getPayload());
 			default: throw new InvalidClientMessageException("Unknown ClientMessage type");
 		}

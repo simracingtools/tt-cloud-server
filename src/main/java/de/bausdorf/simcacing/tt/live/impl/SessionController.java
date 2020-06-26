@@ -57,7 +57,7 @@ public class SessionController {
 	private final SortedMap<Integer, Pitstop> pitStops = new TreeMap<>();
 	private final Map<String, SyncData> heartbeats = new HashMap<>();
 	private RunData runData;
-
+	private TyreData tyreData;
 	private int currentLapNo;
 	private boolean uncleanLap;
 	private boolean onOutLap;
@@ -137,6 +137,10 @@ public class SessionController {
 			return true;
 		}
 		return false;
+	}
+
+	public void updateTyreData(TyreData tyreData) {
+		this.tyreData = tyreData;
 	}
 
 	public void updateSyncData(SyncData syncData) {
