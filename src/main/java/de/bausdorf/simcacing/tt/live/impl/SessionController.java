@@ -176,15 +176,12 @@ public class SessionController {
 	}
 
 	public Duration getRemainingSessionTime() {
-		if (runData != null) {
+		if (runData != null && !runData.getSessionTimeRemaining().isZero()) {
 			return runData.getSessionTimeRemaining();
 		}
 		Optional<Duration> sessionDuration = sessionData.getSessionDuration();
 		if (sessionDuration.isPresent()) {
-			if (greenFlagTime != null) {
-				return sessionDuration.get().plus(greenFlagTime);
-			}
-			return sessionDuration.get();
+			return sessionDuration.get().minus(getCurrentSessionTime());
 		}
 		return Duration.ZERO;
 	}
