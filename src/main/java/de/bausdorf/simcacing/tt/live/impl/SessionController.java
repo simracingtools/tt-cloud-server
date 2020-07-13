@@ -256,7 +256,7 @@ public class SessionController {
 	}
 
 	public int getRemainingLapCount() {
-		if (runData != null) {
+		if (runData != null && runData.getLapsRemaining() < 1000) {
 			return runData.getLapsRemaining();
 		}
 		Duration remainingSessionTime = getRemainingSessionTime();
