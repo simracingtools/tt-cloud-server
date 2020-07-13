@@ -73,8 +73,13 @@ public class MapTools {
 	public static int intFromMap(String key, Map<String, Object> data) {
 		try {
 			return ((Long) data.get(key)).intValue();
-		} catch( Exception e ) {
-			log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+		} catch( Exception eLong ) {
+			log.info(EXCEPTION_LOG_PATTERN, key, eLong.getMessage(), data.get(key));
+			try {
+				return (Integer) data.get(key);
+			} catch( Exception e ) {
+				log.warn(EXCEPTION_LOG_PATTERN, key, e.getMessage(), data.get(key));
+			}
 		}
 		return 0;
 	}
