@@ -69,6 +69,7 @@ public class RacePlan {
 
 	public List<Stint> calculateLiveStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
 		int stintIndex = PlanningTools.stintIndexAt(raceClock, planParameters.getStints());
+		log.debug("calculating live stint plan from index: {}", stintIndex);
 		return calculateStints(raceClock, todClock, raceTimeLeft, stintIndex);
 	}
 
