@@ -68,7 +68,7 @@ public class ModelFactory {
 
     public static EventData getFromEventMessage(Map<String, Object> messagePayload) {
         return EventData.builder()
-                .flags(FlagType.fromIrBitmask((Integer)messagePayload.get(MessageConstants.EventData.FLAGS)))
+                .flags(FlagType.fromIrBitmask((Long)messagePayload.get(MessageConstants.EventData.FLAGS)))
                 .trackLocationType(TrackLocationType.forIrCode((Integer)messagePayload.get(MessageConstants.EventData.TRACK_LOCATION)))
                 .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
                 .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
