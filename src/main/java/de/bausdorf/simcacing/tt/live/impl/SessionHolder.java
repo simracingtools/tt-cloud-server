@@ -352,6 +352,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 
 	@Override
 	public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+		log.info("Server timezone: {}", TimeZone.getDefault().getID());
 		log.info("Loading active sessions from repository");
 		List<SessionController> activeSessions = sessionRepository.loadAll();
 		if (activeSessions.isEmpty()) {
