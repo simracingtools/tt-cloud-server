@@ -47,11 +47,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @AllArgsConstructor
 @Builder
 @ToString
+@Slf4j
 public class PitstopDataView {
 	private String stintNo;
 	private String raceTimeLeft;
@@ -73,12 +75,16 @@ public class PitstopDataView {
 	public static List<PitstopDataView> getPitstopDataView(SessionController controller) {
 		List<PitstopDataView> pitstopDataViews = new ArrayList<>();
 		if (controller != null) {
+			log.debug("Creating pitstop data view");
 			RaceClock clock = new PitstopDataView.RaceClock();
 			ZonedDateTime from = viewForPittedStints(controller, clock, pitstopDataViews);
+			log.debug("Race clock after pitted stints: {}", clock.toString());
+			log.debug("Use planned stints from: {}", from);
 			if (from == null) {
 				from = controller.getSessionRegistered();
 			}
 			if (controller.getRacePlan() != null) {
+				log.debug("Plan start time is: {}", controller.getRacePlan().getPlanParameters().getSessionStartTime().toString());
 				viewForPlannedStints(controller, from, clock, pitstopDataViews);
 			}
 		}
@@ -185,6 +191,7 @@ public class PitstopDataView {
 	}
 
 	@Data
+	@ToString
 	private static class RaceClock {
 		private int stintNo = 0;
 		private int lapCount = 0;
