@@ -50,7 +50,7 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 		return IRacingCar.builder()
 				.name((String)data.get(IRacingCar.NAME))
 				.id((String)data.get(IRacingCar.ID))
-				.maxFuel((Double)data.get(IRacingCar.MAX_FUEL))
+				.maxFuel(doubleFromNumber(data.get(IRacingCar.MAX_FUEL)))
 				.unit((String)data.get(IRacingCar.UNIT))
 				.build();
 	}
@@ -84,5 +84,14 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 		return allCars.stream()
 				.sorted(Comparator.comparing(IRacingCar::getName))
 				.collect(Collectors.toList());
+	}
+
+	private double doubleFromNumber(Object number) {
+		try {
+			return (Double)number;
+		} catch(ClassCastException e) {
+			log.info("read long as double");
+			return (Long)number;
+		}
 	}
 }
