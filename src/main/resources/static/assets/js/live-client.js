@@ -132,7 +132,8 @@ var tyreChartConfig = {
         startAngle: -45.0,
         scale: {
             ticks: {
-                suggestedMax: 100
+                suggestedMax: 100,
+                suggestedMin: 0
             }
         },
         title: {
