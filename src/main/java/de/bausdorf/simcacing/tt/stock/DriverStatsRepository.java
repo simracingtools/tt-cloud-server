@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.stock;
  * #L%
  */
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -91,7 +92,7 @@ public class DriverStatsRepository extends CachedRepository<DriverStats> {
 					.driverId(driverId)
 					.trackId(trackId)
 					.carId(carId)
-					.stats(Arrays.asList(statsEntry))
+					.stats(new ArrayList<>(Arrays.asList(statsEntry)))
 					.build()
 			);
 		}

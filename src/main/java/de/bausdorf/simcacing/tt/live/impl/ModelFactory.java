@@ -24,6 +24,7 @@ package de.bausdorf.simcacing.tt.live.impl;
 
 import de.bausdorf.simcacing.tt.live.clientapi.MessageConstants;
 import de.bausdorf.simcacing.tt.live.model.client.*;
+import de.bausdorf.simcacing.tt.util.MapTools;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -44,7 +45,7 @@ public class ModelFactory {
                 .lapTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.LAP_TIME)))
                 .no((Integer)messagePayload.get(MessageConstants.LapData.LAP))
                 .trackTemp((Double)messagePayload.get(MessageConstants.LapData.TRACK_TEMP))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.LapData.SESSION_TIME)))
                 .driverId(stringOfNumberOrString(messagePayload.get(MessageConstants.LapData.DRIVER_ID)))
                 .build();
     }
@@ -53,21 +54,24 @@ public class ModelFactory {
         return RunData.builder()
                 .estLapTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.EST_LAP_TIME)))
                 .fuelLevel((Double)messagePayload.get(MessageConstants.RunData.FUEL_LEVEL))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.SESSION_TIME)))
                 .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .flags(((List<String>)messagePayload.get(MessageConstants.RunData.FLAGS)).stream()
                         .map(FlagType::valueOf)
                         .collect(Collectors.toList()))
                 .lapNo((Integer)messagePayload.get(MessageConstants.RunData.LAP_NO))
                 .timeInLap(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.TIME_IN_LAP)))
+                .sessionTimeRemaining(getFromIracingDuration(messagePayload.get(MessageConstants.RunData.TIME_REMAINING)))
+                .sessionState(SessionStateType.ofCode((Integer)messagePayload.get(MessageConstants.RunData.SESSION_STATE)))
+                .lapsRemaining((Integer)messagePayload.get(MessageConstants.RunData.LAPS_REMAINING))
                 .build();
     }
 
     public static EventData getFromEventMessage(Map<String, Object> messagePayload) {
         return EventData.builder()
-                .flags(FlagType.fromIrBitmask((Integer)messagePayload.get(MessageConstants.EventData.FLAGS)))
+                .flags(FlagType.fromIrBitmask(MapTools.intFromMap(MessageConstants.EventData.FLAGS, messagePayload)))
                 .trackLocationType(TrackLocationType.forIrCode((Integer)messagePayload.get(MessageConstants.EventData.TRACK_LOCATION)))
-                .sessionTime(getFromIracingSessionTime(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.SESSION_TIME)))
                 .sessionToD(getFromIracingSessionTime(messagePayload.get(MessageConstants.RunData.SESSION_TOD)))
                 .optRepairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.OPT_REPAIR_TIME)))
                 .repairTime(getFromIracingDuration(messagePayload.get(MessageConstants.EventData.REPAIR_TIME)))
@@ -91,10 +95,27 @@ public class ModelFactory {
                 .build();
     }
 
+    public static TyreData getFromTyreMessage(Map<String, Object> messagePayload) {
+        return TyreData.builder()
+                .wearLFI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFI))
+                .wearLFM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFM))
+                .wearLFO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LFO))
+                .wearRFI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFI))
+                .wearRFM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFM))
+                .wearRFO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RFO))
+                .wearLRI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRI))
+                .wearLRM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRM))
+                .wearLRO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_LRO))
+                .wearRRI((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRI))
+                .wearRRM((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRM))
+                .wearRRO((Double)messagePayload.get(MessageConstants.TyreData.WEAR_RRO))
+                .build();
+    }
+
     public static SyncData getFromSyncMessage(Map<String, Object> payload) {
         return SyncData.builder()
                 .clientId((String)payload.get(MessageConstants.SyncData.CLIENT_ID))
-                .sessionTime(getFromIracingSessionTime(payload.get(MessageConstants.SyncData.SESSION_TIME)))
+                .sessionTime(getFromIracingDuration(payload.get(MessageConstants.SyncData.SESSION_TIME)))
                 .isInCar((Boolean)payload.get(MessageConstants.SyncData.IN_CAR))
                 .build();
     }

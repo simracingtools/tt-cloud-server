@@ -35,7 +35,7 @@ import java.util.List;
 @Builder
 @ToString
 public class EventData implements ClientData {
-    private LocalTime sessionTime;
+    private Duration sessionTime;
     private LocalTime sessionToD;
     private TrackLocationType trackLocationType;
     private List<FlagType> flags;

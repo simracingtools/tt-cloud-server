@@ -64,10 +64,18 @@
 </div>
 <div class="row" style="margin-left: 0;">
     <div class="col-md-6 col-lg-6" style="padding: 0;padding-left: 15px;">
-        <div style="height: 161px;margin-top: 10px;">
-            <canvas id="charts"></canvas>
+        <div class="row">
+            <div class="col-8 col-sm-8 col-md-8 col-lg-10 col-xl-11">
+                <div class="d-inline-block" style="height: 188px;">
+                    <canvas id="lapCharts" style="display: block; width: 600px; height: 161px;"></canvas>
+                </div>
+            </div>
+            <div class="col-4 col-sm-3 col-md-4 col-lg-2 col-xl-1">
+                <div class="d-inline-block float-right" style="height: 188px">
+                    <canvas id="tyreCharts" style="display: block; width: 161px; height: 161px;"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="clearfix"></div>
         <div class="table-responsive" style="font-size: 16px;">
             <table class="table">
                 <tbody>
@@ -288,8 +296,10 @@
 <script>
     window.onload = function afterPageReload() {
         connect();
-        var ctx = document.getElementById('charts').getContext('2d');
-        window.lapCharts = new Chart(ctx, chartConfig);
+        var ctx1 = document.getElementById('lapCharts').getContext('2d');
+        window.lapCharts = new Chart(ctx1, chartConfig);
+        var ctx2 = document.getElementById('tyreCharts').getContext('2d');
+        window.tyreCharts = new Chart(ctx2, tyreChartConfig);
     }
 </script>
 </body>

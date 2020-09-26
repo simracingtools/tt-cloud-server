@@ -51,13 +51,13 @@ public class SessionController {
 	@Setter
 	private ZonedDateTime sessionRegistered;
 	@Setter
-	private LocalTime greenFlagTime;
+	private Duration greenFlagTime;
 	private final SortedMap<Integer, Stint> stints = new TreeMap<>();
 	private final SortedMap<Integer, LapData> laps = new TreeMap<>();
 	private final SortedMap<Integer, Pitstop> pitStops = new TreeMap<>();
 	private final Map<String, SyncData> heartbeats = new HashMap<>();
 	private RunData runData;
-
+	private TyreData tyreData;
 	private int currentLapNo;
 	private boolean uncleanLap;
 	private boolean onOutLap;
@@ -139,6 +139,10 @@ public class SessionController {
 		return false;
 	}
 
+	public void updateTyreData(TyreData tyreData) {
+		this.tyreData = tyreData;
+	}
+
 	public void updateSyncData(SyncData syncData) {
 		heartbeats.put(syncData.getClientId(), syncData);
 	}
@@ -172,26 +176,26 @@ public class SessionController {
 	}
 
 	public Duration getRemainingSessionTime() {
-		Optional<LocalTime> sessionDuration = sessionData.getSessionDuration();
+		if (runData != null && !runData.getSessionTimeRemaining().isZero()) {
+			return runData.getSessionTimeRemaining();
+		}
+		Optional<Duration> sessionDuration = sessionData.getSessionDuration();
 		if (sessionDuration.isPresent()) {
-			if (greenFlagTime != null) {
-				return Duration.between(runData != null ? runData.getSessionTime() : LocalTime.MIN, sessionDuration.get().plusSeconds(greenFlagTime.toSecondOfDay()));
-			}
-			return Duration.between((runData != null ? runData.getSessionTime() : LocalTime.MIN), sessionDuration.get());
+			return sessionDuration.get().minus(getCurrentSessionTime());
 		}
 		return Duration.ZERO;
 	}
 
-	public LocalTime getCurrentSessionTime() {
-		return runData == null ? LocalTime.MIN : runData.getSessionTime();
+	public Duration getCurrentSessionTime() {
+		return runData == null ? Duration.ZERO : runData.getSessionTime();
 	}
 
 	public LocalTime getCurrentRaceSessionTime() {
 		if (runData == null) {
 			return LocalTime.MIN;
 		}
-		return runData.getSessionTime().minusSeconds(
-				greenFlagTime != null ? greenFlagTime.toSecondOfDay() : 0);
+		return LocalTime.MIN.plus(runData.getSessionTime().minus(
+				greenFlagTime != null ? greenFlagTime : Duration.ZERO));
 	}
 
 	public double getAvailableLapsForFuelLevel(double currentFuelLevel) {
@@ -249,6 +253,9 @@ public class SessionController {
 	}
 
 	public int getRemainingLapCount() {
+		if (runData != null && runData.getLapsRemaining() < 1000) {
+			return runData.getLapsRemaining();
+		}
 		Duration remainingSessionTime = getRemainingSessionTime();
 		Optional<Stint> lastStint = getLastStint();
 		if (lastStint.isPresent()) {

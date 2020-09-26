@@ -47,6 +47,7 @@ var chartConfig = {
     options: {
         aspectRatio: 4,
         maintainAspectRatio: false,
+        // responsive: false,
         title: {
             text: 'Laptime / Track temp'
         },
@@ -100,7 +101,54 @@ var chartConfig = {
         }
     }
 };
+var tyreChartConfig = {
+    type: 'radar',
+    data: {
+        labels: [ 'LF', 'RF', 'RR', 'LR'],
+        datasets: [{
+            label: 'O',
+            data: [100, 100, 100, 100],
+            fill: false,
+            borderColor: 'rgb(153, 102, 255)',
+            borderWidth: 2
+        },{
+            label: 'M',
+            data: [100, 100, 100, 100],
+            fill: false,
+            borderColor: 'rgb(255, 205, 86)',
+            borderWidth: 2
+        },{
+            label: 'I',
+            data: [100, 100, 100, 100],
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        aspectRatio: 1,
+        maintainAspectRatio: false,
+        // responsive: false,
+        startAngle: -45.0,
+        scale: {
+            ticks: {
+                suggestedMax: 100,
+                suggestedMin: 0
+            }
+        },
+        title: {
+            display: true,
+            text: 'Tyre wear'
+        },
+        legend: {
+            position: 'bottom',
+            labels: {
+                boxWidth: 20
+            }
+        }
+    }
 
+};
 function addChartData(lap, temp, lapTime, slowest, fastest) {
     window.lapCharts.data.labels.push(lap);
     window.lapCharts.data.datasets[0].data.push(temp);
@@ -112,6 +160,13 @@ function addChartData(lap, temp, lapTime, slowest, fastest) {
         window.lapCharts.data.datasets[1].data.push('');
     }
     window.lapCharts.update();
+}
+
+function setTyreChartData(outer, middle, inner) {
+    window.tyreCharts.data.datasets[0].data = outer;
+    window.tyreCharts.data.datasets[1].data = middle;
+    window.tyreCharts.data.datasets[2].data = inner;
+    window.tyreCharts.update();
 }
 
 function addSessionChartData(chartData, slowest, fastest) {
@@ -173,6 +228,11 @@ function connect() {
             var jsonMessage = JSON.parse(message.body);
             console.log(jsonMessage);
             showPitData(jsonMessage);
+        });
+        stompClient.subscribe('/live/' + teamId + '/tyredata', function (message) {
+            var jsonMessage = JSON.parse(message.body);
+            console.log(jsonMessage);
+            showTyreData(jsonMessage);
         });
         sendTeamId();
     }, function (frame) {
@@ -312,6 +372,10 @@ function showEventData(message) {
             .removeClass("loc-green")
             .removeClass("loc-orange")
             .addClass(message.trackLocationCssClass);
+}
+
+function showTyreData(message) {
+    setTyreChartData(message.outerWear, message.middleWear, message.innerWear);
 }
 
 function showPitData(message) {

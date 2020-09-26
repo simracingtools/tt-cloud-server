@@ -31,9 +31,10 @@ public enum MessageType {
 	SESSION_INFO(MessageConstants.MessageType.SESSION_INFO_NAME),
 	RUN_DATA(MessageConstants.MessageType.RUN_DATA_NAME),
 	EVENT(MessageConstants.MessageType.EVENTDATA_NAME),
+	TYRES(MessageConstants.MessageType.TYRES_NAME),
 	SYNC(MessageConstants.MessageType.SYNCDATA_NAME);
 
-	private String jsonKey;
+	private final String jsonKey;
 
 	MessageType(String name) {
 		this.jsonKey = name;
@@ -54,6 +55,7 @@ public enum MessageType {
 			case MessageConstants.MessageType.RUN_DATA_NAME: return RUN_DATA;
 			case MessageConstants.MessageType.EVENTDATA_NAME: return EVENT;
 			case MessageConstants.MessageType.SYNCDATA_NAME: return SYNC;
+			case MessageConstants.MessageType.TYRES_NAME: return TYRES;
 			case MessageConstants.MessageType.PING_NAME: return PING;
 			default:
 				throw new IllegalArgumentException("Invalid message type \"" + key + "\"");

@@ -25,7 +25,6 @@ package de.bausdorf.simcacing.tt.live.model.live;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,11 +47,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @AllArgsConstructor
 @Builder
 @ToString
+@Slf4j
 public class PitstopDataView {
 	private String stintNo;
 	private String raceTimeLeft;
@@ -74,12 +75,16 @@ public class PitstopDataView {
 	public static List<PitstopDataView> getPitstopDataView(SessionController controller) {
 		List<PitstopDataView> pitstopDataViews = new ArrayList<>();
 		if (controller != null) {
+			log.debug("Creating pitstop data view");
 			RaceClock clock = new PitstopDataView.RaceClock();
 			ZonedDateTime from = viewForPittedStints(controller, clock, pitstopDataViews);
+			log.debug("Race clock after pitted stints: {}", clock.toString());
+			log.debug("Use planned stints from: {}", from);
 			if (from == null) {
 				from = controller.getSessionRegistered();
 			}
 			if (controller.getRacePlan() != null) {
+				log.debug("Plan start time is: {}", controller.getRacePlan().getPlanParameters().getSessionStartTime().toString());
 				viewForPlannedStints(controller, from, clock, pitstopDataViews);
 			}
 		}
@@ -137,8 +142,10 @@ public class PitstopDataView {
 	}
 
 	private static ZonedDateTime viewForPittedStints(SessionController controller, RaceClock clock, List<PitstopDataView> pitstopDataViews) {
-		ZonedDateTime endTime = controller.getSessionRegistered()
-				.plus(controller.getRacePlan().getPlanParameters().getGreenFlagOffsetTime());
+		ZonedDateTime endTime = controller.getSessionRegistered();
+		if (controller.getRacePlan() != null) {
+			endTime = endTime.plus(controller.getRacePlan().getPlanParameters().getGreenFlagOffsetTime());
+		}
 		for (Stint stint : controller.getStints().tailMap(0).values()) {
 			Pitstop pitstop = controller.getPitStops().get(stint.getNo());
 			if (pitstop == null || !pitstop.isComplete()) {
@@ -151,7 +158,7 @@ public class PitstopDataView {
 			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(stintDuration);
 			Duration raceDuration = controller.getRacePlan() != null
 					? controller.getRacePlan().getPlanParameters().getRaceDuration()
-					: Duration.ofSeconds(controller.getSessionData().getSessionDuration().orElse(LocalTime.MIN).toSecondOfDay());
+					: controller.getSessionData().getSessionDuration().orElse(Duration.ZERO);
 			Duration raceTimeLeft = raceDuration.minus(clock.accumulatedStintDuration);
 
 			PitstopDataView view = PitstopDataView.builder()
@@ -184,6 +191,7 @@ public class PitstopDataView {
 	}
 
 	@Data
+	@ToString
 	private static class RaceClock {
 		private int stintNo = 0;
 		private int lapCount = 0;

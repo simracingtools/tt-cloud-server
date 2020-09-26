@@ -22,7 +22,7 @@ package de.bausdorf.simcacing.tt.live.model.client;
  * #L%
  */
 
-import java.time.LocalTime;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -74,19 +74,20 @@ public class SessionData implements ClientData {
 		this.sessionType = MapTools.stringFromMap(SESSION_TYPE, data);
 	}
 
-	public Optional<LocalTime> getSessionDuration() {
+	public Optional<Duration> getSessionDuration() {
 		if( UNLIMITED.equalsIgnoreCase(sessionTime) ) {
 			return Optional.empty();
 		}
 		double iRacingSecondOfDay = Double.parseDouble(sessionTime);
-		return Optional.of(LocalTime.ofSecondOfDay((long)iRacingSecondOfDay));
+
+		return Optional.of(Duration.ofSeconds((long)iRacingSecondOfDay));
 	}
 
 	public Optional<Integer> getSessionMaxLaps() {
 		if( UNLIMITED.equalsIgnoreCase(sessionLaps) ) {
 			return Optional.empty();
 		}
-		return Optional.of(Integer.parseInt(sessionTime));
+		return Optional.of(Integer.parseInt(sessionLaps));
 	}
 
 	public Map<String, Object> toMap() {

@@ -52,9 +52,10 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	private static final List<String> acceptedVersions = new ArrayList<>();
 
 	static {
-		acceptedVersions.add("1.30");
 		acceptedVersions.add("1.31");
 		acceptedVersions.add("1.32");
+		acceptedVersions.add("1.33");
+		acceptedVersions.add("1.34");
 	}
 
 	private final MessageProcessor processor;

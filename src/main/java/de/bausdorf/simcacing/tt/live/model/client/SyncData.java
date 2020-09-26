@@ -25,7 +25,7 @@ package de.bausdorf.simcacing.tt.live.model.client;
 import de.bausdorf.simcacing.tt.live.clientapi.ClientData;
 import lombok.*;
 
-import java.time.LocalTime;
+import java.time.Duration;
 
 @Getter
 @NoArgsConstructor
@@ -34,6 +34,6 @@ import java.time.LocalTime;
 public class SyncData implements ClientData {
 
 	private String clientId;
-	private LocalTime sessionTime;
+	private Duration sessionTime;
 	boolean isInCar;
 }

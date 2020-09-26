@@ -81,7 +81,7 @@ public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 		return super.findByArrayContains(COLLECTION_NAME, IRacingTeam.AUTHORIZED_DRIVERS, driverId);
 	}
 
-	public List<IRacingTeam> findByTeamAdmins(String driverId) {
+	public List<IRacingTeam> findTeamByAdmins(String driverId) {
 		return super.findByArrayContains(COLLECTION_NAME, IRacingTeam.TEAM_ADMINS, driverId);
 	}
 }

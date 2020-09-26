@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.6.RELEASE</version>
+    <version>2.3.1.RELEASE</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>de.bausdorf.simcacing</groupId>
   <artifactId>tt-cloud-server</artifactId>
-  <version>0.12.1-SNAPSHOT</version>
+  <version>0.14.3-SNAPSHOT</version>
   <name>tt-cloud-server</name>
   <organization>
     <name>bausdorf engineering</name>
@@ -66,8 +66,12 @@
       <artifactId>spring-security-oauth2-client</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.ow2.asm</groupId>
-          <artifactId>asm</artifactId>
+          <groupId>net.minidev</groupId>
+          <artifactId>json-smart</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>nimbus-jose-jwt</artifactId>
         </exclusion>
           <exclusion>
             <groupId>com.nimbusds</groupId>
@@ -104,6 +108,12 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-gcp-security-firebase</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
@@ -163,12 +173,12 @@
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>sockjs-client</artifactId>
-      <version>1.0.2</version>
+      <version>1.1.2</version>
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>stomp-websocket</artifactId>
-      <version>2.3.3</version>
+      <version>2.3.3-1</version>
     </dependency>
     <!-- Chart -->
     <dependency>
@@ -186,6 +196,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>asm</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.projectreactor</groupId>
@@ -254,6 +270,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <executable>true</executable>
+        </configuration>
       </plugin>
 
       <plugin>
@@ -285,7 +304,7 @@
   <distributionManagement>
     <repository>
       <id>github</id>
-      <name>GitHub Packages</name>
+      <name>GitHub simracingtools Packages</name>
       <url>https://maven.pkg.github.com/simracingtools/tt-cloud-server</url>
     </repository>
   </distributionManagement>

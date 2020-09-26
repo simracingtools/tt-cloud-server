@@ -35,13 +35,16 @@ import lombok.*;
 @Builder
 public class RunData implements ClientData {
 
-	private LocalTime sessionTime;
+	private Duration sessionTime;
 	private LocalTime sessionToD;
 	private double fuelLevel;
 	private List<FlagType> flags;
 	private Duration estLapTime;
 	private int lapNo;
 	private Duration timeInLap;
+	private Duration sessionTimeRemaining;
+	private int lapsRemaining;
+	private SessionStateType sessionState;
 
 	public boolean isGreenFlag() {
 		return flags.contains(FlagType.GREEN);
