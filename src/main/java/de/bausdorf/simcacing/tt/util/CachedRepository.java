@@ -30,7 +30,7 @@ public abstract class CachedRepository<T> extends SimpleRepository<T> {
 
 	protected Map<String, CacheEntry<T>> cache;
 
-	public CachedRepository(FirestoreDB db) {
+	public CachedRepository(MongoDB db) {
 		super(db);
 		cache = new HashMap<>();
 	}

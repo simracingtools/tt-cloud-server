@@ -33,7 +33,7 @@ public abstract class TimeCachedRepository<T> extends CachedRepository<T> {
 	@Setter
 	private long cachedDurationMillis;
 
-	public TimeCachedRepository(FirestoreDB db, long cachedDurationMillis) {
+	public TimeCachedRepository(MongoDB db, long cachedDurationMillis) {
 		super(db);
 		this.cachedDurationMillis = cachedDurationMillis;
 	}

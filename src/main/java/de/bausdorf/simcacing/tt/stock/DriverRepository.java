@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 
@@ -37,7 +38,7 @@ import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 public class DriverRepository extends TimeCachedRepository<IRacingDriver> {
 	public static final String COLLECTION_NAME = "iRacingDrivers";
 
-	public DriverRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
+	public DriverRepository(@Autowired MongoDB db, @Autowired TeamtacticsServerProperties config) {
 		super(db, config.getDriverRepositoryCacheMinutes() * 60000);
 	}
 

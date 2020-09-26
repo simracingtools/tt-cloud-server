@@ -33,6 +33,7 @@ import de.bausdorf.simcacing.tt.stock.model.DriverStats;
 import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -40,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DriverStatsRepository extends CachedRepository<DriverStats> {
 	public static final String COLLECTION_NAME = "DriverStats";
 
-	public DriverStatsRepository(@Autowired FirestoreDB db) {
+	public DriverStatsRepository(@Autowired MongoDB db) {
 		super(db);
 	}
 

@@ -340,6 +340,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
 		log.info("Loading active sessions from repository");
 		List<SessionController> activeSessions = sessionRepository.loadAll();
+		log.info("Loaded active sessions from repository");
 		if (activeSessions.isEmpty()) {
 			log.info("No active sessions to load");
 			return;

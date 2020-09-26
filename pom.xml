@@ -19,7 +19,7 @@
   <description>TeamTactics aggregation server</description>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>14</java.version>
     <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <maven.test.skip>true</maven.test.skip>
@@ -69,6 +69,10 @@
           <groupId>org.ow2.asm</groupId>
           <artifactId>asm</artifactId>
         </exclusion>
+          <exclusion>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+          </exclusion>
       </exclusions>
     </dependency>
 <!--    <dependency>-->
@@ -117,6 +121,13 @@
     </dependency>
     <!-- Due to enforcer errors -->
     <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt</artifactId>
+      <version>0.9.1</version>
+      <exclusions>
+      </exclusions>
+  </dependency>
+    <dependency>
       <groupId>org.threeten</groupId>
       <artifactId>threetenbp</artifactId>
       <version>1.4.1</version>
@@ -126,6 +137,13 @@
       <artifactId>opencensus-api</artifactId>
       <version>0.25.0</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-core -->
+
+  <dependency>
+    <groupId>org.mongodb</groupId>
+    <artifactId>mongodb-driver-sync</artifactId>
+    <version>3.11.2</version>
+</dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -271,5 +289,6 @@
       <url>https://maven.pkg.github.com/simracingtools/tt-cloud-server</url>
     </repository>
   </distributionManagement>
+
 
 </project>

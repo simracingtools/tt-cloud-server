@@ -29,64 +29,60 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.bson.BSON;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class SimpleRepository<T> {
-	private FirestoreDB firestore;
+	private MongoDB mongo;
 
 	protected abstract T fromMap(Map<String, Object> data);
 	protected abstract Map<String, Object> toMap(T object);
 
-	public SimpleRepository(FirestoreDB db) {
-		this.firestore = db;
+	public SimpleRepository(MongoDB db) {
+		this.mongo = db;
 	}
 
 	public Optional<T> load(String collectionName, String name) {
 		if(StringUtils.isEmpty(collectionName) || StringUtils.isEmpty(name) ) {
 			return Optional.empty();
 		}
-		ApiFuture<DocumentSnapshot> carDoc = firestore.getDocumentById(collectionName, name);
-		DocumentSnapshot docSnap = null;
-		try {
-			docSnap = carDoc.get();
-			return Optional.ofNullable(fromMap(docSnap.getData()));
-		} catch (InterruptedException e) {
-			log.warn(e.getMessage());
-			Thread.currentThread().interrupt();
-			return Optional.empty();
-		} catch (ExecutionException e) {
-			log.warn(e.getMessage());
-			return Optional.empty();
-		}
+		Document doc = mongo.getDocumentById(collectionName, name);
+
+		return Optional.ofNullable(fromMap(doc));
+
 	}
 
 	public List<T> loadAll(String collectionName) {
-		List<QueryDocumentSnapshot> list = firestore.loadAll(collectionName);
+		FindIterable<Document> list = mongo.loadAll(collectionName);
 		List<T> objectList = new ArrayList<>();
-		for( QueryDocumentSnapshot docSnap : list ) {
-			objectList.add(fromMap(docSnap.getData()));
+		for( Document docSnap : list ) {
+			objectList.add(fromMap(docSnap));
 		}
 		return objectList;
 	}
 
 	public void save(String collectionName, String name, T object) {
-		firestore.save(collectionName, name, toMap(object));
+		mongo.save(collectionName, name, toMap(object));
 	}
 
 	public void update(String collectionName, String documentName, Map<String, Object> updates) {
-		firestore.updateDocument(collectionName, documentName, updates);
+		mongo.updateDocument(collectionName, documentName, updates);
 	}
 
 	public void delete(String collectionName, String name) {
-		firestore.delete(collectionName, name);
+		mongo.delete(collectionName, name);
 	}
 
 	protected Optional<T> findByName(String collectionName, String key) {
@@ -94,10 +90,10 @@ public abstract class SimpleRepository<T> {
 	}
 
 	public List<T> findByFieldValue(String collectionName, String fieldName, String fieldValue) {
-		List<QueryDocumentSnapshot> list = firestore.findByFieldValue(collectionName, fieldName, fieldValue);
+		FindIterable<Document> list = mongo.findByFieldValue(collectionName, fieldName, fieldValue);
 		List<T> objectList = new ArrayList<>();
-		for( QueryDocumentSnapshot docSnap : list ) {
-			objectList.add(fromMap(docSnap.getData()));
+		for( Document docSnap : list ) {
+			objectList.add(fromMap(docSnap));
 		}
 		return objectList;
 	}
@@ -105,24 +101,25 @@ public abstract class SimpleRepository<T> {
 	public List<T> findByArrayContains(String collectionName, String fieldName, String fieldValue) {
 		List<T> objectList = new ArrayList<>();
 		if (fieldName != null && fieldValue != null) {
-			List<QueryDocumentSnapshot> list = firestore.findByArrayContains(collectionName, fieldName, fieldValue);
-			for (QueryDocumentSnapshot docSnap : list) {
-				objectList.add(fromMap(docSnap.getData()));
+			FindIterable<Document> list = mongo.findByArrayContains(collectionName, fieldName, fieldValue);
+			for (Document docSnap : list) {
+				objectList.add(fromMap(docSnap));
 			}
 		}
 		return objectList;
 	}
 
-	public CollectionReference getCollectionReference(String collectionName) {
-		return firestore.getCollectionReference(collectionName);
+	public MongoCollection<Document> getCollectionReference(String collectionName) {
+		return mongo.getCollectionReference(collectionName);
 	}
 
-	public List<T> findByQuery(Query query) {
+	public List<T> findByQuery(Bson query) {
+		String collectionName = "Users";
 		List<T> objectList = new ArrayList<>();
 		if (query != null) {
-			List<QueryDocumentSnapshot> list = firestore.findByQuery(query);
-			for (QueryDocumentSnapshot docSnap : list) {
-				objectList.add(fromMap(docSnap.getData()));
+			FindIterable<Document> list = mongo.findByQuery(collectionName, query);
+			for (Document docSnap : list) {
+				objectList.add(fromMap(docSnap));
 			}
 		}
 		return objectList;

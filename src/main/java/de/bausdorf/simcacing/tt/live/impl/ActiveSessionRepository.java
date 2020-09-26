@@ -40,6 +40,7 @@ import de.bausdorf.simcacing.tt.live.model.client.TrackLocationType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.MapTools;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.util.SimpleRepository;
 
 @Component
@@ -59,7 +60,7 @@ public class ActiveSessionRepository extends SimpleRepository<SessionController>
 	public static final String SESSION_REGISTERED = "sessionRegistered";
 	public static final String LAST_PITSTOP_END_TIME = "lastPitstopEndTime";
 
-	public ActiveSessionRepository(@Autowired FirestoreDB db) {
+	public ActiveSessionRepository(@Autowired MongoDB db) {
 		super(db);
 	}
 

@@ -77,7 +77,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	@PostMapping(value = "/clientmessage")
 	public String receiveClientData(@RequestBody String clientString,
 			@RequestHeader("x-teamtactics-token") Optional<String> clientAccessToken) {
-
+		
 		// Maybe Json is escaped - so remove escape characters
 		Map<String, Object> clientMessage = readClientMessage(clientString.replace("\\", ""));
 

@@ -34,6 +34,7 @@ import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Roster;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,7 +53,7 @@ import java.util.TreeMap;
 public class RacePlanRepository extends TimeCachedRepository<RacePlanParameters> {
     public static final String COLLECTION_NAME = "RacePlanParameters";
 
-    public RacePlanRepository(@Autowired FirestoreDB db) {
+    public RacePlanRepository(@Autowired MongoDB db) {
         super(db, 720L * 60000L);
     }
 

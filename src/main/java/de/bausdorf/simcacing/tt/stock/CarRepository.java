@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.util.CacheEntry;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +61,7 @@ public class CarRepository extends CachedRepository<IRacingCar> {
 		return object.toMap();
 	}
 
-	public CarRepository(@Autowired FirestoreDB db) {
+	public CarRepository(@Autowired MongoDB db) {
 		super(db);
 	}
 

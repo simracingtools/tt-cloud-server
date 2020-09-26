@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.util.CacheEntry;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
 import de.bausdorf.simcacing.tt.util.CachedRepository;
 
@@ -67,7 +68,7 @@ public class TrackRepository extends CachedRepository<IRacingTrack> {
 		super.save(COLLECTION_NAME, track.getId(), track);
 	}
 
-	public TrackRepository(@Autowired FirestoreDB db) {
+	public TrackRepository(@Autowired MongoDB db) {
 		super(db);
 	}
 

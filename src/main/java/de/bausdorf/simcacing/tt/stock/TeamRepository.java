@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 
@@ -39,7 +40,7 @@ import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 public class TeamRepository extends TimeCachedRepository<IRacingTeam> {
 	public static final String COLLECTION_NAME = "iRacingTeams";
 
-	public TeamRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
+	public TeamRepository(@Autowired MongoDB db, @Autowired TeamtacticsServerProperties config) {
 		super(db, config.getTeamRepositoryCacheMinutes() * 60000);
 	}
 

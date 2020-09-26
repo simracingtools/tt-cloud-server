@@ -23,10 +23,14 @@ package de.bausdorf.simcacing.tt.web.security;
  */
 
 import de.bausdorf.simcacing.tt.util.FirestoreDB;
+import de.bausdorf.simcacing.tt.util.MongoDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 import de.bausdorf.simcacing.tt.web.model.SearchView;
 import lombok.extern.slf4j.Slf4j;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +41,7 @@ import java.util.stream.Collectors;
 
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Query;
+import com.mongodb.client.MongoCollection;
 
 @Component
 @Slf4j
@@ -44,7 +49,7 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
 
     private final String userCollectionName;
 
-    public TtClientRegistrationRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
+    public TtClientRegistrationRepository(@Autowired MongoDB db, @Autowired TeamtacticsServerProperties config) {
         super(db, config.getUserRepositoryCacheMinutes());
         this.userCollectionName = config.getUserCollectionName();
     }
@@ -82,19 +87,18 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
     }
 
     public List<TtUser> findBySearchView(SearchView searchView) {
-        CollectionReference colRef = super.getCollectionReference(userCollectionName);
-        Query query = colRef.limit(100);
+        Document query = new Document();
         if (!searchView.getUserRole().equalsIgnoreCase("*")) {
-            query = query.whereEqualTo("userType", searchView.getUserRole());
+            query = query.append("userType", searchView.getUserRole());
         }
         if (searchView.isEnabled()) {
-            query = query.whereEqualTo("enabled", false);
+            query = query.append("enabled", false);
         }
         if (searchView.isExpired()) {
-            query = query.whereEqualTo("expired", true);
+            query = query.append("expired", true);
         }
         if (searchView.isLocked()) {
-            query = query.whereEqualTo("locked", true);
+            query = query.append("locked", true);
         }
         List<TtUser> users = super.findByQuery(query);
         if (!searchView.getUserName().isEmpty()) {
