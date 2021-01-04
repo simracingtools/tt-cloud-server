@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PitstopDataView {
 	private String stintNo;
-	private String raceTimeLeft;
+	private String stintDuration;
 	private String lapNo;
 	private String driver;
 	private List<String> allDrivers;
@@ -104,8 +104,6 @@ public class PitstopDataView {
 			clock.lapCount += stint.getLaps();
 			clock.stintNo++;
 			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(stint.getStintDuration(true));
-			Duration raceTimeLeft = controller.getRacePlan().getPlanParameters().getRaceDuration()
-					.minus(clock.accumulatedStintDuration);
 			List<String> driverList = controller.getRacePlan().getPlanParameters().getAllDrivers().stream()
 					.map(IRacingDriver::getName)
 					.collect(Collectors.toList());
@@ -124,7 +122,7 @@ public class PitstopDataView {
 					.timePitted(stint.getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.stintNo(Integer.toUnsignedString(clock.stintNo))
 					.allDrivers(driverList)
-					.raceTimeLeft(TimeTools.shortDurationString(raceTimeLeft))
+					.stintDuration(stint.getStintDurationString(true))
 					.pitStopDuration(pitstopDuration)
 					.repairTime("")
 					.refuel(stint.getService().contains(PitStopServiceType.FUEL))
@@ -156,16 +154,12 @@ public class PitstopDataView {
 			clock.stintNo++;
 			Duration stintDuration = stint.getCurrentStintDuration() != null ? stint.getCurrentStintDuration() : Duration.ZERO;
 			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(stintDuration);
-			Duration raceDuration = controller.getRacePlan() != null
-					? controller.getRacePlan().getPlanParameters().getRaceDuration()
-					: controller.getSessionData().getSessionDuration().orElse(Duration.ZERO);
-			Duration raceTimeLeft = raceDuration.minus(clock.accumulatedStintDuration);
 
 			PitstopDataView view = PitstopDataView.builder()
 					.allDrivers(Collections.singletonList(stint.getDriver()))
 					.driver(stint.getDriver())
 					.lapNo(Integer.toUnsignedString(clock.lapCount))
-					.raceTimeLeft(raceTimeLeft.isNegative() ? "" : TimeTools.shortDurationString(raceTimeLeft))
+					.stintDuration(TimeTools.shortDurationString(stintDuration))
 					.stintNo(Integer.toUnsignedString(stint.getNo()))
 					.timePitted(ZonedDateTime.of(LocalDate.now(), pitstop.getEnterPits(), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.serviceDuration(TimeTools.shortDurationString(pitstop.getPitstopServiceTime()))

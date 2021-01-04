@@ -238,7 +238,7 @@
                 </tr>
                 <tr class="text-center" style="font-family: 'Roboto Mono', monospace;">
                     <th>Stint #</th>
-                    <th>Race time left</th>
+                    <th>Stint duration</th>
                     <th>Lap</th>
                     <th>Driver</th>
                     <th>Pitting time</th>
@@ -254,7 +254,7 @@
                 <tbody>
                 <tr th:each="td,tdStat : ${stintTableRows}" th:id="${'stintRow-' + tdStat.index}" class="text-center hidden" style="font-family: 'Roboto Mono', monospace;">
                     <td th:id="${'pitStint-' + tdStat.index}">1</td>
-                    <td th:id="${'pitTimeLeft-' + tdStat.index}">22:55:04</td>
+                    <td th:id="${'pitStintDuration-' + tdStat.index}">22:55:04</td>
                     <td th:id="${'pitLap-' + tdStat.index}">7</td>
                     <td th:id="${'pitDriver-' + tdStat.index}">
                         <select th:id="${'pitDriverSelect-' + tdStat.index}" onchange="sendDriverChange(this);"></select>

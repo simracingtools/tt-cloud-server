@@ -383,7 +383,7 @@ function showPitData(message) {
     for (var i in message) {
         $("#stintRow-" + i).removeClass("hidden");
         $("#pitStint-" + i).text(message[i].stintNo);
-        $("#pitTimeLeft-" + i).text(message[i].raceTimeLeft);
+        $("#pitStintDuration-" + i).text(message[i].stintDuration);
         $("#pitLap-" + i).text(message[i].lapNo);
         $("#pitTime-" + i).text(localTime(message[i].timePitted));
         $("#pitStopDuration-" + i).text(message[i].pitStopDuration);
