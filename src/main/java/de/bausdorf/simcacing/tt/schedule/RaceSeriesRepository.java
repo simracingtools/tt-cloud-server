@@ -8,4 +8,5 @@ import reactor.core.publisher.Flux;
 public interface RaceSeriesRepository extends FirestoreReactiveRepository<RaceSeries> {
 
 	Flux<RaceSeries> findRaceSeriesBySeason(String season);
+
 }

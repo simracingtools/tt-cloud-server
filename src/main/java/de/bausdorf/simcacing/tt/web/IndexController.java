@@ -38,7 +38,7 @@ import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
-import de.bausdorf.simcacing.tt.web.model.PlanDescriptionView;
+import de.bausdorf.simcacing.tt.web.model.planning.PlanDescriptionView;
 import de.bausdorf.simcacing.tt.web.model.SessionIdentifierView;
 import de.bausdorf.simcacing.tt.web.model.SessionView;
 import lombok.extern.slf4j.Slf4j;

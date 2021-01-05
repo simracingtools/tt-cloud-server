@@ -53,6 +53,9 @@ function confirmPlanDelete() {
 	$("#plan-delete-confirm").modal('show');
 }
 
+function editRaceSeries() {
+	$("#newSeriesForm").modal('show');
+}
 
 function selectTimezoneFromUtcOffset(timezone) {
 	if (!timezone) {

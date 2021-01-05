@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<!--
+  #%L
+  tt-cloud-server
+  %%
+  Copyright (C) 2020 bausdorf engineering
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>iRacing TeamTacics</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Aldrich">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Coda+Caption:800">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Days+One">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+    <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="/webjars/fullcalendar/main.css">
+</head>
+<body>
+    <header th:replace="index :: header"></header>
+
+    <div class="container">
+        <div id="newSeriesForm" class="modal fade" role="dialog" tabindex="-1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Create new series</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <form method="post" th:object="${newSeries}" th:action="@{/addSeries}">
+                        <div class="modal-body">
+<!--                            <p>Add event series</p>-->
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Season</label>
+                                        <input class="form-control" type="text" th:field="*{season}">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Series</label>
+                                        <input class="form-control" type="text" th:field="*{name}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start date</label>
+                                        <input class="form-control" type="date" th:field="*{startDate}">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Event interval (days)</label>
+                                        <input class="form-control" type="number" min="1" max="365" step="1" value="1" th:field="*{eventIntervalDays}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Available Cars</label>
+                                        <select class="form-control" multiple="" style="height: 10em;" th:field="*{cars}">
+<!--                                            <optgroup label="This is a group">-->
+                                                <option th:each="car: ${allCars}" th:value="${car.id}" th:text="${car.name}" th:selected="${newSeries.cars.contains(car.id)}">This is item 3</option>
+<!--                                            </optgroup>-->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>New event start time</label>
+                                        <input class="form-control d-inline" type="time" style="width: 6em;">
+                                        <button class="btn btn-primary d-inline float-right" type="button">
+                                            <i class="far fa-plus-square"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label>Start times (one by line)</label>
+                                        <textarea th:field="*{startTimes}" class="form-control" rows="3">08:00 14:00</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                            <button class="btn btn-primary" type="submit">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container" style="background-color: rgb(255,255,255);">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label style="width: 4em;margin-left: 1em;">Series</label>
+                            <select style="width: 8em;">
+                                <optgroup th:each="season: ${raceSeries}" th:label="${season.name}">
+                                    <option th:each="series: ${season.series}" th:value="${series.seriesId}" th:text="${series.name}">iEEC</option>
+                                </optgroup>
+                            </select>
+                            <button class="btn btn-primary" type="button" style="margin-left: 2em;">
+                                <i class="far fa-edit"></i>
+                            </button>
+                            <button class="btn btn-warning" type="button" style="margin-left: 1em;" onclick="editRaceSeries();">
+                                <i class="fas fa-magic"></i>
+                            </button>
+                            <button class="btn btn-danger" type="button" style="margin-left: 1em;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <form>
+                    <div class="form-row">
+                        <div class="col">
+                            <ul class="nav nav-tabs border rounded shadow">
+                                <li class="nav-item border rounded"><a class="nav-link active bg-warning" href="#">Times</a></li>
+                                <li class="nav-item border rounded"><a class="nav-link bg-info" href="#">Schedule</a></li>
+                            </ul><input class="form-control" type="text" name="racePlanName" placeholder="Event Name"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><select class="form-control" name="tracks" readonly="" style="margin-top: 5px;"><optgroup label="Tracks"><option value="96" selected="">Sebring International Raceway Modified</option><option value="13">This is item 2</option><option value="14">This is item 3</option></optgroup></select></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="raceStartLocal">Race start date</label><input class="form-control" type="date" required=""></div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group"><label for="raceDuration">Time (Local)</label><input class="form-control" type="time" required=""></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="raceStartTod">Race start date (sim)</label><input class="form-control" type="date" required=""></div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group"><label for="greenFlagOffset">Time (ToD)</label><input class="form-control" type="time"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="raceStartTod">Race duration</label><input class="form-control" type="text" name="raceStartTod" placeholder="00:00:00" required=""></div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group"><label for="greenFlagOffset">Green flag offset</label><input class="form-control" type="text" name="greenFlagOffset" placeholder="00:00:00" required="" pattern="##:##:##"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="driverCount">Driver count</label><input class="form-control" type="number" name="driverCount" value="3"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><select class="form-control" multiple="" style="height: 10em;"><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required=""></div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group"><label for="raceStartLocal">from</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group"><label for="raceDuration">until</label><input class="form-control" type="text" name="raceDuration" placeholder="23:59:59" required="" pattern="##:##:##"></div>
+                        </div>
+                    </div>
+                    <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
+    <script src="/webjars/fullcalendar/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth'
+            });
+            calendar.render();
+        });            var ctx1 = document.getElementById('lapCharts').getContext('2d');
+    </script>
+
+    <div th:insert="index :: footer"></div>
+</body>
+
+</html>

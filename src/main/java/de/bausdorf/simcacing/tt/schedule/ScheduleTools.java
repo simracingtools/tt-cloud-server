@@ -37,9 +37,32 @@ public class ScheduleTools {
 		return Duration.parse(offset.getOffset());
 	}
 
+	public static long daysFromTimeOffset(TimeOffset offset) {
+		long offsetSeconds =  ScheduleTools.durationFromTimeOffset(offset).getSeconds();
+		return offsetSeconds / 86400;
+	}
+
 	public static String shortTimeString(Time time) {
 		return LocalTime.parse(time.getLocalTime(), DateTimeFormatter.ofPattern(Time.TIME_PATTERN))
 				.format(DateTimeFormatter.ofPattern(Time.SHORT_TIME_PATTERN));
+	}
+
+	public static String shortTimeString(TimeOffset offset) {
+		return LocalTime.MIN.plus(ScheduleTools.durationFromTimeOffset(offset))
+				.format(DateTimeFormatter.ofPattern(Time.SHORT_TIME_PATTERN));
+	}
+
+	public static String startTimeString(TimeOffset offset) {
+		long days = ScheduleTools.daysFromTimeOffset(offset);
+		String timeString = ScheduleTools.shortTimeString(offset);
+		return (days > 0 ? "+" + days : "") + " " + timeString;
+	}
+
+	public static String startTimesString(List<TimeOffset> startTimes) {
+		// 8:00\r\n18:00\r\n+1 14:00
+		StringBuilder sb = new StringBuilder();
+		startTimes.forEach(ScheduleTools::startTimeString);
+		return sb.toString();
 	}
 
 	public static List<RaceEvent> generateSeriesEvents(RaceSeries series, int eventCount) {

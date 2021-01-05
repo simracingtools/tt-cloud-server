@@ -1,11 +1,7 @@
 package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,9 +13,8 @@ import de.bausdorf.simcacing.tt.schedule.RaceSeriesRepository;
 import de.bausdorf.simcacing.tt.schedule.ScheduleTools;
 import de.bausdorf.simcacing.tt.schedule.model.Date;
 import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
-import de.bausdorf.simcacing.tt.schedule.model.RaceEventRepository;
+import de.bausdorf.simcacing.tt.schedule.RaceEventRepository;
 import de.bausdorf.simcacing.tt.schedule.model.RaceSeries;
-import de.bausdorf.simcacing.tt.schedule.model.Time;
 import de.bausdorf.simcacing.tt.schedule.model.TimeOffset;
 import de.bausdorf.simcacing.tt.util.AbstractIntegrationTest;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +53,7 @@ class RaceSeriesIT extends AbstractIntegrationTest {
 
 	private RaceSeries createRaceSeries() {
 		return RaceSeries.builder()
+				.seriesId("2021-1#iEEC")
 				.name("iEEC")
 				.season("2021-1")
 				.cars(Arrays.asList("1", "2", "3"))
