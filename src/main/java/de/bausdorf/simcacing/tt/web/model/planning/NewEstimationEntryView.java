@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,15 +22,20 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import java.time.Duration;
+import java.time.LocalTime;
 
-@NoArgsConstructor
+import lombok.Data;
+
 @Data
-@ToString
-public class ServiceChangeMessage {
+public class NewEstimationEntryView {
 	private String planId;
-	private String checkId;
-	private boolean checked;
+	private String driverId;
+	private LocalTime timeFrom;
+	private Duration avgLapTime;
+	private Double avgFuelPerLap;
+
+	public NewEstimationEntryView(String planId) {
+		this.planId = planId;
+	}
 }

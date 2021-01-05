@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,20 +22,24 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import java.time.LocalTime;
+import java.util.List;
 
-import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
+@AllArgsConstructor
+@Builder
 @Data
-public class NewScheduleEntryView {
-	private String planId;
-	private String driverId;
-	private LocalTime timeFrom;
-	private ScheduleDriverOptionType status;
-
-	public NewScheduleEntryView(String planId) {
-		this.planId = planId;
-		this.status = ScheduleDriverOptionType.OPEN;
-	}
+public class StintView {
+	private StintDriverView selectedDriver;
+	private List<StintDriverView> availableDrivers;
+	private String startLocal;
+	private String startToD;
+	private String laps;
+	private String duration;
+	private boolean refuel;
+	private boolean changeTyres;
+	private boolean clearWindshield;
+	private boolean lastStint;
 }

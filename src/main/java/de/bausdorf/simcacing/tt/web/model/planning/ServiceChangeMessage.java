@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -29,8 +29,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @Data
 @ToString
-public class DriverChangeMessage {
+public class ServiceChangeMessage {
 	private String planId;
-	private String selectId;
-	private String driverName;
+	private String checkId;
+	private boolean checked;
 }

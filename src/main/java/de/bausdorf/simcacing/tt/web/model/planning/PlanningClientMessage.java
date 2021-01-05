@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,23 +22,16 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DriverEstimationView {
-	private String driverName;
-	private String driverId;
-	private boolean validated;
-	private List<EstimationView> estimationEntries;
-
-	public DriverEstimationView() {
-		this.estimationEntries = new ArrayList<>();
-	}
+public class PlanningClientMessage {
+    private String planId;
+    private String text;
 }

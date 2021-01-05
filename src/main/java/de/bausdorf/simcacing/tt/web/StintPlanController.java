@@ -44,11 +44,11 @@ import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.planning.model.Stint;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
-import de.bausdorf.simcacing.tt.web.model.DriverChangeMessage;
-import de.bausdorf.simcacing.tt.web.model.PlanningClientMessage;
-import de.bausdorf.simcacing.tt.web.model.ServiceChangeMessage;
-import de.bausdorf.simcacing.tt.web.model.StintDriverView;
-import de.bausdorf.simcacing.tt.web.model.StintView;
+import de.bausdorf.simcacing.tt.web.model.planning.DriverChangeMessage;
+import de.bausdorf.simcacing.tt.web.model.planning.PlanningClientMessage;
+import de.bausdorf.simcacing.tt.web.model.planning.ServiceChangeMessage;
+import de.bausdorf.simcacing.tt.web.model.planning.StintDriverView;
+import de.bausdorf.simcacing.tt.web.model.planning.StintView;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

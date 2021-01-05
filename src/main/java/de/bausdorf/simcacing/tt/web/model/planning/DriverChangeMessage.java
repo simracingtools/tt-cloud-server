@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,16 +22,15 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-@Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanningClientMessage {
-    private String planId;
-    private String text;
+@Data
+@ToString
+public class DriverChangeMessage {
+	private String planId;
+	private String selectId;
+	private String driverName;
 }

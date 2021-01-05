@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,25 +22,23 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class PlanParametersView {
-    private String id;
-    private String trackId;
-    private String carId;
-    private String teamId;
-    private String planName;
-    private Duration raceDuration;
-    private LocalDateTime startTime;
-    private LocalDateTime todStartTime;
+public class DriverEstimationView {
+	private String driverName;
+	private String driverId;
+	private boolean validated;
+	private List<EstimationView> estimationEntries;
+
+	public DriverEstimationView() {
+		this.estimationEntries = new ArrayList<>();
+	}
 }

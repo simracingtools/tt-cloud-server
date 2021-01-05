@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.team;
 
 /*-
  * #%L
@@ -22,27 +22,18 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class TeamScheduleView {
-	private List<DriverScheduleView> teamSchedule;
-	private String planId;
-
-	public TeamScheduleView(String planId) {
-		this.planId = planId;
-		this.teamSchedule = new ArrayList<>();
-	}
-
-	public void setTimezone(ZoneId zoneId) {
-		for (DriverScheduleView driverScheduleView : teamSchedule) {
-			for (ScheduleView scheduleEntry : driverScheduleView.getScheduleEntries()) {
-				scheduleEntry.setValidFromZone(zoneId);
-			}
-		}
-	}
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class NewDriver {
+    private String name;
+    private String id;
+    private boolean teamAdmin;
+    private String teamId;
 }

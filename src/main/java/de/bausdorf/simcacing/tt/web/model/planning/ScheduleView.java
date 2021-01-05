@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,11 +22,14 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
+import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
+import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,10 +39,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EstimationView {
-	private LocalDateTime validFrom;
-	private Duration avgLapTime;
-	private Double avgFuelPerLap;
+public class ScheduleView {
+	private ZonedDateTime validFrom;
+	private ScheduleDriverOptionType status;
 
 	public LocalDate getValidFromDate() {
 		return validFrom.toLocalDate();
@@ -47,9 +49,9 @@ public class EstimationView {
 
 	public void setValidFromDate(LocalDate date) {
 		if (validFrom == null) {
-			validFrom = LocalDateTime.of(date, LocalTime.MIN);
+			validFrom = ZonedDateTime.of(date, LocalTime.MIN, TimeTools.GMT);
 		} else {
-			validFrom = LocalDateTime.of(date, validFrom.toLocalTime());
+			validFrom = ZonedDateTime.of(date, validFrom.toLocalTime(), validFrom.getZone());
 		}
 	}
 
@@ -59,9 +61,21 @@ public class EstimationView {
 
 	public void setValidFromTime(LocalTime time) {
 		if (validFrom == null) {
-			validFrom = LocalDateTime.of(LocalDate.MIN, time);
+			validFrom = ZonedDateTime.of(LocalDate.MIN, time, TimeTools.GMT);
 		} else {
-			validFrom = LocalDateTime.of(validFrom.toLocalDate(), time);
+			validFrom = ZonedDateTime.of(validFrom.toLocalDate(), time, validFrom.getZone());
+		}
+	}
+
+	public ZoneId getValidFromZone() {
+		return validFrom.getZone();
+	}
+
+	public void setValidFromZone(ZoneId zoneId) {
+		if (validFrom == null) {
+			validFrom = ZonedDateTime.of(LocalDateTime.MIN, zoneId);
+		} else {
+			validFrom = ZonedDateTime.of(validFrom.toLocalDateTime(), zoneId);
 		}
 	}
 }

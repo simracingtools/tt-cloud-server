@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.web.model;
+package de.bausdorf.simcacing.tt.web.model.planning;
 
 /*-
  * #%L
@@ -22,15 +22,20 @@ package de.bausdorf.simcacing.tt.web.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import java.time.LocalTime;
+
+import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
-@Builder
-public class PlanDescriptionView {
-	private String id;
-	private String name;
-	private String team;
+public class NewScheduleEntryView {
+	private String planId;
+	private String driverId;
+	private LocalTime timeFrom;
+	private ScheduleDriverOptionType status;
+
+	public NewScheduleEntryView(String planId) {
+		this.planId = planId;
+		this.status = ScheduleDriverOptionType.OPEN;
+	}
 }
