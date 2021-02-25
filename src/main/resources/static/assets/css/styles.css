@@ -34,6 +34,11 @@
   margin-bottom: 0;
 }
 
+.tooltip-inner {
+  text-align: left;
+  background-color: #575757;
+}
+
 .hidden {
   display: none;
 }

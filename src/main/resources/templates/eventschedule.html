@@ -175,7 +175,7 @@
                             <div class="form-group text-center">
                                 <a id="racePlanLink" href="">
                                     <button class="btn btn-primary btn-block" type="button">
-                                        <i class="fas fa-save"></i>
+                                        <i class="far fa-edit" style="font-size: 24px;"></i>
                                     </button>
                                 </a>
                             </div>
@@ -188,13 +188,13 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>Season</label>
-                                <input class="form-control" type="text" th:field="*{season}" required>
+                                <input class="form-control" type="text" th:field="*{season}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label>Series</label>
-                                <input class="form-control" type="text" th:field="*{series}" required>
+                                <input class="form-control" type="text" th:field="*{series}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                     </div>
@@ -202,7 +202,7 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>Event</label>
-                                <input class="form-control" type="text" th:field="*{name}" required>
+                                <input class="form-control" type="text" th:field="*{name}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                     </div>
@@ -210,13 +210,13 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>Session date</label>
-                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{sessionDateTime}" required>
+                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{sessionDateTime}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label>Timezone</label>
-                                <select th:field="*{timezone}" th:value="*{timezone}" class="form-control">
+                                <select th:field="*{timezone}" th:value="*{timezone}" class="form-control" th:readonly="${user.userType == 'Member' ? true : false}">
                                     <option value="GMT-12" th:selected="*{timezone} == 'GMT-12'">GMT-12</option>
                                     <option value="GMT-11" th:selected="*{timezone} == 'GMT-11'">GMT-11</option>
                                     <option value="GMT-10" th:selected="*{timezone} == 'GMT-10'">GMT-10</option>
@@ -253,13 +253,13 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>Sim date</label>
-                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{simDateTime}" required>
+                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{simDateTime}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label>Race duration</label>
-                                <input class="form-control" type="time" th:field="*{duration}" required>
+                                <input class="form-control" type="time" th:field="*{duration}" required th:readonly="${user.userType == 'Member' ? true : false}">
                             </div>
                         </div>
                     </div>
@@ -267,7 +267,7 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>Track</label>
-                                <select class="form-control" th:field="*{eventTrackId}">
+                                <select class="form-control" th:field="*{eventTrackId}" th:readonly="${user.userType == 'Member' ? true : false}">
                                     <!--                                            <optgroup label="This is a group">-->
                                     <option th:each="track: ${allTracks}" th:value="${track.id}" th:text="${track.name}" th:selected="${track.id.equalsIgnoreCase(newEvent.eventTrackId)}">This is item 3</option>
                                     <!--                                            </optgroup>-->
@@ -280,7 +280,7 @@
                             <div class="form-group">
                                 <label>Available Cars</label>
                                 <!--                                        <select class="form-control" multiple="" style="height: 10em;" th:field="*{carsIds}">-->
-                                <select class="form-control" multiple="" th:field="*{carsIds}" required>
+                                <select class="form-control" multiple="" th:field="*{carsIds}" required th:readonly="${user.userType == 'Member' ? true : false}">
                                     <!--                                            <optgroup label="This is a group">-->
                                     <option th:each="car: ${allCars}" th:id="${'car-option-' + car.id}" th:value="${car.id}" th:text="${car.name}" th:selected="${newEvent.carsIds.contains(car.id)}">This is item 3</option>
                                     <!--                                            </optgroup>-->
@@ -288,7 +288,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div th:if="${user.userType == 'Sysadmin' || user.userType == 'Team admin'}" class="form-row">
                         <div class="col">
                             <div class="form-group">
                                 <label>Save as new</label>
@@ -298,23 +298,23 @@
                         <div class="col">
                             <div class="form-group text-center">
                                 <button class="btn btn-primary btn-block" type="submit">
-                                    <i class="fas fa-save"></i>
+                                    <i class="fas fa-save" style="font-size: 24px;"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="col">
+                        <div th:if="${user.userType == 'Sysadmin' || user.userType == 'Team admin'}" class="col">
                             <div class="form-group text-center">
                                 <button id="deleteButton" onclick="confirmEventRemove();" class="btn btn-danger btn-block" title="Delete event" data-toggle="tooltip" type="button" disabled>
-                                    <i class="fas fa-trash-alt"></i>
+                                    <i class="fas fa-trash-alt" style="font-size: 24px;"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group text-center">
                                 <button onclick="newPlanDialog();" id="planButton" class="btn btn-warning btn-block" title="Create race plan" data-toggle="tooltip" type="button" disabled>
-                                    <i class="fas fa-magic"></i>
+                                    <i class="fas fa-magic" style="font-size: 24px;"></i>
                                 </button>
                             </div>
                         </div>

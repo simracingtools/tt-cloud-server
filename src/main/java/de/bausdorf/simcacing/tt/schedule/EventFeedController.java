@@ -57,6 +57,10 @@ import reactor.core.publisher.Flux;
 public class EventFeedController {
 
 	public static final String BR = "<br/>";
+	public static final String NEW_TABLELINE = "</tr><tr>";
+	public static final String END_CELL = "</td>";
+	public static final String START_CELL = "<td>";
+
 	private final RaceEventRepository eventRepository;
 	private final TrackRepository trackRepository;
 	private final RacePlanRepository planRepository;
@@ -95,6 +99,21 @@ public class EventFeedController {
 					.append("Session start: ").append(event.getSessionTime().getLocalTime()).append(BR)
 					.append("Track: ").append(track.isPresent() ? track.get().getName() : "?").append(BR)
 					.append("Race duration: ").append(event.getRaceDuration().getLocalTime());
+
+//			StringBuilder eventDescription = new StringBuilder()
+//					.append("<table><tr>")
+//					.append("<th>").append(event.getName()).append("</th>")
+//					.append("<th>").append(event.getSeason()).append(" - ").append(event.getSeries()).append("</th>")
+//					.append(NEW_TABLELINE)
+//					.append(START_CELL).append("Session start: ").append(END_CELL)
+//					.append(START_CELL).append(event.getSessionTime().getLocalTime()).append(END_CELL)
+//					.append(NEW_TABLELINE)
+//					.append(START_CELL).append("Track: ").append(END_CELL)
+//					.append(track.isPresent() ? track.get().getName() : "?").append(END_CELL)
+//					.append(NEW_TABLELINE)
+//					.append(START_CELL).append("Race duration: ").append(END_CELL)
+//					.append(START_CELL).append(event.getRaceDuration().getLocalTime()).append(END_CELL)
+//					.append("</tr></table>");
 
 			calendarEvents.add(
 					CalendarEvent.builder()

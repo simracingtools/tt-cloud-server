@@ -24,46 +24,48 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
   <div th:fragment="main-content">
-    <div class="row">
-      <div class="col-lg-6 offset-lg-3 text-center" style="margin-top: 20px;">
-        <a href="/planning">
-          <button class="btn btn-primary" type="button">Plan a new race or change existing race planning</button>
-        </a>
-        <a class="d-block" href="/teams">
-          <button class="btn btn-primary" type="button" style="margin-top: 10px;">Manage Teams</button>
-        </a>
-        <a th:if="${user.userType == 'Sysadmin'}" class="d-block" href="/admin">
-          <button class="btn btn-danger" type="button" style="margin-top: 10px;">Manage Users</button>
-        </a>
-        <div class="clearfix"></div>
-        <form method="post" th:object="${sessionView}" th:action="@{/racing}" class="border rounded" style="padding: 5px;margin-top: 10px;">
-          <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
-            <select th:field="*{selectedSession}" class="form-control">
-              <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>
-              <option th:each="liveSession, sessionStat : *{sessions}"
-                      th:value="${liveSession.sessionId}"
-                      th:text="${liveSession.sessionId}"
-                      th:selected="*{selectedSession} == ${liveSession.sessionId}">FBP Racing RED - 24Nos</option>
-            </select>
+    <div class="container" style="background: var(--light);">
+      <div class="row row-cols-xs-2 row-cols-sm-2 row-cols-md-2 row-cols-lg-2 row-cols-xl-2">
+        <div class="col-1 offset-0">
+          <div class="dropdown">
+            <button class="btn btn-primary" aria-expanded="false" data-toggle="dropdown" type="button">
+              <i class="fa fa-align-justify"></i>
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="/schedule">Schedule/Planning</a>
+              <a class="dropdown-item" href="/teams">Manage Teams</a>
+              <a th:if="${user.userType == 'Sysadmin'}" class="dropdown-item" href="/admin">Manage Users</a>
+              <a class="dropdown-item" href="/logout">Logout</a>
+            </div>
           </div>
-          <div class="form-group text-center">
-            <p>
-              A race planning is auto-selected by the combination of team, track and car.<br/>
-              The following selection is only effective if no race planning can be found for the selected live race session.
-            </p>
-            <label>Select race planning</label>
-            <select th:field="*{selectedPlanId}" class="form-control">
-              <option value="None">None</option>
-              <option th:each="plan : ${plans}" th:value="${plan.id}" th:text="${plan.team} + ' - ' + ${plan.name}" selected="">My race Plan</option>
-            </select>
-          </div>
-          <div class="form-group text-center">
-            <button class="btn btn-primary" type="submit">Go racing</button>
-          </div>
-        </form>
-        <a class="d-block" href="/logout">
-          <button class="btn btn-primary" type="button" style="margin-top: 10px;">Logout</button>
-        </a>
+        </div>
+        <div class="col-xs-10 col-md-10 col-lg-10 col-xl-10 offset-xs-1 offset-sm-1 offset-md-1 offset-lg-1 offset-xl-1 text-center" style="margin-top: 20px;">
+          <form method="post" th:object="${sessionView}" th:action="@{/racing}" class="border rounded" style="padding: 5px;margin-top: 10px;">
+            <div class="form-group text-center" style="margin-top: 20px;"><label>Select a live race session</label>
+              <select th:field="*{selectedSession}" class="form-control">
+                <option th:if="*{sessions.size() == 0}" value="0" selected="">No currently active sessions</option>
+                <option th:each="liveSession, sessionStat : *{sessions}"
+                        th:value="${liveSession.sessionId}"
+                        th:text="${liveSession.sessionId}"
+                        th:selected="*{selectedSession} == ${liveSession.sessionId}">FBP Racing RED - 24Nos</option>
+              </select>
+            </div>
+            <div class="form-group text-center">
+              <p>
+                A race planning is auto-selected by the combination of team, track and car.<br/>
+                The following selection is only effective if no race planning can be found for the selected live race session.
+              </p>
+              <label>Select race planning</label>
+              <select th:field="*{selectedPlanId}" class="form-control">
+                <option value="None">None</option>
+                <option th:each="plan : ${plans}" th:value="${plan.id}" th:text="${plan.team} + ' - ' + ${plan.name}" selected="">My race Plan</option>
+              </select>
+            </div>
+            <div class="form-group text-center">
+              <button class="btn btn-primary" type="submit">Go racing</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>

@@ -95,24 +95,8 @@ public class ScheduleController extends BaseController {
 		return EVENTSCHEDULE_VIEW;
 	}
 
-	@PostMapping("/addEvent")
-	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
-	public String addEvent(@ModelAttribute RaceEventView newEventView, Model model) {
-
-		try {
-			RaceEvent newRaceEvent = newEventView.toEvent();
-			newRaceEvent.setEventId(UUID.randomUUID().toString());
-			eventRepository.save(newRaceEvent).block();
-			newEventView.setEventId(newRaceEvent.getEventId());
-		} catch(Exception e) {
-			log.error(e.getMessage(), e);
-			addError(e.getMessage(), model);
-		}
-		return REDIRECT_SCHEDULE + (newEventView.isSaveAndNew() ? "?newEventTemplateId=" + newEventView.getEventId() : "");
-	}
-
 	@PostMapping("/saveEvent")
-	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
+	@Secured({ "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String saveEvent(@ModelAttribute RaceEventView raceEventView, Model model) {
 		try {
 			RaceEvent raceEvent = raceEventView.toEvent();
@@ -130,6 +114,7 @@ public class ScheduleController extends BaseController {
 	}
 
 	@GetMapping("/deleteEvent")
+	@Secured({ "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String deleteEvent(@RequestParam String eventId, Model model) {
 		try {
 			eventRepository.deleteById(eventId).block();
