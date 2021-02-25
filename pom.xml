@@ -9,7 +9,7 @@
   </parent>
   <groupId>de.bausdorf.simcacing</groupId>
   <artifactId>tt-cloud-server</artifactId>
-  <version>0.14.3-SNAPSHOT</version>
+  <version>0.15.0</version>
   <name>tt-cloud-server</name>
   <organization>
     <name>bausdorf engineering</name>
@@ -182,17 +182,24 @@
       <groupId>org.webjars</groupId>
       <artifactId>fullcalendar</artifactId>
       <version>5.0.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.webjars</groupId>
+          <artifactId>momentjs</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>bootstrap-multiselect</artifactId>
       <version>0.9.15</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.webjars</groupId>
+          <artifactId>jquery</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.webjars</groupId>-->
-<!--      <artifactId>popper.js</artifactId>-->
-<!--      <version>2.5.4</version>-->
-<!--    </dependency>-->
 <!--    <dependency>-->
 <!--      <groupId>org.webjars.bowergithub.lou</groupId>-->
 <!--      <artifactId>multi-select</artifactId>-->
@@ -306,7 +313,7 @@
     <connection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</connection>
     <url>scm:git:git@github.com:simracingtools/tt-cloud-server.git</url>
     <developerConnection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>v0.15.0</tag>
   </scm>
   <distributionManagement>
     <repository>
