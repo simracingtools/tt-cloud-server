@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
 
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.annotation.DocumentId;
 
 import lombok.AllArgsConstructor;
@@ -30,7 +31,9 @@ public class RaceEvent {
 	private List<String> carIds;
 	private Date simDate;
 	private Time simTime;
+	private Timestamp sessionTimestamp;
 	private Date sessionDate;
 	private Time sessionTime;
+	private Time raceDuration;
 	private TimeOffset raceSessionOffset;
 }

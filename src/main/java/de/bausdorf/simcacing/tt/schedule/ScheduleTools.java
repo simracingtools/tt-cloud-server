@@ -2,16 +2,16 @@ package de.bausdorf.simcacing.tt.schedule;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import de.bausdorf.simcacing.tt.schedule.model.Date;
-import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
-import de.bausdorf.simcacing.tt.schedule.model.RaceSeries;
 import de.bausdorf.simcacing.tt.schedule.model.Time;
 import de.bausdorf.simcacing.tt.schedule.model.TimeOffset;
 
@@ -26,11 +26,28 @@ public class ScheduleTools {
 	}
 
 	public static LocalTime localTimeFromTime(Time time) {
-		return LocalTime.parse(time.getLocalTime(), DateTimeFormatter.ofPattern(Time.TIME_PATTERN));
+		try {
+			return LocalTime.parse(time.getLocalTime(), DateTimeFormatter.ofPattern(Time.TIME_PATTERN));
+		} catch(DateTimeParseException e) {
+			return LocalTime.parse(time.getLocalTime(), DateTimeFormatter.ofPattern(Time.SHORT_TIME_PATTERN));
+		}
+	}
+
+	public static Duration durationFromTime(Time time) {
+		LocalTime localTime = ScheduleTools.localTimeFromTime(time);
+		return Duration.of(localTime.toSecondOfDay(), ChronoUnit.SECONDS);
+	}
+
+	public static LocalDateTime localDateTimeFromDateAndTime(Date date, Time time) {
+		return LocalDateTime.of(localDateFromDate(date), localTimeFromTime(time));
 	}
 
 	public static ZonedDateTime zonedDateTimeFromDateAndTime(Date date, Time time) {
 		return ZonedDateTime.of(localDateFromDate(date), localTimeFromTime(time), ZoneId.of(time.getZoneId()));
+	}
+
+	public static ZonedDateTime zonedDateTimeFromDateAndTime(LocalDateTime dateTime, String timezone) {
+		return ZonedDateTime.of(dateTime, ZoneId.of(timezone));
 	}
 
 	public static Duration durationFromTimeOffset(TimeOffset offset) {
@@ -63,26 +80,5 @@ public class ScheduleTools {
 		StringBuilder sb = new StringBuilder();
 		startTimes.forEach(ScheduleTools::startTimeString);
 		return sb.toString();
-	}
-
-	public static List<RaceEvent> generateSeriesEvents(RaceSeries series, int eventCount) {
-		List<RaceEvent> events = new ArrayList<>();
-		for( int i = 0; i < eventCount; i++) {
-			final Date startDate = series.getStartDate()
-					.plus(ScheduleTools.durationFromTimeOffset(series.getEventInterval()).multipliedBy(i));
-			final String raceName = "Race No " + (i + 1);
-			final String eventId = series.getName() + "#" + series.getSeason() + "#Race" + (i+1) + "#";
-			series.getStartTimes().forEach(s -> events.add(RaceEvent.builder()
-						.eventId(eventId + shortTimeString(Time.of(s)))
-						.name(raceName + " " + shortTimeString(Time.of(s)))
-						.carIds(series.getCars())
-						.series(series.getName())
-						.season(series.getSeason())
-						.raceSessionOffset(series.getRaceSessionOffset())
-						.sessionDate(startDate.plus(s))
-						.sessionTime(Time.of(s))
-						.build()));
-		}
-		return events;
 	}
 }

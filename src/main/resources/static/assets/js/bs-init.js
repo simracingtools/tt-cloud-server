@@ -37,8 +37,8 @@ function checkDriverStats() {
 	window.location = url;
 }
 
-function confirmUserRemove(index) {
-	$("#user-remove-confirm-" + index).modal('show');
+function confirmEventRemove() {
+	$("#event-remove-confirm").modal('show');
 }
 
 function confirmMemberRemove(index) {
@@ -53,8 +53,96 @@ function confirmPlanDelete() {
 	$("#plan-delete-confirm").modal('show');
 }
 
-function editRaceSeries() {
-	$("#newSeriesForm").modal('show');
+function newPlanDialog() {
+	$("#trackId").val($("#eventTrackId").val());
+	$("#raceDuration").val($("#duration").val());
+	$("#startTime").val($("#sessionDateTime").val());
+	$("#todStartTime").val($("#simDateTime").val());
+
+	$('#carId').find('option').remove().end();
+	$.each($("#carsIds").val(), function (index, value) {
+		$("#carId").append($("#car-option-" + value).clone());
+	});
+
+	$("#raceplan-modal").modal('show');
+}
+
+function enableButtons() {
+	var eventId = $("#eventId").val();
+	if(eventId) {
+		$("#deleteLink").attr('href', '/deleteEvent?eventId=' + eventId);
+		$("#deleteButton").prop('disabled', false);
+		$("#planButton").prop('disabled', false);
+	} else {
+		$("#deleteLink").attr('href', '');
+		$("#deleteButton").prop('disabled', true);
+		$("#planButton").prop('disabled', true);
+	}
+}
+
+function updateRacePlanLink() {
+	var planId = $("#racePlanSelect").val();
+	$("#racePlanLink").attr('href', '/planning?viewMode=time&planId=' + planId);
+}
+
+function selectExistingPlans() {
+	var myTeams = [];
+	$('#teamId option').each(function() {
+		myTeams.push($(this).val())
+	});
+
+	var urlParams = {
+		teamIds: myTeams,
+		trackId: $("#eventTrackId").val(),
+		duration: $("#duration").val()
+	};
+
+	var paramString = decodeURIComponent($.param(urlParams))
+			.replaceAll("[", "")
+			.replaceAll("]", "");
+
+	$.ajax({
+		type: "GET",
+		dataType: "json",
+		url: "/planList?" + paramString,
+		success: function (data) {
+			$('#racePlanSelect').find('option').remove().end();
+			$.each(data, function (index, value) {
+				var o = new Option(value.team + ' - ' + value.name, value.id);
+				// jquerify the DOM object 'o' so we can use the html method
+				//$(o).html("option text");
+				$("#racePlanSelect").append(o);
+				if(index === 0) {
+					$("#racePlanSelect").val(value.id);
+				}
+			});
+		}
+	});
+}
+
+function raceEventClick(info) {
+	$.ajax({type: "GET",
+			dataType: "json",
+			url: "/event?eventId=" + info.event.id,
+			success: function(eventView) {
+				$("#eventId").val(eventView.eventId);
+				$("#season").val(eventView.season);
+				$("#series").val(eventView.series);
+				$("#name").val(eventView.name);
+				$("#sessionDateTime").val(eventView.sessionDateTime);
+				$("#simDateTime").val(eventView.simDateTime);
+				$("#duration").val(eventView.duration);
+				$("#timezone").val(eventView.timezone);
+				$("#eventTrackId").val(eventView.eventTrackId);
+				$("#carsIds").multiselect();
+				$("#carsIds").multiselect('deselectAll', false)
+						.multiselect('select', eventView.carsIds)
+						.multiselect('refresh');
+				// $("#carsIds").multiselect('select', eventView.carsIds);
+				enableButtons();
+				selectExistingPlans();
+			}
+	});
 }
 
 function selectTimezoneFromUtcOffset(timezone) {

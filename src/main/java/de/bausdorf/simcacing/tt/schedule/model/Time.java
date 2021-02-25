@@ -24,13 +24,18 @@ public class Time {
 	private String zoneId;
 
 	public Time(@Nonnull  LocalTime dateTime) {
-		localTime = dateTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
-		zoneId = null;
+		this.localTime = dateTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
+		this.zoneId = null;
+	}
+
+	public Time(@Nonnull  LocalTime dateTime, String zoneId) {
+		this.localTime = dateTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
+		this.zoneId = zoneId;
 	}
 
 	public Time(@Nonnull ZonedDateTime dateTime) {
-		localTime = dateTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
-		zoneId = dateTime.getZone().getId();
+		this.localTime = dateTime.format(DateTimeFormatter.ofPattern(TIME_PATTERN));
+		this.zoneId = dateTime.getZone().getId();
 	}
 
 	public static Time of(TimeOffset offset) {

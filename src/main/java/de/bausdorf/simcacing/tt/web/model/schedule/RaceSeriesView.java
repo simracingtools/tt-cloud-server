@@ -1,12 +1,11 @@
 package de.bausdorf.simcacing.tt.web.model.schedule;
 
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import de.bausdorf.simcacing.tt.schedule.ScheduleTools;
-import de.bausdorf.simcacing.tt.schedule.model.RaceSeries;
+import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,26 +16,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class RaceSeriesView {
-	private String seriesId;
 	private String name;
-	private String season;
-	private List<String> cars = new ArrayList<>();
-	private LocalDate startDate;
-	private String startTimes;
-	private long eventIntervalDays;
-	private Duration raceSessionOffset;
+	private List<RaceSeasonView> seasons = new ArrayList<>();
 
-	public static RaceSeriesView fromRaceSeries(RaceSeries series) {
-		return RaceSeriesView.builder()
-				.seriesId(series.getSeriesId())
-				.cars(series.getCars())
-				.name(series.getName())
-				.season(series.getSeason())
-				.raceSessionOffset(ScheduleTools.durationFromTimeOffset(series.getRaceSessionOffset()))
-				.eventIntervalDays(ScheduleTools.daysFromTimeOffset(series.getEventInterval()))
-				.startDate(ScheduleTools.localDateFromDate(series.getStartDate()))
-				.startTimes(ScheduleTools.startTimesString(series.getStartTimes()))
-				.build();
+	public static List<RaceSeriesView> fromEventList(List<RaceEvent> raceEvents) {
+		Map<String, List<RaceEvent>> seasonViews = new HashMap<>();
 
+		raceEvents.forEach(s -> {
+			List<RaceEvent> eventList = seasonViews.computeIfAbsent(s.getSeries(), k -> new ArrayList<>());
+			eventList.add(s);
+		});
+
+		List<RaceSeriesView> seriesViews = new ArrayList<>();
+		seasonViews.forEach((key, value) -> seriesViews.add(RaceSeriesView.builder()
+				.name(key)
+				.seasons(RaceSeasonView.fromEventList(value))
+				.build()));
+		return seriesViews;
 	}
 }

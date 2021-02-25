@@ -34,84 +34,107 @@
     <link rel="stylesheet" href="assets/fonts/fontawesome-all.min.css">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="/webjars/fullcalendar/main.css">
+    <link rel="stylesheet" href="/webjars/bootstrap-multiselect/css/bootstrap-multiselect.css">
 </head>
 <body>
+
     <header th:replace="index :: header"></header>
 
     <div class="container">
-        <div id="newSeriesForm" class="modal fade" role="dialog" tabindex="-1">
-            <div class="modal-dialog" role="document">
+        <div id="event-remove-confirm" class="modal fade" role="dialog" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Create new series</h4>
+                        <h4 class="modal-title">Confirm delete event</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span>
                         </button>
                     </div>
-                    <form method="post" th:object="${newSeries}" th:action="@{/addSeries}">
+                    <div class="modal-body">
+                        <p>Do you really want to remove this event ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a id="deleteLink" href="">
+                            <button class="btn btn-primary" type="button">Delete</button>
+                        </a>
+                        <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="raceplan-modal" class="modal fade" role="dialog" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Create or select race plan</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <form method="post" th:action="@{/newraceplan}" th:object="${planParamsView}">
                         <div class="modal-body">
-<!--                            <p>Add event series</p>-->
                             <div class="form-row">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>Season</label>
-                                        <input class="form-control" type="text" th:field="*{season}">
+                                    <div class="form-group text-center">
+                                        <label>Selected Track</label>
+                                        <select th:field="*{trackId}" class="form-control" required="" readonly="true">
+                                            <option th:each="track : ${allTracks}" th:value="${track.id}" th:text="${track.name}" selected="">Nürburgring Combined 24</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>Series</label>
-                                        <input class="form-control" type="text" th:field="*{name}">
+                                    <div class="form-group text-center">
+                                        <label>Race duration (hh:mm)</label>
+                                        <input th:field="*{raceDuration}" class="form-control" type="text" placeholder="00:00" required="" pattern="^(?:(?:([0-9]?\d|2[0-9]):)?([0-5]?\d)$" readonly>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>Start date</label>
-                                        <input class="form-control" type="date" th:field="*{startDate}">
+                                    <div class="form-group text-center">
+                                        <label>Race date and time&nbsp;</label>
+                                        <i data-toggle="tooltip" class="far fa-question-circle" title="Format depends on your locale.&#010;Use Chrome/Chromium for best experience.&#010;Firefox currently does not support HTML5 datetime fields." style="color: rgb(0,123,255);"></i>
+                                        <input th:field="*{startTime}" class="form-control" type="datetime-local" required="" readonly>
                                     </div>
                                 </div>
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>Event interval (days)</label>
-                                        <input class="form-control" type="number" min="1" max="365" step="1" value="1" th:field="*{eventIntervalDays}">
+                                    <div class="form-group text-center">
+                                        <label>Simulated date and time&nbsp;</label>
+                                        <i data-toggle="tooltip" class="far fa-question-circle" title="Format depends on your locale.&#010;Use Chrome/Chromium for best experience.&#010;Firefox currently does not support HTML5 datetime fields." style="color: rgb(0,123,255);"></i>
+                                        <input th:field="*{todStartTime}" class="form-control" type="datetime-local" readonly>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>Available Cars</label>
-                                        <select class="form-control" multiple="" style="height: 10em;" th:field="*{cars}">
-<!--                                            <optgroup label="This is a group">-->
-                                                <option th:each="car: ${allCars}" th:value="${car.id}" th:text="${car.name}" th:selected="${newSeries.cars.contains(car.id)}">This is item 3</option>
-<!--                                            </optgroup>-->
+                                    <div class="form-group text-center">
+                                        <label>Select team</label>
+                                        <select th:field="*{teamId}" class="form-control" required="">
+                                            <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}" selected="">FBP racing RED</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="form-group text-center">
+                                        <label>Select Car</label>
+                                        <select th:field="*{carId}" class="form-control" name="car">
+<!--                                            <option th:each="car : ${allCars}" th:value="${car.id}" th:text="${car.name}" selected="">BMW Z4 GT3</option>-->
                                         </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label>New event start time</label>
-                                        <input class="form-control d-inline" type="time" style="width: 6em;">
-                                        <button class="btn btn-primary d-inline float-right" type="button">
-                                            <i class="far fa-plus-square"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="form-group">
-                                        <label>Start times (one by line)</label>
-                                        <textarea th:field="*{startTimes}" class="form-control" rows="3">08:00 14:00</textarea>
+                                    <div class="form-group text-center">
+                                        <label>Name the plan</label>
+                                        <input th:field="*{planName}" class="form-control" type="text" placeholder="New race plan" required="">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
-                            <button class="btn btn-primary" type="submit">Save</button>
+                            <button class="btn btn-primary" type="submit">Create plan</button>
+                            <button class="btn btn-light" type="button" data-dismiss="modal">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -121,27 +144,18 @@
     <div class="container" style="background-color: rgb(255,255,255);">
         <div class="row">
             <div class="col-lg-8">
-                <div class="row">
-                    <div class="col">
-                        <div class="form-group">
-                            <label style="width: 4em;margin-left: 1em;">Series</label>
-                            <select style="width: 8em;">
-                                <optgroup th:each="season: ${raceSeries}" th:label="${season.name}">
-                                    <option th:each="series: ${season.series}" th:value="${series.seriesId}" th:text="${series.name}">iEEC</option>
-                                </optgroup>
-                            </select>
-                            <button class="btn btn-primary" type="button" style="margin-left: 2em;">
-                                <i class="far fa-edit"></i>
-                            </button>
-                            <button class="btn btn-warning" type="button" style="margin-left: 1em;" onclick="editRaceSeries();">
-                                <i class="fas fa-magic"></i>
-                            </button>
-                            <button class="btn btn-danger" type="button" style="margin-left: 1em;">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+<!--                <div class="row">-->
+<!--                    <div class="col">-->
+<!--                        <div class="form-group">-->
+<!--                            <label style="width: 4em;margin-left: 1em;">Series</label>-->
+<!--                            <select th:if="${!raceSeries.isEmpty()}" style="width: 8em;">-->
+<!--                                <optgroup th:each="season: ${raceSeries.get(0).seasons}" th:label="${season.name}">-->
+<!--                                    <option th:each="event: ${season.events}" th:value="${event.eventId}" th:text="${event.series + ' - ' + event.name}">iEEC</option>-->
+<!--                                </optgroup>-->
+<!--                            </select>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
                 <div class="row">
                     <div class="col">
                         <div id="calendar"></div>
@@ -149,95 +163,230 @@
                 </div>
             </div>
             <div class="col-lg-4">
-                <form>
-                    <div class="form-row">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Existing race plans</label>
+                            <select id="racePlanSelect" class="form-control" onchange="updateRacePlanLink();">
+                                <!-- option added by selectExistingPlans(); -->
+                            </select>
+                        </div>
                         <div class="col">
-                            <ul class="nav nav-tabs border rounded shadow">
-                                <li class="nav-item border rounded"><a class="nav-link active bg-warning" href="#">Times</a></li>
-                                <li class="nav-item border rounded"><a class="nav-link bg-info" href="#">Schedule</a></li>
-                            </ul><input class="form-control" type="text" name="racePlanName" placeholder="Event Name"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group"><select class="form-control" name="tracks" readonly="" style="margin-top: 5px;"><optgroup label="Tracks"><option value="96" selected="">Sebring International Raceway Modified</option><option value="13">This is item 2</option><option value="14">This is item 3</option></optgroup></select></div>
+                            <div class="form-group text-center">
+                                <a id="racePlanLink" href="">
+                                    <button class="btn btn-primary btn-block" type="button">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                </a>
+                            </div>
                         </div>
                     </div>
+                </div>
+                <form method="post" th:object="${newEvent}" th:action="@{/saveEvent}">
+                    <input type="hidden" th:field="*{eventId}">
                     <div class="form-row">
                         <div class="col">
-                            <div class="form-group"><label for="raceStartLocal">Race start date</label><input class="form-control" type="date" required=""></div>
+                            <div class="form-group">
+                                <label>Season</label>
+                                <input class="form-control" type="text" th:field="*{season}" required>
+                            </div>
                         </div>
                         <div class="col">
-                            <div class="form-group"><label for="raceDuration">Time (Local)</label><input class="form-control" type="time" required=""></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group"><label for="raceStartTod">Race start date (sim)</label><input class="form-control" type="date" required=""></div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group"><label for="greenFlagOffset">Time (ToD)</label><input class="form-control" type="time"></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group"><label for="raceStartTod">Race duration</label><input class="form-control" type="text" name="raceStartTod" placeholder="00:00:00" required=""></div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group"><label for="greenFlagOffset">Green flag offset</label><input class="form-control" type="text" name="greenFlagOffset" placeholder="00:00:00" required="" pattern="##:##:##"></div>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required="" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"></div>
+                            <div class="form-group">
+                                <label>Series</label>
+                                <input class="form-control" type="text" th:field="*{series}" required>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col">
-                            <div class="form-group"><label for="driverCount">Driver count</label><input class="form-control" type="number" name="driverCount" value="3"></div>
+                            <div class="form-group">
+                                <label>Event</label>
+                                <input class="form-control" type="text" th:field="*{name}" required>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col">
-                            <div class="form-group"><select class="form-control" multiple="" style="height: 10em;"><option value="12" selected="">Dave</option><option value="13">Evan</option><option value="14">Robert</option></select></div>
+                            <div class="form-group">
+                                <label>Session date</label>
+                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{sessionDateTime}" required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Timezone</label>
+                                <select th:field="*{timezone}" th:value="*{timezone}" class="form-control">
+                                    <option value="GMT-12" th:selected="*{timezone} == 'GMT-12'">GMT-12</option>
+                                    <option value="GMT-11" th:selected="*{timezone} == 'GMT-11'">GMT-11</option>
+                                    <option value="GMT-10" th:selected="*{timezone} == 'GMT-10'">GMT-10</option>
+                                    <option value="GMT-9" th:selected="*{timezone} == 'GMT-9'">GMT-9</option>
+                                    <option value="GMT-8" th:selected="*{timezone} == 'GMT-8'">GMT-8</option>
+                                    <option value="GMT-7" th:selected="*{timezone} == 'GMT-7'">GMT-7</option>
+                                    <option value="GMT-6" th:selected="*{timezone} == 'GMT-6'">GMT-6</option>
+                                    <option value="GMT-5" th:selected="*{timezone} == 'GMT-5'">GMT-5</option>
+                                    <option value="GMT-4" th:selected="*{timezone} == 'GMT-4'">GMT-4</option>
+                                    <option value="GMT-3" th:selected="*{timezone} == 'GMT-3'">GMT-3</option>
+                                    <option value="GMT-2" th:selected="*{timezone} == 'GMT-2'">GMT-2</option>
+                                    <option value="GMT-1" th:selected="*{timezone} == 'GMT-1'">GMT-1</option>
+                                    <option value="GMT" th:selected="*{timezone} == 'GMT'">GMT</option>
+                                    <option value="UTC" th:selected="*{timezone} == 'UTC'">UTC</option>
+                                    <option value="GMT+1" th:selected="*{timezone} == 'GMT+1'">GMT+1</option>
+                                    <option value="GMT+2" th:selected="*{timezone} == 'GMT+2'">GMT+2</option>
+                                    <option value="GMT+3" th:selected="*{timezone} == 'GMT+3'">GMT+3</option>
+                                    <option value="GMT+4" th:selected="*{timezone} == 'GMT+4'">GMT+4</option>
+                                    <option value="GMT+5" th:selected="*{timezone} == 'GMT+5'">GMT+5</option>
+                                    <option value="GMT+6" th:selected="*{timezone} == 'GMT+6'">GMT+6</option>
+                                    <option value="GMT+7" th:selected="*{timezone} == 'GMT+7'">GMT+7</option>
+                                    <option value="GMT+8" th:selected="*{timezone} == 'GMT+8'">GMT+8</option>
+                                    <option value="GMT+9" th:selected="*{timezone} == 'GMT+9'">GMT+9</option>
+                                    <option value="GMT+10" th:selected="*{timezone} == 'GMT+10'">GMT+10</option>
+                                    <option value="GMT+11" th:selected="*{timezone} == 'GMT+11'">GMT+11</option>
+                                    <option value="GMT+12" th:selected="*{timezone} == 'GMT+12'">GMT+12</option>
+                                    <option value="GMT+13" th:selected="*{timezone} == 'GMT+13'">GMT+13</option>
+                                    <option value="GMT+14" th:selected="*{timezone} == 'GMT+14'">GMT+14</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col">
-                            <div class="form-group"><label for="avgLapTime">Nominal lap time</label><input class="form-control" type="text" name="avgLapTime" placeholder="00:00:00" required=""></div>
+                            <div class="form-group">
+                                <label>Sim date</label>
+                                <input class="form-control" type="datetime-local" style="width: 14em;" th:field="*{simDateTime}" required>
+                            </div>
                         </div>
                         <div class="col">
-                            <div class="form-group"><label for="avgFuelPerLap">Avg. fuel per lap</label><input class="form-control" type="text" name="avgFuelPerLap" placeholder="9,84" required="" pattern="##:##:##"></div>
+                            <div class="form-group">
+                                <label>Race duration</label>
+                                <input class="form-control" type="time" th:field="*{duration}" required>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col">
-                            <div class="form-group"><label for="raceStartLocal">from</label><input class="form-control" type="text" name="raceStartLocal" placeholder="00:00:00" required=""></div>
-                        </div>
-                        <div class="col">
-                            <div class="form-group"><label for="raceDuration">until</label><input class="form-control" type="text" name="raceDuration" placeholder="23:59:59" required="" pattern="##:##:##"></div>
+                            <div class="form-group">
+                                <label>Track</label>
+                                <select class="form-control" th:field="*{eventTrackId}">
+                                    <!--                                            <optgroup label="This is a group">-->
+                                    <option th:each="track: ${allTracks}" th:value="${track.id}" th:text="${track.name}" th:selected="${track.id.equalsIgnoreCase(newEvent.eventTrackId)}">This is item 3</option>
+                                    <!--                                            </optgroup>-->
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Save</button></div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Available Cars</label>
+                                <!--                                        <select class="form-control" multiple="" style="height: 10em;" th:field="*{carsIds}">-->
+                                <select class="form-control" multiple="" th:field="*{carsIds}" required>
+                                    <!--                                            <optgroup label="This is a group">-->
+                                    <option th:each="car: ${allCars}" th:id="${'car-option-' + car.id}" th:value="${car.id}" th:text="${car.name}" th:selected="${newEvent.carsIds.contains(car.id)}">This is item 3</option>
+                                    <!--                                            </optgroup>-->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Save as new</label>
+                                <input class="" type="checkbox" th:field="*{saveAndNew}">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group text-center">
+                                <button class="btn btn-primary btn-block" type="submit">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group text-center">
+                                <button id="deleteButton" onclick="confirmEventRemove();" class="btn btn-danger btn-block" title="Delete event" data-toggle="tooltip" type="button" disabled>
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group text-center">
+                                <button onclick="newPlanDialog();" id="planButton" class="btn btn-warning btn-block" title="Create race plan" data-toggle="tooltip" type="button" disabled>
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <div th:insert="index :: footer"></div>
+
+    <script src="/webjars/bootstrap-multiselect/js/bootstrap-multiselect.js"></script>
     <script src="assets/js/bs-init.js"></script>
     <script src="/webjars/fullcalendar/main.js"></script>
-    <script>
+    <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth'
+                initialView: 'dayGridMonth',
+                eventDidMount: function(info) {
+                    $(info.el).tooltip({
+                        title: info.event.extendedProps.description,
+                        html: true,
+                        placement: "top",
+                        trigger: "hover",
+                        container: "body"
+                    });
+                },
+                eventClick: function(info) {
+                    raceEventClick(info);
+                },
+                eventSources: [
+                    // race events
+                    {
+                        url: '/events',
+                        color: 'red',
+                        textColor: 'white',
+                        display: 'block',
+                        extraParams: {
+                            series: 'Special Events'
+                        }
+                    },
+                    {
+                        url: '/events',
+                        color: 'blue',
+                        textColor: 'white',
+                        extraParams: {
+                            series: 'EES'
+                        }
+                    }
+                ],
+                eventTimeFormat: { // like '14:30'
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                nextDayThreshold: '17:00:00',
             });
             calendar.render();
-        });            var ctx1 = document.getElementById('lapCharts').getContext('2d');
+        });
+        $(document).ready(function() {
+            $("#carsIds").multiselect({
+                maxHeight: 400,
+                buttonContainer: '<div class="form-control btn-group" />'
+            });
+        });
     </script>
-
-    <div th:insert="index :: footer"></div>
+    <script th:if="${newEvent.eventId}">
+        $(document).ready(function(){
+            enableButtons();
+        });
+    </script>
 </body>
 
 </html>
