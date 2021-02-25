@@ -227,6 +227,12 @@
       <artifactId>jackson-dataformat-csv</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- logging -->
+    <dependency>
+      <groupId>io.logz.logback</groupId>
+      <artifactId>logzio-logback-appender</artifactId>
+      <version>1.0.24</version>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
