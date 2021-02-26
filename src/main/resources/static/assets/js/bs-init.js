@@ -114,6 +114,7 @@ function selectExistingPlans() {
 				$("#racePlanSelect").append(o);
 				if(index === 0) {
 					$("#racePlanSelect").val(value.id);
+					updateRacePlanLink();
 				}
 			});
 		}
