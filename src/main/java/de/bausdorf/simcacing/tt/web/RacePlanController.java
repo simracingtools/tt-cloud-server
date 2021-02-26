@@ -138,7 +138,7 @@ public class RacePlanController extends BaseController {
 			hasErrors = true;
 		}
 		if (hasErrors) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 
 		String planId = UUID.randomUUID().toString();
@@ -175,13 +175,13 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		if ((planView == null || planView.getId() == null) && !planId.isPresent()) {
 			prepareNewRacePlanView(model);
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(mode, model);
 
 		RacePlanParameters racePlanParameters = loadRacePlan(planView, planId, model);
 		if (racePlanParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 
 		RacePlan racePlan = RacePlan.createRacePlanTemplate(racePlanParameters);
@@ -201,7 +201,8 @@ public class RacePlanController extends BaseController {
 			log.error(e.getMessage(), e);
 		}
 		prepareNewRacePlanView(model);
-		return NEWRACEPLAN_VIEW;
+
+		return ScheduleController.EVENTSCHEDULE_VIEW;
 	}
 
 	@PostMapping("/planning")
@@ -212,7 +213,7 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		RacePlanParameters repoPlanParameters = loadRacePlan(viewPlanParameters.getId(), model);
 		if (repoPlanParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(mode, model);
 
@@ -236,7 +237,7 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		RacePlanParameters repoPlanParameters = loadRacePlan(teamScheduleView.getPlanId(), model);
 		if (repoPlanParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(mode, model);
 		teamScheduleView.setTimezone(currentUser().getTimezone());
@@ -257,7 +258,7 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		RacePlanParameters repoPlanParameters = loadRacePlan(teamEstimationView.getPlanId(), model);
 		if (repoPlanParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(mode, model);
 
@@ -280,11 +281,11 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		if (planId == null || planId.isEmpty()) {
 			prepareNewRacePlanView(model);
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		RacePlanParameters planParameters = loadRacePlan(planId, model);
 		if (planParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(viewMode, model);
 
@@ -316,11 +317,11 @@ public class RacePlanController extends BaseController {
 			Model model) {
 		if (planId == null || planId.isEmpty()) {
 			prepareNewRacePlanView(model);
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		RacePlanParameters planParameters = loadRacePlan(planId, model);
 		if (planParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		prepareViewMode(viewMode, model);
 
@@ -349,7 +350,7 @@ public class RacePlanController extends BaseController {
 		prepareViewMode(viewMode, model);
 		RacePlanParameters planParameters = loadRacePlan(newScheduleEntryView.getPlanId(), model);
 		if (planParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		Optional<IRacingDriver> driver = driverRepository.findById(newScheduleEntryView.getDriverId());
 		if (driver.isPresent()) {
@@ -383,7 +384,7 @@ public class RacePlanController extends BaseController {
 		prepareViewMode(viewMode, model);
 		RacePlanParameters planParameters = loadRacePlan(newEstimationEntryView.getPlanId(), model);
 		if (planParameters == null) {
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		Optional<IRacingDriver> driver = driverRepository.findById(newEstimationEntryView.getDriverId());
 		if (driver.isPresent()) {
@@ -420,7 +421,7 @@ public class RacePlanController extends BaseController {
 
 		if (planId == null || planId.isEmpty()) {
 			addError("No plan id given", model);
-			return NEWRACEPLAN_VIEW;
+			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
 		Optional<RacePlanParameters> planParameters = planRepository.findById(planId);
 		if (planParameters.isPresent()) {

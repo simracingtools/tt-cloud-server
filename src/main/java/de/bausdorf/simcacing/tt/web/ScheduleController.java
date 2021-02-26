@@ -90,7 +90,7 @@ public class ScheduleController extends BaseController {
 			}
 		}
 		model.addAttribute("newEvent", eventView);
-		model.addAttribute("planParamsView", new PlanParametersView());
+		model.addAttribute(RacePlanController.RACEPLAN, new PlanParametersView());
 
 		return EVENTSCHEDULE_VIEW;
 	}
