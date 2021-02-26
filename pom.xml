@@ -321,12 +321,12 @@
     <developerConnection>scm:git:git@github.com:simracingtools/tt-cloud-server.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-<!--  <distributionManagement>-->
-<!--    <repository>-->
-<!--      <id>github</id>-->
-<!--      <name>GitHub simracingtools Packages</name>-->
-<!--      <url>https://maven.pkg.github.com/simracingtools/tt-cloud-server</url>-->
-<!--    </repository>-->
-<!--  </distributionManagement>-->
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub simracingtools Packages</name>
+      <url>https://maven.pkg.github.com/simracingtools/tt-cloud-server</url>
+    </repository>
+  </distributionManagement>
 
 </project>
