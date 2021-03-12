@@ -22,6 +22,8 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,7 +77,7 @@ public class ScheduleController extends BaseController {
 
 	@GetMapping("/schedule")
 	@Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
-	public String viewNewRacePlan(@RequestParam Optional<String> newEventTemplateId, Model model) {
+	public String viewNewRacePlan(@RequestParam Optional<String> newEventTemplateId, Optional<String> initialDate, Model model) {
 
 		RaceEventView eventView = new RaceEventView();
 		eventView.setTimezone(currentUserProfile().getTimezone());
@@ -90,6 +92,7 @@ public class ScheduleController extends BaseController {
 			}
 		}
 		model.addAttribute("newEvent", eventView);
+		model.addAttribute("calendarInitialDate", initialDate.orElse(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
 		model.addAttribute(RacePlanController.RACEPLAN, new PlanParametersView());
 
 		return EVENTSCHEDULE_VIEW;
@@ -110,7 +113,10 @@ public class ScheduleController extends BaseController {
 			addError(e.getMessage(), model);
 		}
 
-		return REDIRECT_SCHEDULE + (raceEventView.isSaveAndNew() ? "?newEventTemplateId=" + raceEventView.getEventId() : "");
+		return REDIRECT_SCHEDULE
+				+ (raceEventView.isSaveAndNew() ? "?newEventTemplateId=" + raceEventView.getEventId() : "")
+				+ (raceEventView.isSaveAndNew() ? "&" : "?")
+				+ "initialDate=" + raceEventView.getSessionDateTime().toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 	}
 
 	@GetMapping("/deleteEvent")

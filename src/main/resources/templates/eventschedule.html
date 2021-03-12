@@ -327,11 +327,15 @@
     <script src="/webjars/bootstrap-multiselect/js/bootstrap-multiselect.js"></script>
     <script src="assets/js/bs-init.js"></script>
     <script src="/webjars/fullcalendar/main.js"></script>
-    <script type="text/javascript">
+    <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                initialDate: [[${calendarInitialDate}]],
+                headerToolbar: {
+                  end: 'today dayGridMonth prev,next'
+                },
                 eventDidMount: function(info) {
                     $(info.el).tooltip({
                         title: info.event.extendedProps.description,
@@ -343,6 +347,9 @@
                 },
                 eventClick: function(info) {
                     raceEventClick(info);
+                },
+                dateClick: function(info) {
+                    calendar.changeView('timeGridDay', info.dateStr);
                 },
                 eventSources: [
                     // race events
@@ -364,12 +371,20 @@
                         }
                     }
                 ],
+                firstDay: 1,
                 eventTimeFormat: { // like '14:30'
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false
                 },
                 nextDayThreshold: '17:00:00',
+                slotDuration: '01:00:00',
+                slotLabelFormat: {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    omitZeroMinute: false,
+                    hour12: false
+                }
             });
             calendar.render();
         });
