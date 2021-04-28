@@ -1,7 +1,7 @@
 var darkSwitch = document.getElementById("darkSwitch");
 window.addEventListener("load", function () {
+    initTheme();
     if (darkSwitch) {
-        initTheme();
         darkSwitch.addEventListener("change", function () {
             resetTheme();
         });
@@ -23,7 +23,9 @@ function initTheme() {
     var darkThemeSelected =
         localStorage.getItem("darkSwitch") !== null &&
         localStorage.getItem("darkSwitch") === "dark";
-    darkSwitch.checked = darkThemeSelected;
+    if(darkSwitch) {
+        darkSwitch.checked = darkThemeSelected;
+    }
     darkThemeSelected
         ? document.body.setAttribute("data-theme", "dark")
         : document.body.removeAttribute("data-theme");
