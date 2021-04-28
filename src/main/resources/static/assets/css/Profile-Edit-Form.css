@@ -19,12 +19,20 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+div.avatar > img {
+  border-radius: 50%;
+}
+
 div.container.profile {
   padding: 10px 20px;
 }
 
 .center {
   text-align: center;
+}
+
+.no-marging {
+  margin: 0 !important;
 }
 
 .relative {
@@ -49,11 +57,18 @@ div.alert {
   width: 40%;
 }
 
+.alert-col {
+}
+
 .alert-col > .alert {
   padding: 10px;
   border-radius: 0;
   transition: all 0.5s ease;
   opacity: 0;
+}
+
+.alert-col > .alert.display {
+  opacity: 1;
 }
 
 hr {
@@ -70,6 +85,10 @@ hr {
   max-width: 200px;
 }
 
+img.avart-img {
+  max-width: 200px;
+}
+
 div.avatar-bg {
   background: url(https://www.gravatar.com/avatar/1234566?size=200&d=mm);
   background-position: 50% 50%;
@@ -78,5 +97,8 @@ div.avatar-bg {
   background-size: cover;
   border-radius: 50%;
   margin-left: calc(50% - 100px);
+}
+
+div.avatar {
 }
 

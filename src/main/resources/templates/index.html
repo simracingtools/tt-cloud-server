@@ -35,7 +35,7 @@
         <link rel="stylesheet" href="assets/css/styles.css">
         <link rel="stylesheet" href="assets/css/Registration-Form-with-Photo.css">
         <link rel="stylesheet" href="assets/css/Profile-Edit-Form.css">
-        <link rel="stylesheet" href="assets/css/Profile-Edit-Form-1.css">
+        <link rel="stylesheet" href="assets/css/dark-mode.css">
     </head>
     <body>
         <header th:fragment="header" style="height: 10%;">
@@ -45,6 +45,8 @@
                 </div>
                 <div class="col-8 col-sm-7 col-md-8 col-lg-8 col-xl-8 flex-grow-1 flex-shrink-0 flex-fill">
                     <h1 style="font-style: italic;font-size: 32px;font-family: 'Coda Caption', sans-serif;color: rgb(255,255,255);">iRacing TeamTactics</h1>
+                        <input type="checkbox" class="custom-control-input" id="darkSwitch">
+                        <label class="custom-control-label" for="darkSwitch">Dark Mode</label>
                     <div class="clearfix"></div><span>Endurance race planning and live race tactics</span></div>
                 <div class="col-2 col-sm-3 col-md-2 col-lg-1 col-xl-2 text-right flex-shrink-1">
                     <a class="avatar-bg btn" title="Go to user profile" data-toggle="tooltip" role="button" th:style="'width: 70px;height: 70px;background-image: url('+ ${user.imageUrl} +');background-size: contain;background-repeat: no-repeat;'" href="/profile"></a>
@@ -78,6 +80,7 @@
             <script src="assets/js/jquery.min.js"></script>
             <script src="assets/bootstrap/js/bootstrap.min.js"></script>
             <script src="assets/js/Profile-Edit-Form.js"></script>
+            <script src="assets/js/dark-mode-switch.js"></script>
         </div>
     </body>
 </html>

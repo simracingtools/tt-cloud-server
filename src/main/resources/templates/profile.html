@@ -31,7 +31,7 @@
         <header th:replace="index :: header"></header>
 
         <!-- Start: Profile Edit Form -->
-        <div class="container profile profile-view" id="profile" style="background-color: rgb(255,255,255);">
+        <div class="container profile profile-view" id="profile">
             <div th:insert="index :: messages"></div>
             <form method="post" th:action="@{/profile}" th:object="${user}">
                 <input type="hidden" th:field="*{userType}">
