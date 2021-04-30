@@ -163,7 +163,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 		if (authorizedClientId == null) {
 			List<TtUser> users = clientRepository.findByAccessToken(accessToken);
 			if (users.isEmpty()) {
-				throw new InvalidClientMessageException("No token for client id " + clientId);
+				throw new UnauthorizedAccessException("No token for client id " + clientId);
 			}
 			for (TtUser user : users) {
 				if (user.getClientMessageAccessToken().equalsIgnoreCase(accessToken)
