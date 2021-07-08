@@ -18,3 +18,19 @@
 [data-theme="dark"] .table {
     color: #fff !important;
 }
+
+[data-theme="dark"] .table-warning {
+    background-color: #96855f !important;
+}
+
+[data-theme="dark"] .table-success {
+    background-color: #375d40 !important;
+}
+
+[data-theme="dark"] .table-danger {
+    background-color: #bf6670 !important;
+}
+
+[data-theme="dark"] .table-info {
+    background-color: #3c7882 !important;
+}
