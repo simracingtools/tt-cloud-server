@@ -22,65 +22,48 @@ package de.bausdorf.simcacing.tt.stock;
  * #L%
  */
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.iracing.IRacingClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.bausdorf.simcacing.tt.util.CacheEntry;
-import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
-import de.bausdorf.simcacing.tt.util.CachedRepository;
 
 @Component
-public class TrackRepository extends CachedRepository<IRacingTrack> {
+public class TrackRepository extends StockDataRepository {
 
-	public static final String COLLECTION_NAME = "iRacingTracks";
-
-	@Override
-	protected IRacingTrack fromMap(Map<String, Object> data) {
-		return IRacingTrack.builder()
-				.id((String)data.get(IRacingTrack.ID))
-				.name((String)data.get(IRacingTrack.NAME))
-				.cost((String)data.get(IRacingTrack.COST))
-				.nightLighting((String)data.get(IRacingTrack.NIGHT_LIGHTING))
-				.nominalLapTime((String)data.get(IRacingTrack.NOMINAL_LAP_TIME))
-				.surface((String)data.get(IRacingTrack.SURFACE))
-				.trackType((String)data.get(IRacingTrack.TRACK_TYPE))
-				.build();
-	}
-
-	@Override
-	protected Map<String, Object> toMap(IRacingTrack object) {
-		return object.toMap();
-	}
-
-	public Optional<IRacingTrack> findById(String id) {
-		return super.findByName(COLLECTION_NAME, id);
-	}
-
-	public void save(IRacingTrack track) {
-		super.save(COLLECTION_NAME, track.getId(), track);
-	}
-
-	public TrackRepository(@Autowired FirestoreDB db) {
+	public TrackRepository(@Autowired IRacingClient db) {
 		super(db);
 	}
 
-	public List<IRacingTrack> loadAll(boolean fromCache) {
-		if (fromCache && !cache.isEmpty() ) {
-			return cache.values().stream()
-					.map(CacheEntry::getContent)
-					.sorted(Comparator.comparing(IRacingTrack::getName))
-					.collect(Collectors.toList());
-		}
-		List<IRacingTrack> allCars = super.loadAll(COLLECTION_NAME);
-		allCars.stream().forEach(s -> putToCache(s.getId(), s));
-		return allCars.stream()
+	public Optional<IRacingTrack> findById(String id) {
+
+		return Arrays.stream(stockDataCache.getTracks()).filter(t -> t.getTrackId() == Long.parseLong(id))
+				.findFirst()
+				.map(track -> IRacingTrack.builder()
+						.id(track.getTrackId().toString())
+						.name(track.getTrackName() + " - " + track.getConfigName())
+						.trackType(track.getTrackTypes()[0].getTrackType())
+						.nightLighting(track.getNightLighting().toString())
+						.nominalLapTime(track.getNominalLapTime().toString())
+						.cost("")
+						.surface("")
+						.build());
+	}
+
+	public List<IRacingTrack> loadAll() {
+		return Arrays.stream(stockDataCache.getTracks())
+				.map(track -> IRacingTrack.builder()
+						.id(track.getTrackId().toString())
+						.name(track.getTrackName() + (track.getConfigName() != null ? " - " + track.getConfigName() : ""))
+						.trackType(track.getTrackTypes()[0].getTrackType())
+						.nightLighting(track.getNightLighting().toString())
+						.nominalLapTime(track.getNominalLapTime().toString())
+						.cost("")
+						.surface("")
+						.build())
 				.sorted(Comparator.comparing(IRacingTrack::getName))
 				.collect(Collectors.toList());
 	}

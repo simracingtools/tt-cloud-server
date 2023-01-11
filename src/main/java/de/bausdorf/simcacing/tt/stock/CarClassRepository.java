@@ -22,67 +22,32 @@ package de.bausdorf.simcacing.tt.stock;
  * #L%
  */
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.iracing.IRacingClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import de.bausdorf.simcacing.tt.stock.model.IRacingCarClass;
-import de.bausdorf.simcacing.tt.util.CacheEntry;
-import de.bausdorf.simcacing.tt.util.CachedRepository;
-import de.bausdorf.simcacing.tt.util.FirestoreDB;
-import de.bausdorf.simcacing.tt.util.MapTools;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class CarClassRepository extends CachedRepository<IRacingCarClass> {
-	public static final String COLLECTION_NAME = "iRacingCarsClasses";
+public class CarClassRepository extends StockDataRepository {
 
-	@Override
-	protected IRacingCarClass fromMap(Map<String, Object> data) {
-		if( data == null ) {
-			return null;
-		}
-		return IRacingCarClass.builder()
-				.name(MapTools.stringFromMap(IRacingCarClass.NAME, data))
-				.id(MapTools.stringFromMap(IRacingCarClass.ID, data))
-				.carIds(MapTools.stringListFromMap(IRacingCarClass.CAR_IDS, data))
-				.build();
-	}
-
-	@Override
-	protected Map<String, Object> toMap(IRacingCarClass object) {
-		return object.toMap();
-	}
-
-	public CarClassRepository(@Autowired FirestoreDB db) {
-		super(db);
-	}
-
-	public void save(IRacingCarClass carClass) {
-		super.save(COLLECTION_NAME, carClass.getId(), carClass);
+	public CarClassRepository(@Autowired IRacingClient dataClient) {
+		super(dataClient);
 	}
 
 	public Optional<IRacingCarClass> findByName(String id) {
-		return super.findByName(COLLECTION_NAME, id);
-	}
-
-	public List<IRacingCarClass> loadAll(boolean fromCache) {
-		if (fromCache && !cache.isEmpty() ) {
-			return cache.values().stream()
-					.map(CacheEntry::getContent)
-					.sorted(Comparator.comparing(IRacingCarClass::getName))
-					.collect(Collectors.toList());
-		}
-		List<IRacingCarClass> allCars = super.loadAll(COLLECTION_NAME);
-		allCars.forEach(s -> putToCache(s.getId(), s));
-		return allCars.stream()
-				.sorted(Comparator.comparing(IRacingCarClass::getName))
-				.collect(Collectors.toList());
+		return Arrays.stream(stockDataCache.getCarClasses()).filter(cc -> cc.getCarClassId() == Long.parseLong(id))
+				.findFirst()
+				.map(dto -> IRacingCarClass.builder()
+									.name(dto.getName())
+									.id(id)
+									.carIds(Arrays.stream(dto.getCarsInClass()).map(car -> car.getCarId().toString()).collect(Collectors.toList()))
+									.build()
+				);
 	}
 }

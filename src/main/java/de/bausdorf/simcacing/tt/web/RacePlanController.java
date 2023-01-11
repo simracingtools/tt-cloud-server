@@ -453,12 +453,12 @@ public class RacePlanController extends BaseController {
 
 	@ModelAttribute("tracks")
 	List<IRacingTrack> getAllTracks() {
-		return trackRepository.loadAll(true);
+		return trackRepository.loadAll();
 	}
 
 	@ModelAttribute("cars")
 	List<IRacingCar> getAllCars() {
-		return carRepository.loadAll(true);
+		return carRepository.loadAll();
 	}
 
 	List<IRacingDriver> getAuthorizedDrivers(String teamId) {

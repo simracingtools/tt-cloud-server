@@ -23,6 +23,7 @@
     <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <maven.test.skip>true</maven.test.skip>
+    <ir-data-api.version>2.7.0</ir-data-api.version>
   </properties>
 
   <dependencies>
@@ -86,7 +87,6 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-gcp-starter-data-firestore</artifactId>
-<!--      <version>1.2.6.RELEASE</version>-->
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
@@ -130,6 +130,14 @@
         </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- For iRacing website access -->
+    <dependency>
+      <groupId>de.bausdorf.simracing</groupId>
+      <artifactId>ir-data-api-client</artifactId>
+      <version>${ir-data-api.version}</version>
+    </dependency>
+
     <!-- Due to enforcer errors -->
     <dependency>
       <groupId>org.threeten</groupId>
@@ -200,11 +208,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.webjars.bowergithub.lou</groupId>-->
-<!--      <artifactId>multi-select</artifactId>-->
-<!--      <version>0.9.12</version>-->
-<!--    </dependency>-->
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -256,7 +259,6 @@
         <version>2.0.0</version>
         <configuration>
           <licenseName>gpl_v3</licenseName>
-<!--          <licenseResolver>${project.baseUri}/src/license</licenseResolver>-->
         </configuration>
       </plugin>
 
@@ -309,6 +311,14 @@
         <configuration>
           <useReleaseProfile>false</useReleaseProfile>
           <tagNameFormat>v@{version}</tagNameFormat>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>9</source>
+          <target>9</target>
         </configuration>
       </plugin>
 

@@ -133,12 +133,12 @@ public class ScheduleController extends BaseController {
 
 	@ModelAttribute("allCars")
 	List<IRacingCar> getAllCars() {
-		return carRepository.loadAll(true);
+		return carRepository.loadAll();
 	}
 
 	@ModelAttribute("allTracks")
 	List<IRacingTrack> getAllTracks() {
-		return trackRepository.loadAll(true);
+		return trackRepository.loadAll();
 	}
 
 	@ModelAttribute("teams")
