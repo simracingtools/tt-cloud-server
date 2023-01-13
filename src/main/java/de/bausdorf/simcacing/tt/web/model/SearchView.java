@@ -23,14 +23,13 @@ package de.bausdorf.simcacing.tt.web.model;
  */
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 public class SearchView {
 	private String userName;
 	private String email;
 	private String userRole;
-	private boolean enabled;
+	private boolean disabled;
 	private boolean locked;
 	private boolean expired;
 
@@ -38,7 +37,7 @@ public class SearchView {
 		userName="";
 		email = "";
 		userRole = "any";
-		enabled = false;
+		disabled = false;
 		locked = false;
 		expired = false;
 	}

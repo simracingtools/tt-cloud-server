@@ -22,7 +22,7 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +31,7 @@ import java.util.UUID;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.web.model.UserProfileView;
 
+import de.bausdorf.simcacing.tt.web.security.*;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,10 +39,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import de.bausdorf.simcacing.tt.web.security.SubscriptionType;
-import de.bausdorf.simcacing.tt.web.security.TtUser;
-import de.bausdorf.simcacing.tt.web.security.TtUserType;
-import de.bausdorf.simcacing.tt.web.security.WebSecurityConfig;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -93,13 +90,13 @@ public class UserContentController extends BaseController {
         String newIRacingId = profileView.getIRacingId();
         if( newIRacingId.isEmpty() ) {
             addError("iRacing ID must not be empty !", model);
-        } else if( !newIRacingId.equals(currentUser().getIRacingId()) ) {
+        } else if( !newIRacingId.equals(currentUser().getIracingId()) ) {
             // Changed iRacing id in profile form - generate a new token
-            List<TtUser> existingUser = userService.findByIracingId(newIRacingId);
+            Optional<TtIdentity> existingUser = userService.findByIracingId(newIRacingId);
             if (existingUser.isEmpty()) {
                 profileView.setClientMessageAccessToken(UUID.randomUUID().toString());
-                TtUser userToSave = profileView.getUser(currentUser());
-                userToSave.setCreated(ZonedDateTime.now());
+                TtIdentity userToSave = profileView.getUser(currentUser());
+                userToSave.setCreated(OffsetDateTime.now());
                 userService.save(userToSave);
                 addInfo("iRacing ID changed in profile. A new token was generated - change your TeamTactics client config", model);
             } else {

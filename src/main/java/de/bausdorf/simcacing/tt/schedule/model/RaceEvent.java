@@ -22,40 +22,36 @@ package de.bausdorf.simcacing.tt.schedule.model;
  * #L%
  */
 
+import java.time.*;
 import java.util.List;
 
-import org.springframework.cloud.gcp.data.firestore.Document;
+import de.bausdorf.simcacing.tt.util.OffsetDateTimeConverter;
+import lombok.*;
 
-import com.google.cloud.Timestamp;
-import com.google.cloud.firestore.annotation.DocumentId;
+import javax.persistence.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode
 @ToString
-@Document(collectionName = "RaceEvents")
+@Entity
 public class RaceEvent {
-	@DocumentId
-	private String eventId;
+	@Id
+	@GeneratedValue
+	private Long eventId;
+
 	private String name;
 	private String series;
 	private String season;
 	private String trackId;
+
+	@ElementCollection
 	private List<String> carIds;
-	private Date simDate;
-	private Time simTime;
-	private Timestamp sessionTimestamp;
-	private Date sessionDate;
-	private Time sessionTime;
-	private Time raceDuration;
-	private TimeOffset raceSessionOffset;
+	private LocalDateTime simDateTime;
+	@Convert(converter = OffsetDateTimeConverter.class)
+	private OffsetDateTime sessionDateTime;
+	private Duration raceDuration;
+	private String raceSessionOffset;
 }

@@ -26,6 +26,7 @@ import de.bausdorf.simcacing.tt.util.FirestoreDB;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import de.bausdorf.simcacing.tt.util.TimeCachedRepository;
 import de.bausdorf.simcacing.tt.web.model.SearchView;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,7 @@ import com.google.cloud.firestore.Query;
 @Slf4j
 public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser> {
 
+    @Getter
     private final String userCollectionName;
 
     public TtClientRegistrationRepository(@Autowired FirestoreDB db, @Autowired TeamtacticsServerProperties config) {
@@ -87,7 +89,7 @@ public class TtClientRegistrationRepository extends TimeCachedRepository<TtUser>
         if (!searchView.getUserRole().equalsIgnoreCase("*")) {
             query = query.whereEqualTo("userType", searchView.getUserRole());
         }
-        if (searchView.isEnabled()) {
+        if (searchView.isDisabled()) {
             query = query.whereEqualTo("enabled", false);
         }
         if (searchView.isExpired()) {

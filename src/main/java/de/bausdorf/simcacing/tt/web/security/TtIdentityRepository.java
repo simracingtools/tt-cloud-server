@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.stock;
+package de.bausdorf.simcacing.tt.web.security;
 
 /*-
  * #%L
@@ -22,17 +22,16 @@ package de.bausdorf.simcacing.tt.stock;
  * #L%
  */
 
-import java.util.List;
-
 import org.springframework.data.repository.CrudRepository;
 
-import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
+import java.util.List;
+import java.util.Optional;
 
+public interface TtIdentityRepository extends CrudRepository<TtIdentity, String> {
 
-public interface TeamRepository extends CrudRepository<IRacingTeam, String> {
-
-	List<IRacingTeam> findByOwnerId(String ownerId);
-	List<IRacingTeam> findByAuthorizedDriverIdsContaining(String driverId);
-	List<IRacingTeam> findAllByTeamAdminIdsContains(String driverId);
-	List<IRacingTeam> findByIdIsNotNull();
+    Optional<TtIdentity> findById(String userId);
+    Optional<TtIdentity> findByIracingId(String iRacingId);
+    Optional<TtIdentity> findByClientMessageAccessToken(String tokenValue);
+    List<TtIdentity> findAllByEnabledAndExpiredAndLocked(boolean enabled, boolean expired, boolean locked);
+    List<TtIdentity> findAllByEmail(String email);
 }

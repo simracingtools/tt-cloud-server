@@ -22,23 +22,15 @@ package de.bausdorf.simcacing.tt.planning.model;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import de.bausdorf.simcacing.tt.schedule.model.Date;
 import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
 import de.bausdorf.simcacing.tt.schedule.RaceEventRepository;
-import de.bausdorf.simcacing.tt.schedule.model.Time;
-import de.bausdorf.simcacing.tt.schedule.model.TimeOffset;
 import de.bausdorf.simcacing.tt.util.AbstractIntegrationTest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,12 +49,12 @@ class RaceEventIT extends AbstractIntegrationTest {
 	void eventCrudTest() {
 		RaceEvent event = createRaceEvent();
 
-		eventRepository.save(event).block();
+		eventRepository.save(event);
 
 		RaceEvent foundEvent = eventRepository
-				.findRaceEventBySeriesAndSeasonAndName(SERIES, SEASON, NAME).block();
+				.findRaceEventBySeriesAndSeasonAndName(SERIES, SEASON, NAME).orElse(null);
 
-		eventRepository.delete(foundEvent).block();
+		eventRepository.delete(foundEvent);
 	}
 
 	private RaceEvent createRaceEvent() {
@@ -71,12 +63,10 @@ class RaceEventIT extends AbstractIntegrationTest {
 				.name(NAME)
 				.season(SEASON)
 				.carIds(Arrays.asList("1", "2", "3"))
-				.raceSessionOffset(new TimeOffset(Duration.ofMinutes(13)))
-				.sessionTime(new Time(LocalTime.now()))
-				.sessionDate(new Date(LocalDate.now()))
-				.simTime(new Time(LocalTime.now()))
-				.simDate(new Date(LocalDate.now()))
-				.eventId("testEventId")
+				.raceSessionOffset(Duration.ofMinutes(13).toString())
+				.sessionDateTime(OffsetDateTime.now())
+				.simDateTime(LocalDateTime.now())
+				.eventId(1L)
 				.build();
 	}
 }

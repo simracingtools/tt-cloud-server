@@ -22,8 +22,7 @@ package de.bausdorf.simcacing.tt.schedule;
  * #L%
  */
 
-import static de.bausdorf.simcacing.tt.util.TimeTools.durationFromString;
-
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -35,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.google.cloud.Timestamp;
 
 import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
@@ -50,7 +47,6 @@ import de.bausdorf.simcacing.tt.web.model.planning.PlanDescriptionView;
 import de.bausdorf.simcacing.tt.web.model.schedule.CalendarEvent;
 import de.bausdorf.simcacing.tt.web.model.schedule.RaceEventView;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 
 @Slf4j
 @RestController
@@ -80,56 +76,40 @@ public class EventFeedController {
 	public List<CalendarEvent> events(@RequestParam Optional<String> start,
 			@RequestParam Optional<String> end, @RequestParam Optional<String> series) {
 
-		Flux<RaceEvent> events;
+		List<RaceEvent> events;
 		if(series.isPresent()) {
-			events = eventRepository.findAllBySeriesAndSessionTimestampGreaterThanEqual(series.get(), Timestamp.ofTimeMicroseconds(0));
+			events = eventRepository.findAllBySeriesAndSessionDateTimeAfter(series.get(), OffsetDateTime.now());
 		} else {
-			events = eventRepository.findAllBySessionTimestampGreaterThanEqual(Timestamp.ofTimeMicroseconds(0));
+			events = eventRepository.findAllBySessionDateTimeAfter(OffsetDateTime.now());
 		}
 
 		List<CalendarEvent> calendarEvents = new ArrayList<>();
-		events.toStream().forEach(event -> {
-			ZonedDateTime startTime = ScheduleTools.zonedDateTimeFromDateAndTime(event.getSessionDate(), event.getSessionTime());
-			ZonedDateTime endTime = startTime.plus(ScheduleTools.durationFromTime(event.getRaceDuration()));
+		events.forEach(event -> {
+			ZonedDateTime startTime = ScheduleTools.zonedDateTimeFromDateAndTime(event.getSessionDateTime().toLocalDateTime(), event.getSessionDateTime().getOffset().toString());
+			ZonedDateTime endTime = startTime.plus(event.getRaceDuration());
 			Optional<IRacingTrack> track = trackRepository.findById(event.getTrackId());
 
-			StringBuilder eventDescription = new StringBuilder()
-					.append("<b>").append(event.getName()).append("</b>").append(BR)
-					.append(event.getSeason()).append(" - ").append(event.getSeries()).append(BR)
-					.append("Session start: ").append(event.getSessionTime().getLocalTime()).append(BR)
-					.append("Track: ").append(track.isPresent() ? track.get().getName() : "?").append(BR)
-					.append("Race duration: ").append(event.getRaceDuration().getLocalTime());
-
-//			StringBuilder eventDescription = new StringBuilder()
-//					.append("<table><tr>")
-//					.append("<th>").append(event.getName()).append("</th>")
-//					.append("<th>").append(event.getSeason()).append(" - ").append(event.getSeries()).append("</th>")
-//					.append(NEW_TABLELINE)
-//					.append(START_CELL).append("Session start: ").append(END_CELL)
-//					.append(START_CELL).append(event.getSessionTime().getLocalTime()).append(END_CELL)
-//					.append(NEW_TABLELINE)
-//					.append(START_CELL).append("Track: ").append(END_CELL)
-//					.append(track.isPresent() ? track.get().getName() : "?").append(END_CELL)
-//					.append(NEW_TABLELINE)
-//					.append(START_CELL).append("Race duration: ").append(END_CELL)
-//					.append(START_CELL).append(event.getRaceDuration().getLocalTime()).append(END_CELL)
-//					.append("</tr></table>");
+			String eventDescription = "<b>" + event.getName() + "</b>" + BR +
+					event.getSeason() + " - " + event.getSeries() + BR +
+					"Session start: " + event.getSessionDateTime().toLocalTime().toString() + BR +
+					"Track: " + (track.isPresent() ? track.get().getName() : "?") + BR +
+					"Race duration: " + event.getRaceDuration().toString();
 
 			calendarEvents.add(
 					CalendarEvent.builder()
-							.id(event.getEventId())
+							.id(event.getEventId().toString())
 							.title(event.getName())
 							.start(startTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
 							.end(endTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-							.description(eventDescription.toString())
+							.description(eventDescription)
 							.build());
 		});
 		return calendarEvents;
 	}
 
 	@GetMapping("/event")
-	public RaceEventView getEventView(@RequestParam String eventId) {
-		RaceEvent raceEvent = eventRepository.findById(eventId).block();
+	public RaceEventView getEventView(@RequestParam Long eventId) {
+		RaceEvent raceEvent = eventRepository.findByEventId(eventId).orElse(null);
 		return raceEvent != null ? RaceEventView.fromRaceEvent(raceEvent) : new RaceEventView();
 	}
 

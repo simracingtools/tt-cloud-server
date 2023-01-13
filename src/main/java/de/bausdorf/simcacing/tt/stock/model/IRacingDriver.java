@@ -22,30 +22,30 @@ package de.bausdorf.simcacing.tt.stock.model;
  * #L%
  */
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EqualsAndHashCode
+@Getter
+@Setter
+@Entity
 public class IRacingDriver {
 
 	public static final String I_RACING_ID = "iRacingId";
 	public static final String NAME = "Name";
 	public static final String VALIDATED = "validated";
 
-	private String name;
+	@Id
 	private String id;
+	private String name;
 	private boolean validated;
 
 	public Map<String, Object> toMap() {
@@ -54,12 +54,5 @@ public class IRacingDriver {
 		map.put(NAME, name);
 		map.put(VALIDATED, validated);
 		return map;
-	}
-
-	public List<String> toNameIdList() {
-		List<String> list = new ArrayList<>();
-		list.add(name);
-		list.add(id);
-		return list;
 	}
 }

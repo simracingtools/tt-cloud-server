@@ -63,11 +63,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -129,11 +125,11 @@ public class RacePlanController extends BaseController {
 		Optional<IRacingCar> car = carRepository.findByName(planView.getCarId());
 		Optional<IRacingTrack> track = trackRepository.findById(planView.getTrackId());
 		boolean hasErrors = false;
-		if (!car.isPresent()) {
+		if (car.isEmpty()) {
 			addError("Car ID " + planView.getCarId() + NOT_FOUND, model);
 			hasErrors = true;
 		}
-		if (!track.isPresent()) {
+		if (track.isEmpty()) {
 			addError("Track ID " + planView.getTrackId() + NOT_FOUND, model);
 			hasErrors = true;
 		}
@@ -147,7 +143,7 @@ public class RacePlanController extends BaseController {
 				.carId(planView.getCarId())
 				.trackId(planView.getTrackId())
 				.teamId(planView.getTeamId())
-				.sessionStartTime(ZonedDateTime.of(planView.getStartTime(), currentUser().getTimezone()))
+				.sessionStartTime(ZonedDateTime.of(planView.getStartTime(), ZoneId.of(currentUser().getZoneIdName())))
 				.todStartTime(planView.getTodStartTime() == null ? planView.getStartTime() : planView.getTodStartTime())
 				.raceDuration(planView.getRaceDuration())
 				.name(planView.getPlanName())
@@ -173,7 +169,7 @@ public class RacePlanController extends BaseController {
 			@RequestParam(VIEW_MODE) Optional<String> mode,
 			@RequestParam("planId") Optional<String> planId,
 			Model model) {
-		if ((planView == null || planView.getId() == null) && !planId.isPresent()) {
+		if ((planView == null || planView.getId() == null) && planId.isEmpty()) {
 			prepareNewRacePlanView(model);
 			return ScheduleController.EVENTSCHEDULE_VIEW;
 		}
@@ -444,11 +440,7 @@ public class RacePlanController extends BaseController {
 
 	@ModelAttribute("teams")
 	public List<IRacingTeam> getMyTeams() {
-		List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIRacingId());
-		teams.addAll(teamRepository.findByAuthorizedDrivers(currentUser().getIRacingId()).stream()
-				.filter(s -> !teams.contains(s)).collect(Collectors.toList())
-		);
-		return teams;
+		return getMyTeams(teamRepository);
 	}
 
 	@ModelAttribute("tracks")
@@ -565,7 +557,7 @@ public class RacePlanController extends BaseController {
 
 	private RacePlanParameters loadRacePlan(String planId, Model model) {
 		Optional<RacePlanParameters> racePlanParameters = planRepository.findById(planId);
-		if (!racePlanParameters.isPresent()) {
+		if (racePlanParameters.isEmpty()) {
 			model.addAttribute(RACEPLAN, new PlanParametersView());
 			return null;
 		}

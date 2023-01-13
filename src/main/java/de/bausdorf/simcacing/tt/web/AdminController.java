@@ -22,10 +22,10 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.web.security.TtIdentity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import de.bausdorf.simcacing.tt.web.model.SearchView;
-import de.bausdorf.simcacing.tt.web.security.TtUser;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,12 +60,12 @@ public class AdminController extends BaseController {
 	@Secured("ROLE_TT_SYSADMIN")
 	public String searchUsers(@ModelAttribute SearchView searchView, Model model) {
 		if (searchView != null) {
-			List<TtUser> userList = userService.findBySearchView(searchView);
+			List<TtIdentity> userList = findBySearchView(searchView);
 			model.addAttribute(SEARCH_VIEW, searchView);
 			model.addAttribute(USER_LIST, userList);
 		} else {
 			model.addAttribute(SEARCH_VIEW, new SearchView());
-			model.addAttribute(USER_LIST, new ArrayList<TtUser>());
+			model.addAttribute(USER_LIST, new ArrayList<TtIdentity>());
 		}
 		return ADMIN_VIEW;
 	}
@@ -77,7 +76,7 @@ public class AdminController extends BaseController {
 			@RequestParam boolean enabled, @RequestParam boolean locked, @RequestParam boolean expired, Model model) {
 		SearchView searchView = new SearchView();
 		if (userId != null) {
-			Optional<TtUser> existingUser = userService.findById(userId);
+			Optional<TtIdentity> existingUser = userService.findById(userId);
 			if (existingUser.isPresent()) {
 				existingUser.get().setUserType(TtUserType.valueOf(role));
 				existingUser.get().setEnabled(enabled);
@@ -95,9 +94,9 @@ public class AdminController extends BaseController {
 	public String deleteUser(@RequestParam String userId, Model model) {
 		SearchView searchView = new SearchView();
 		if (userId != null) {
-			Optional<TtUser> existingUser = userService.findById(userId);
+			Optional<TtIdentity> existingUser = userService.findById(userId);
 			if (existingUser.isPresent()) {
-				userService.delete(userId);
+				userService.deleteById(userId);
 				addInfo("User " + existingUser.get().getName() + " deleted", model);
 				searchView.setUserRole(existingUser.get().getUserType().name());
 			}
@@ -109,4 +108,17 @@ public class AdminController extends BaseController {
 	public TtUserType[] userTypes() {
 		return TtUserType.values();
 	}
+
+    List<TtIdentity> findBySearchView(SearchView searchView)
+    {
+		List<TtIdentity> users = userService.findAllByEnabledAndExpiredAndLocked(!searchView.isDisabled(), searchView.isExpired(), searchView.isLocked());
+		return users.stream()
+				.filter(user -> searchView.getUserRole().equalsIgnoreCase("*")
+						|| user.getUserType() == TtUserType.valueOf(searchView.getUserRole()))
+				.filter(user -> searchView.getUserName().isEmpty()
+						|| user.getName().toLowerCase().contains(searchView.getUserName().toLowerCase()))
+				.filter(user -> searchView.getEmail().isEmpty()
+						|| user.getEmail().toLowerCase().contains(searchView.getEmail().toLowerCase()))
+				.collect(Collectors.toList());
+    }
 }

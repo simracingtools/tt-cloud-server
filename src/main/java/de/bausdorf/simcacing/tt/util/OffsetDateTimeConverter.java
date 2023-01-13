@@ -1,10 +1,10 @@
-package de.bausdorf.simcacing.tt.schedule;
+package de.bausdorf.simcacing.tt.util;
 
 /*-
  * #%L
- * tt-cloud-server
+ * racecontrol-server
  * %%
- * Copyright (C) 2020 - 2021 bausdorf engineering
+ * Copyright (C) 2020 - 2022 bausdorf engineering
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,19 +22,25 @@ package de.bausdorf.simcacing.tt.schedule;
  * #L%
  */
 
-import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
-import org.springframework.data.repository.CrudRepository;
-
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
 
-public interface RaceEventRepository extends CrudRepository<RaceEvent, String> {
+@Converter
+public class OffsetDateTimeConverter implements AttributeConverter<OffsetDateTime, String> {
+    @Override
+    public String convertToDatabaseColumn(OffsetDateTime offsetDateTime) {
+        if(offsetDateTime == null) {
+            return null;
+        }
+        return offsetDateTime.toString();
+    }
 
-	List<RaceEvent> findAllBySessionDateTimeAfter(OffsetDateTime dateTime);
-	List<RaceEvent> findAllBySeriesAndSessionDateTimeAfter(String series, OffsetDateTime date);
-
-	Optional<RaceEvent> findRaceEventBySeriesAndSeasonAndName(String series, String season, String name);
-	Optional<RaceEvent> findByEventId(Long eventId);
-
+    @Override
+    public OffsetDateTime convertToEntityAttribute(String s) {
+        if(s == null) {
+            return null;
+        }
+        return OffsetDateTime.parse(s);
+    }
 }

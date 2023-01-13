@@ -23,7 +23,6 @@ package de.bausdorf.simcacing.tt.stock;
  */
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
@@ -36,6 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.Optional;
 
 @SpringBootTest
+//@EnableJpaRepositories(basePackages = {"de.bausdorf.simracing.tt.stock"})
 class TeamDriverRepositoryTest {
 
 	@Autowired
@@ -61,32 +61,32 @@ class TeamDriverRepositoryTest {
 	}
 
 	@Test
-	@Disabled
-	public void crudTestDrivers() {
+	@Disabled("Manual test")
+	void crudTestDrivers() {
 
 		driverRepository.save(driver);
 
 		Optional<IRacingDriver> fromRepo = driverRepository.findById(driver.getId());
-		assertThat(fromRepo.isPresent()).isTrue();
+		assertThat(fromRepo).isPresent();
 
-		driverRepository.delete(driver.getId());
+		driverRepository.delete(driver);
 
 		fromRepo = driverRepository.findById(driver.getId());
-		assertThat(fromRepo.isPresent()).isFalse();
+		assertThat(fromRepo).isNotPresent();
 	}
 
 	@Test
-	@Disabled
-	public void crudTestTeams() {
+	@Disabled("Manual test")
+	void crudTestTeams() {
 
 		teamRepository.save(team);
 
 		Optional<IRacingTeam> fromRepo = teamRepository.findById(team.getId());
-		assertThat(fromRepo.isPresent()).isTrue();
+		assertThat(fromRepo).isPresent();
 
-		teamRepository.delete(team.getId());
+		teamRepository.deleteById(team.getId());
 
 		fromRepo = teamRepository.findById(team.getId());
-		assertThat(fromRepo.isPresent()).isFalse();
+		assertThat(fromRepo).isNotPresent();
 	}
 }

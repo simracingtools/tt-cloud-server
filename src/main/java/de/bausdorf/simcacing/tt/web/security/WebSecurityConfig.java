@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.web.security;
  * #L%
  */
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,13 +53,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public static final String ROLE_PREFIX = "ROLE_";
 
 	private final GoogleUserService userService;
-	private final TtClientRegistrationRepository registrationRepository;
 
-	public WebSecurityConfig(@Autowired GoogleUserService userService,
-			@Autowired	TtClientRegistrationRepository registrationRepository) {
+	public WebSecurityConfig(@Autowired GoogleUserService userService) {
 		super(false);
 		this.userService = userService;
-		this.registrationRepository = registrationRepository;
 	}
 
 	@Override
@@ -108,14 +104,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				if (authority instanceof OidcUserAuthority) {
 					OidcUserAuthority oidcUserAuthority = (OidcUserAuthority)authority;
 
-					SimpleGrantedAuthority userRole = determineUserRole(oidcUserAuthority.getIdToken().getSubject());
+					SimpleGrantedAuthority userRole = userService.determineUserRole(oidcUserAuthority.getIdToken().getSubject());
 					if (userRole != null){
 						mappedAuthorities.add(userRole);
 					}
 				} else if (authority instanceof OAuth2UserAuthority) {
 					OAuth2UserAuthority oauth2UserAuthority = (OAuth2UserAuthority)authority;
 
-					SimpleGrantedAuthority userRole = determineUserRole(oauth2UserAuthority.getAttributes().get("sub").toString());
+					SimpleGrantedAuthority userRole = userService.determineUserRole(oauth2UserAuthority.getAttributes().get("sub").toString());
 					if (userRole != null){
 						mappedAuthorities.add(userRole);
 					}
@@ -124,21 +120,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 			return mappedAuthorities;
 		};
-	}
-
-	private SimpleGrantedAuthority determineUserRole(String userId) {
-		TtUser ttUser = registrationRepository.findById(userId).orElse(null);
-		if (ttUser != null) {
-			ttUser.setLastAccess(ZonedDateTime.now());
-			String roleName = ROLE_PREFIX + ttUser.getUserType().name();
-			if (!ttUser.isEnabled()) {
-				roleName = ROLE_PREFIX + TtUserType.TT_NEW.name();
-				ttUser.setUserType(TtUserType.TT_NEW);
-			}
-			registrationRepository.save(ttUser);
-			return new SimpleGrantedAuthority(roleName);
-		}
-		return null;
 	}
 
 	public static void updateCurrentUserRole(TtUserType newRole) {

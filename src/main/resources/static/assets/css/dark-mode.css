@@ -34,3 +34,7 @@
 [data-theme="dark"] .table-info {
     background-color: #3c7882 !important;
 }
+
+[data-theme="dark"] .modal-content {
+    background-color: #000 !important;
+}

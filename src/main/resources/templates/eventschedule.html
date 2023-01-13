@@ -305,6 +305,13 @@
                     <div class="form-row">
                         <div th:if="${user.userType == 'Sysadmin' || user.userType == 'Team admin'}" class="col">
                             <div class="form-group text-center">
+                                <button id="importButton" class="btn btn-primary btn-block" title="Import from iRacing" data-toggle="modal" data-target="#import-modal" type="button">
+                                    <i class="fas fa-download" style="font-size: 24px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div th:if="${user.userType == 'Sysadmin' || user.userType == 'Team admin'}" class="col">
+                            <div class="form-group text-center">
                                 <button id="deleteButton" onclick="confirmEventRemove();" class="btn btn-danger btn-block" title="Delete event" data-toggle="tooltip" type="button" disabled>
                                     <i class="fas fa-trash-alt" style="font-size: 24px;"></i>
                                 </button>
@@ -320,6 +327,29 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+    <div id="import-modal" class="modal fade" role="dialog" tabindex="-1" style="display: none;">
+        <div class="modal-dialog" role="document">
+            <form th:object="${importSelectView}" th:action="@{/import-events}" method="post">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Import current team events</h4><button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <h5 th:text="*{title}">2023 Season 1</h5>
+                        <div class="form-group">
+                            <select class="form-control" multiple th:field="*{selectedSeries}">
+                                <option th:each="series: ${importSelectView.series}" th:value="${series.id}" th:text="${series.name}">This is item 1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-light" type="button" data-dismiss="modal">Close</button>
+                        <button class="btn btn-primary" type="submit">Import Selected</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -368,7 +398,7 @@
                         color: 'blue',
                         textColor: 'white',
                         extraParams: {
-                            series: 'EES'
+                            series: 'European Endurance Pure Driving School Series'
                         }
                     },
                     {
@@ -376,7 +406,7 @@
                         color: 'orange',
                         textColor: 'black',
                         extraParams: {
-                            series: 'NEC'
+                            series: 'IMSA Endurance Series'
                         }
                     }
                 ],

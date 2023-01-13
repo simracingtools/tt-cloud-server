@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.iracing;
  * #L%
  */
 
+import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
 import de.bausdorf.simracing.irdataapi.client.AuthorizationException;
 import de.bausdorf.simracing.irdataapi.client.DataApiException;
 import de.bausdorf.simracing.irdataapi.client.IrDataClient;
@@ -35,9 +36,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -73,29 +77,74 @@ public class IRacingClient {
 		return Arrays.stream(dataCache.getTracks()).filter(track -> track.getTrackId() == trackId).findFirst().orElse(null);
 	}
 
-//	public Optional<MemberInfo> getMemberInfo(Long ircacingId) {
-//		return getMemberInfo(List.of(ircacingId)).stream().findFirst();
-//	}
-//
-//	public List<MemberInfo> getMemberInfo(List<Long> ircacingIds) {
-//		try{
-//			authenticate();
-//			MembersInfoDto membersInfos = dataClient.getMembersInfo(ircacingIds);
-//			return Arrays.stream(membersInfos.getMembers())
-//					.map(s -> MemberInfo.builder()
-//							.custid(s.getCustId().intValue())
-//							.name(s.getDisplayName())
-//							.build())
-//					.collect(Collectors.toList());
-//		} catch(Exception e) {
-//			log.error(e.getMessage(), e);
-//		}
-//		return Collections.emptyList();
-//	}
+	public Optional<TeamInfoDto> getTeamInfo(long teamId) {
+		try {
+			authenticate();
+			return Optional.of(dataClient.getTeamMembers(teamId));
+		} catch(HttpClientErrorException clientError) {
+			log.warn(I_RACING_HTTP_ERROR,clientError.getRawStatusCode(), clientError.getResponseBodyAsString());
+		} catch(Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return Optional.empty();
+	}
+
+	public List<SeasonDto> getTeamSeasons() {
+		try {
+			authenticate();
+			return Arrays.stream(dataClient.getSeasonInfo(true))
+					.filter(SeasonDto::getDriverChanges)
+					.collect(Collectors.toList());
+		} catch(HttpClientErrorException clientError) {
+			log.warn(I_RACING_HTTP_ERROR,clientError.getRawStatusCode(), clientError.getResponseBodyAsString());
+		} catch(Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return List.of();
+	}
+
+	public List<RaceEvent> getRaceEventsForSeason(SeasonDto seasonDto) {
+		List<RaceEvent> raceEvents = new ArrayList<>();
+
+		List<CarClassDto> carClasses = Arrays.stream(dataCache.getCarClasses())
+				.filter(carClass -> Arrays.asList(seasonDto.getCarClassIds()).contains(carClass.getCarClassId()))
+				.collect(Collectors.toList());
+
+		List<String> carIds = new ArrayList<>();
+		carClasses.forEach(cc -> Arrays.stream(cc.getCarsInClass()).forEach(cic -> carIds.add(cic.getCarId().toString())));
+
+		Arrays.stream(seasonDto.getSchedules()).forEach(schedule -> Arrays.stream(schedule.getRaceTimeDescriptors())
+				.forEach(desc -> Arrays.stream(desc.getSessionTimes()).forEach(time -> {
+					String[] seriesParts = seasonDto.getSeasonName().split("-");
+
+					RaceEvent event = RaceEvent.builder()
+							.season(seasonDto.getSeasonShortName())
+							.carIds(carIds)
+							.raceDuration(Duration.ofMinutes(schedule.getRaceTimeLimit()))
+							.series(seriesParts.length > 0 ? seriesParts[0].trim() : "")
+							.simDateTime(schedule.getWeather().getSimulatedStartTime())
+							.raceSessionOffset(Long.toString(desc.getSessionMinutes() - schedule.getRaceTimeLimit()))
+							.sessionDateTime(time.toOffsetDateTime())
+							.name(seasonDto.getSeasonName())
+							.trackId(schedule.getTrack().getTrackId().toString())
+							.build();
+
+					raceEvents.add(event);
+				})));
+
+		return raceEvents;
+	}
 
 	public Optional<MemberInfoDto> getFullMemberInfo(long iracingId) {
-		authenticate();
-		return Arrays.stream(dataClient.getMembersInfo(List.of(iracingId)).getMembers()).findFirst();
+		try {
+			authenticate();
+			return Arrays.stream(dataClient.getMembersInfo(List.of(iracingId)).getMembers()).findFirst();
+		} catch(HttpClientErrorException clientError) {
+			log.warn(I_RACING_HTTP_ERROR,clientError.getRawStatusCode(), clientError.getResponseBodyAsString());
+		} catch(Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return Optional.empty();
 	}
 
 	public LeagueInfoDto getLeagueInfo(long leagueId) {
@@ -108,18 +157,6 @@ public class IRacingClient {
 			log.error(e.getMessage(), e);
 		}
 		return null;
-	}
-
-	public Optional<TeamInfoDto> getTeamMembers(long teamId) {
-		try {
-			authenticate();
-			return Optional.of(dataClient.getTeamMembers(teamId));
-		} catch(HttpClientErrorException clientError) {
-			log.warn(I_RACING_HTTP_ERROR,clientError.getRawStatusCode(), clientError.getResponseBodyAsString());
-		} catch(Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		return Optional.empty();
 	}
 
 	public Optional<SubsessionResultDto> getSubsessionResult(long subsessionId) {

@@ -22,12 +22,7 @@ package de.bausdorf.simcacing.tt.schedule;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -66,6 +61,9 @@ public class ScheduleTools {
 
 	public static ZonedDateTime zonedDateTimeFromDateAndTime(Date date, Time time) {
 		return ZonedDateTime.of(localDateFromDate(date), localTimeFromTime(time), ZoneId.of(time.getZoneId()));
+	}
+	public static ZonedDateTime zonedDateTimeFromDateAndTime(LocalDate date, OffsetTime time) {
+		return ZonedDateTime.of(date, time.toLocalTime(), ZoneId.ofOffset("UTC", time.getOffset()));
 	}
 
 	public static ZonedDateTime zonedDateTimeFromDateAndTime(LocalDateTime dateTime, String timezone) {

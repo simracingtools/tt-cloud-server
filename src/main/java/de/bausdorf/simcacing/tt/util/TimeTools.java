@@ -123,6 +123,18 @@ public class TimeTools {
         return prefix + String.format("%d:%02d:%02d", h, m, S);
     }
 
+    public static String raceDurationString(final Duration duration) {
+        String prefix = "";
+        Duration d = duration;
+        if (duration.isNegative()) {
+            d = duration.multipliedBy(-1);
+            prefix = "-";
+        }
+        long h = d.toHours();
+        long m = d.toMinutes() - (h * 60);
+        return prefix + String.format("%02d:%02d", h, m);
+    }
+
     public static LocalTime timeFromString(String time) {
         if( time == null ) {
             return LocalTime.MIN;

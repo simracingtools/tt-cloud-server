@@ -92,7 +92,7 @@ public class IndexController extends BaseController {
 
         Map<String, Object> json = restTemplate.getForObject("https://api.github.com/repos/simracingtools/teamtactics/releases/latest", Map.class);
         try {
-            String clientVersion = (String) json.get("tag_name");
+            String clientVersion = (String) (json != null ? json.get("tag_name") : "");
             model.addAttribute("currentClientVersion", clientVersion);
             model.addAttribute("serverBaseUrl", config.getServerBaseUrl());
         } catch (Exception e) {
@@ -146,8 +146,8 @@ public class IndexController extends BaseController {
 
     @ModelAttribute("plans")
     public List<PlanDescriptionView> racePlans() {
-        List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIRacingId());
-        teams.addAll(teamRepository.findByAuthorizedDrivers(currentUser().getIRacingId()).stream()
+        List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIracingId());
+        teams.addAll(teamRepository.findByAuthorizedDriverIdsContaining(currentUser().getIracingId()).stream()
                 .filter(s -> !teams.contains(s)).collect(Collectors.toList())
         );
         return planRepository.findByTeamIds(teams.stream()

@@ -22,11 +22,14 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import de.bausdorf.simcacing.tt.iracing.IRacingClient;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.web.model.team.NewDriver;
+import de.bausdorf.simcacing.tt.web.model.team.TeamDriver;
 import de.bausdorf.simcacing.tt.web.model.team.TeamView;
+import de.bausdorf.simracing.irdataapi.model.TeamInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -37,9 +40,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 public class TeamController extends BaseController {
@@ -51,24 +54,25 @@ public class TeamController extends BaseController {
     public static final String TEAM_ID = "Team ID ";
 
     private final TeamRepository teamRepository;
+    private final IRacingClient dataClient;
 
-    public TeamController(@Autowired TeamRepository teamRepository) {
+    public TeamController(@Autowired TeamRepository teamRepository,
+                          @Autowired IRacingClient dataClient) {
         this.teamRepository = teamRepository;
+        this.dataClient = dataClient;
     }
 
     @GetMapping("/teams")
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
-    public String teamsOverview(@RequestParam("teamId") Optional<String> teamId, Model model) {
+    public String teamsOverview(@RequestParam("teamId") Optional<String> teamId,
+                                @RequestParam Optional<String> messages,
+                                Model model) {
+        messages.ifPresent(e -> decodeMessagesToModel(e, model));
+
         if( teamId.isPresent() ) {
             Optional<IRacingTeam> repoTeam = teamRepository.findById(teamId.get());
             if (repoTeam.isPresent() /*&& repoTeam.get().getOwnerId().equals(currentUser().getIRacingId())*/) {
-                model.addAttribute(SELECTED_TEAM, new TeamView(repoTeam.get(), driverRepository, currentUser().getIRacingId()));
-                model.addAttribute(NEW_DRIVER, NewDriver.builder()
-                        .id("0")
-                        .name("N.N")
-                        .teamAdmin(false)
-                        .teamId(repoTeam.get().getId())
-                        .build());
+                model.addAttribute(SELECTED_TEAM, new TeamView(repoTeam.get(), driverRepository, currentUser().getIracingId()));
                 return TEAMS_VIEW;
             }
         }
@@ -79,48 +83,31 @@ public class TeamController extends BaseController {
 
     @PostMapping("/teams")
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
-    public String saveTeam(@ModelAttribute(SELECTED_TEAM) TeamView resultTeam, Model model) {
-        Optional<IRacingTeam> existingTeam = teamRepository.findById(resultTeam.getId());
-        if( existingTeam.isPresent() ) {
-            if (!resultTeam.isCurrentUserTeamAdmin()) {
-                addError("Team with ID " + resultTeam.getId() + " already exists and you are not a team admin.", model);
-                model.addAttribute(NEW_DRIVER, NewDriver.builder()
-                        .id("0")
-                        .name("N.N")
-                        .teamAdmin(false)
-                        .teamId(resultTeam.getId())
-                        .build());
-                return TEAMS_VIEW;
-            } else {
-                teamRepository.save(resultTeam.getTeam());
-                model.addAttribute(SELECTED_TEAM, resultTeam);
-            }
-        } else {
-            resultTeam.setOwnerId(currentUser().getIRacingId());
-            teamRepository.save(resultTeam.getTeam());
-            model.addAttribute(SELECTED_TEAM, resultTeam);
-        }
-        model.addAttribute(TEAMS, getMyTeams());
-        model.addAttribute(NEW_DRIVER, NewDriver.builder()
-                .id("0")
-                .name("N.N")
-                .teamAdmin(false)
-                .teamId(resultTeam.getId())
-                .build());
-        return TEAMS_VIEW;
+    public String syncTeam(@ModelAttribute(SELECTED_TEAM) TeamView resultTeam, Model model) {
+        Optional<TeamInfoDto> teamInfo = dataClient.getTeamInfo(Long.parseLong(resultTeam.getId()));
+        teamInfo.ifPresentOrElse(irTeam -> syncTeamInfo(irTeam, resultTeam),
+                () -> {
+                    addError(TEAM_ID + resultTeam.getId() + " does not exist in iRacing service", model);
+                    Optional<IRacingTeam> teamToDelete = teamRepository.findById(resultTeam.getId());
+                    teamToDelete.ifPresent(teamRepository::delete);
+                });
+
+        return redirectBuilder(TEAMS_VIEW)
+                .withParameter("teamId", resultTeam.getId())
+                .build(model);
     }
 
     @GetMapping("/deleteTeam")
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String deleteTeam(@RequestParam String teamId, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
-        if( !existingTeam.isPresent() ) {
+        if(existingTeam.isEmpty()) {
             addWarning(TEAM_ID + teamId + " does not exist.", model);
         } else {
-            if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
+            if (!existingTeam.get().getOwnerId().equals(currentUser().getIracingId())) {
                 addError("Only the team owner is allowed to delete his team.", model);
             } else {
-                teamRepository.delete(teamId);
+                teamRepository.deleteById(teamId);
                 model.addAttribute(TEAMS, getMyTeams());
             }
         }
@@ -132,12 +119,12 @@ public class TeamController extends BaseController {
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String removeTeamMember(@RequestParam String teamId, @RequestParam String teamMemberId, Model model) {
         Optional<IRacingTeam> existingTeam = teamRepository.findById(teamId);
-        if( !existingTeam.isPresent() ) {
+        if(existingTeam.isEmpty()) {
             addWarning(TEAM_ID + teamId + " does not exist.", model);
             addEmptySelectedTeam(model);
             return TEAMS_VIEW;
         } else {
-            if (!existingTeam.get().getOwnerId().equals(currentUser().getIRacingId())) {
+            if (!existingTeam.get().getOwnerId().equals(currentUser().getIracingId())) {
                 addError("Only the team owner is allowed to delete his team member.", model);
                 addEmptySelectedTeam(model);
                 return TEAMS_VIEW;
@@ -154,7 +141,7 @@ public class TeamController extends BaseController {
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String addNewDriver(@ModelAttribute("newDriver") NewDriver newDriver, Model model) {
         Optional<IRacingDriver> existingDriver = driverRepository.findById(newDriver.getId());
-        if( !existingDriver.isPresent() ) {
+        if(existingDriver.isEmpty()) {
             driverRepository.save(IRacingDriver.builder()
                     .id(newDriver.getId())
                     .name(newDriver.getName())
@@ -170,7 +157,7 @@ public class TeamController extends BaseController {
             }
             team.get().getAuthorizedDriverIds().add(newDriver.getId());
             teamRepository.save(team.get());
-            model.addAttribute(SELECTED_TEAM, new TeamView(team.get(), driverRepository, currentUser().getIRacingId()));
+            model.addAttribute(SELECTED_TEAM, new TeamView(team.get(), driverRepository, currentUser().getIracingId()));
         } else {
             addError(TEAM_ID + newDriver.getTeamId() + " not found.", model);
         }
@@ -179,16 +166,29 @@ public class TeamController extends BaseController {
 
     @ModelAttribute("teams")
     public List<IRacingTeam> getMyTeams() {
-        List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIRacingId());
-        teams.addAll(teamRepository.findByAuthorizedDrivers(currentUser().getIRacingId()).stream()
-                .filter(s -> !teams.contains(s)).collect(Collectors.toList())
-        );
-        return teams;
+        return getMyTeams(teamRepository);
+    }
+
+    private void syncTeamInfo(TeamInfoDto irTeam, TeamView teamView) {
+        teamView.setName(irTeam.getTeamName());
+        teamView.setOwnerId(irTeam.getOwnerId().toString());
+        teamView.setAuthorizedDrivers(new ArrayList<>());
+        Arrays.stream(irTeam.getRoster()).forEach(irDriver -> {
+            TeamDriver teamDriver = TeamDriver.builder()
+                    .id(irDriver.getCustId().toString())
+                    .teamAdmin(irDriver.getIsAdmin())
+                    .name(irDriver.getDisplayName())
+                    .validated(userService.findByIracingId(irDriver.getCustId().toString()).isPresent())
+                    .build();
+            driverRepository.save(new IRacingDriver(teamDriver.getId(), teamDriver.getName(), teamDriver.isValidated()));
+            teamView.getAuthorizedDrivers().add(teamDriver);
+        });
+        teamRepository.save(teamView.getTeam());
     }
 
     private void addEmptySelectedTeam(Model model) {
         model.addAttribute(SELECTED_TEAM, TeamView.builder()
-                .ownerId(currentUser().getIRacingId())
+                .ownerId(currentUser().getIracingId())
                 .currentUserTeamAdmin(true)
                 .authorizedDrivers(new ArrayList<>())
                 .build()

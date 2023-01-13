@@ -26,7 +26,7 @@ import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import de.bausdorf.simcacing.tt.web.security.SubscriptionType;
-import de.bausdorf.simcacing.tt.web.security.TtUser;
+import de.bausdorf.simcacing.tt.web.security.TtIdentity;
 import de.bausdorf.simcacing.tt.web.security.TtUserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,19 +60,19 @@ public class UserProfileView {
     // Read-only
     private String username;
 
-    public UserProfileView(TtUser user, DriverRepository driverRepository) {
+    public UserProfileView(TtIdentity user, DriverRepository driverRepository) {
         this.id = user.getId();
         this.name = user.getName();
         this.email = user.getEmail();
         this.imageUrl = user.getImageUrl();
-        this.iRacingId = user.getIRacingId();
+        this.iRacingId = user.getIracingId();
         this.userType = user.getUserType().toText();
         this.clientMessageAccessToken = user.getClientMessageAccessToken();
         this.enabled = user.isEnabled();
         this.locked = user.isLocked();
         this.expired = user.isExpired();
         this.username = user.getUsername();
-        this.timezone = user.getTimezone() != null ? TimeTools.toShortZoneId(user.getTimezone()) : "";
+        this.timezone = user.getZoneIdName() != null ? TimeTools.toShortZoneId(ZoneId.of(user.getZoneIdName())) : "";
         this.subscriptionType = user.getSubscriptionType();
         this.subscriptionExpiration = subscriptionType != SubscriptionType.NONE
                 ? user.getLastSubscription().plus(this.subscriptionType.getDuration()).toLocalDate().toString()
@@ -82,8 +82,8 @@ public class UserProfileView {
         this.driverNick = driver.isPresent() ? driver.get().getName() : "";
     }
 
-    public TtUser getUser(TtUser merge) {
-        return TtUser.builder()
+    public TtIdentity getUser(TtIdentity merge) {
+        return TtIdentity.builder()
                 .name(name != null ? name : merge.getName())
                 .id(id != null ? id : merge.getId())
                 .email(email != null ? email : merge.getEmail())
@@ -92,9 +92,9 @@ public class UserProfileView {
                 .enabled(enabled != null ? enabled : merge.isEnabled())
                 .locked(locked != null ? locked : merge.isLocked())
                 .expired(expired != null ? expired : merge.isExpired())
-                .iRacingId(iRacingId != null ? iRacingId : merge.getIRacingId())
+                .iracingId(iRacingId != null ? iRacingId : merge.getIracingId())
                 .userType(userType != null ? TtUserType.ofText(userType) : merge.getUserType())
-                .timezone(timezone != null ? ZoneId.of(timezone) : merge.getTimezone())
+                .zoneIdName(timezone != null ? timezone : merge.getZoneIdName())
                 .created(merge.getCreated())
                 .lastAccess(merge.getLastAccess())
                 .lastSubscription(merge.getLastSubscription())

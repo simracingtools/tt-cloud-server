@@ -22,17 +22,20 @@ package de.bausdorf.simcacing.tt.stock.model;
  * #L%
  */
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
 public class IRacingTeam {
 
 	public static final String TEAM_NAME = "Name";
@@ -41,21 +44,16 @@ public class IRacingTeam {
 	public static final String AUTHORIZED_DRIVERS = "AuthorizedDrivers";
 	public static final String TEAM_ADMINS = "TeamAdmins";
 
-	private String name;
+	@Id
 	private String id;
+	private String name;
 	private String ownerId;
-	private List<String> teamAdminIds;
-	private List<String> authorizedDriverIds;
 
-	public Map<String, Object> toMap() {
-		Map<String, Object> map = new HashMap<>();
-		map.put(TEAM_NAME, name);
-		map.put(TEAM_ID, id);
-		map.put(OWNER_ID, ownerId);
-		map.put(TEAM_ADMINS, teamAdminIds);
-		map.put(AUTHORIZED_DRIVERS, authorizedDriverIds);
-		return map;
-	}
+	@ElementCollection
+	private List<String> teamAdminIds;
+
+	@ElementCollection
+	private List<String> authorizedDriverIds;
 
 	public boolean isOwner(String memberId) {
 		if( ownerId != null && memberId != null ) {

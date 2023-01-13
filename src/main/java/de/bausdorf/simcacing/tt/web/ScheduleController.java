@@ -23,12 +23,15 @@ package de.bausdorf.simcacing.tt.web;
  */
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.iracing.IRacingClient;
+import de.bausdorf.simcacing.tt.web.model.schedule.ImportSelectView;
+import de.bausdorf.simracing.irdataapi.model.SeasonDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
@@ -38,7 +41,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
 import de.bausdorf.simcacing.tt.schedule.RaceEventRepository;
 import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
 import de.bausdorf.simcacing.tt.stock.CarRepository;
@@ -57,22 +59,25 @@ public class ScheduleController extends BaseController {
 
 	public static final String EVENTSCHEDULE_VIEW = "eventschedule";
 	public static final String REDIRECT_SCHEDULE = "redirect:/schedule";
-	final TrackRepository trackRepository;
-	final CarRepository carRepository;
-	final TeamRepository teamRepository;
-	final RaceEventRepository eventRepository;
-	final RacePlanRepository planRepository;
+	private final TrackRepository trackRepository;
+	private final CarRepository carRepository;
+	private final TeamRepository teamRepository;
+	private final RaceEventRepository eventRepository;
+	private final IRacingClient dataClient;
+
+	private List<SeasonDto> seasonDtos = new ArrayList<>();
+	private OffsetDateTime lastUpdated;
 
 	public ScheduleController(@Autowired TrackRepository trackRepository,
-			@Autowired CarRepository carRepository,
-			@Autowired RaceEventRepository eventRepository,
-			@Autowired TeamRepository teamRepository,
-			@Autowired RacePlanRepository planRepository) {
+							  @Autowired CarRepository carRepository,
+							  @Autowired RaceEventRepository eventRepository,
+							  @Autowired TeamRepository teamRepository,
+							  @Autowired IRacingClient dataClient) {
 		this.carRepository = carRepository;
 		this.eventRepository = eventRepository;
 		this.trackRepository = trackRepository;
 		this.teamRepository = teamRepository;
-		this.planRepository = planRepository;
+		this.dataClient = dataClient;
 	}
 
 	@GetMapping("/schedule")
@@ -82,7 +87,7 @@ public class ScheduleController extends BaseController {
 		RaceEventView eventView = new RaceEventView();
 		eventView.setTimezone(currentUserProfile().getTimezone());
 		if(newEventTemplateId.isPresent()) {
-			RaceEvent eventTemplate = eventRepository.findById(newEventTemplateId.get()).block();
+			RaceEvent eventTemplate = eventRepository.findById(newEventTemplateId.get()).orElse(null);
 			if(eventTemplate != null) {
 				eventView = RaceEventView.fromRaceEvent(eventTemplate);
 				eventView.setEventId(null);
@@ -93,6 +98,7 @@ public class ScheduleController extends BaseController {
 		}
 		model.addAttribute("newEvent", eventView);
 		model.addAttribute("calendarInitialDate", initialDate.orElse(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
+		model.addAttribute("importSelectView", importSelectView());
 		model.addAttribute(RacePlanController.RACEPLAN, new PlanParametersView());
 
 		return EVENTSCHEDULE_VIEW;
@@ -103,11 +109,8 @@ public class ScheduleController extends BaseController {
 	public String saveEvent(@ModelAttribute RaceEventView raceEventView, Model model) {
 		try {
 			RaceEvent raceEvent = raceEventView.toEvent();
-			if(raceEvent.getEventId() == null || raceEvent.getEventId().isEmpty() || raceEventView.isSaveAndNew()) {
-				raceEvent.setEventId(UUID.randomUUID().toString());
-			}
-			eventRepository.save(raceEvent).block();
-			raceEventView.setEventId(raceEvent.getEventId());
+			eventRepository.save(raceEvent);
+			raceEventView.setEventId(raceEvent.getEventId().toString());
 		} catch(Exception e) {
 			log.error(e.getMessage(), e);
 			addError(e.getMessage(), model);
@@ -123,11 +126,23 @@ public class ScheduleController extends BaseController {
 	@Secured({ "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
 	public String deleteEvent(@RequestParam String eventId, Model model) {
 		try {
-			eventRepository.deleteById(eventId).block();
+			eventRepository.deleteById(eventId);
 		} catch(Exception e) {
 			log.error(e.getMessage(), e);
 			addError(e.getMessage(), model);
 		}
+		return REDIRECT_SCHEDULE;
+	}
+
+	@PostMapping("/import-events")
+	public String importEvents(@ModelAttribute ImportSelectView selectView, Model model) {
+		seasonDtos.forEach(seasonDto -> {
+			if (selectView.getSelectedSeries().contains(seasonDto.getSeasonId())) {
+				List<RaceEvent> raceEvents = dataClient.getRaceEventsForSeason(seasonDto);
+				eventRepository.saveAll(raceEvents);
+			}
+		});
+
 		return REDIRECT_SCHEDULE;
 	}
 
@@ -142,11 +157,19 @@ public class ScheduleController extends BaseController {
 	}
 
 	@ModelAttribute("teams")
-	public List<IRacingTeam> getMyTeams() {
-		List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIRacingId());
-		teams.addAll(teamRepository.findByAuthorizedDrivers(currentUser().getIRacingId()).stream()
-				.filter(s -> !teams.contains(s)).collect(Collectors.toList())
-		);
-		return teams;
+	public List<IRacingTeam> getMyTeams() { return getMyTeams(teamRepository); }
+
+	private ImportSelectView importSelectView() {
+		if (lastUpdated == null || lastUpdated.isBefore(OffsetDateTime.now().minusHours(12)) || seasonDtos.isEmpty()) {
+			seasonDtos = dataClient.getTeamSeasons();
+			lastUpdated = OffsetDateTime.now();
+		}
+		List<ImportSelectView.SelectView> series = new ArrayList<>();
+		seasonDtos.forEach(dto -> series.add(new ImportSelectView.SelectView(dto.getSeasonName(), dto.getSeasonId())));
+		return ImportSelectView.builder()
+				.title(seasonDtos.get(0).getSeasonShortName())
+				.series(series)
+				.selectedSeries(new ArrayList<>())
+				.build();
 	}
 }
