@@ -40,9 +40,10 @@ but will run standalone as well.
 
     mvn clean package
 
-### Deploy on Google AppEngine
+### Prepare database
 
-    mvn appengine:deploy -Dapp.deploy.version=...
+    create database team_tactics;
+    GRANT ALL privileges ON `team_tactics`.* TO 'teamtactics'@'%' identified by '<choose secure password>';
 
 ### Run standalone
 

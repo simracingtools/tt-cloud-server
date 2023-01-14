@@ -1,0 +1,2 @@
+GOOGLE_APPLICATION_CREDENTIALS=<Path to Google credential file>
+PORT=8080

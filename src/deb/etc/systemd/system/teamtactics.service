@@ -1,0 +1,15 @@
+[Unit]
+Description=teamtactics-server
+After=syslog.target
+
+[Service]
+User=teamtactics
+WorkingDirectory=/opt/team-tactics
+EnvironmentFile=/opt/team-tactics/env
+StandardOutput=append:/var/log/teamtactics.log
+StandardError=append:/var/log/teamtactics.log
+ExecStart=/opt/team-tactics/tt-cloud-server.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

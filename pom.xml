@@ -9,7 +9,7 @@
   </parent>
   <groupId>de.bausdorf.simcacing</groupId>
   <artifactId>tt-cloud-server</artifactId>
-  <version>0.15.5-SNAPSHOT</version>
+  <version>0.16.0-SNAPSHOT</version>
   <name>tt-cloud-server</name>
   <organization>
     <name>bausdorf engineering</name>
@@ -23,7 +23,7 @@
     <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <maven.test.skip>true</maven.test.skip>
-    <ir-data-api.version>2.7.0</ir-data-api.version>
+    <ir-data-api.version>2.8.0</ir-data-api.version>
   </properties>
 
   <dependencies>
