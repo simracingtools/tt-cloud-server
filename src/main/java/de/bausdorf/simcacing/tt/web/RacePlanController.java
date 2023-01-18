@@ -198,7 +198,7 @@ public class RacePlanController extends BaseController {
 		}
 		prepareNewRacePlanView(model);
 
-		return ScheduleController.EVENTSCHEDULE_VIEW;
+		return redirectBuilder(ScheduleController.EVENTSCHEDULE_VIEW).build(model);
 	}
 
 	@PostMapping("/planning")
