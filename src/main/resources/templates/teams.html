@@ -45,7 +45,7 @@
                                     <td th:text="${team.name}">FBP Racing RED</td>
                                     <td th:text="${team.id}">47110815</td>
                                     <td>
-                                        <button th:onclick="'confirmTeamDelete(' + ${teamStat.index} + ')'" class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team"><i class="fas fa-trash-alt"></i></button>
+                                        <button th:if="${team.isAdmin(user.getIRacingId())}" th:onclick="'confirmTeamDelete(' + ${teamStat.index} + ')'" class="btn btn-primary" data-toggle="tooltip" data-bs-tooltip="" type="button" style="margin: 0px 5px;" title="Remove this team"><i class="fas fa-trash-alt"></i></button>
                                         <a th:href="@{/teams(teamId=${team.id})}">
                                             <button class="btn btn-primary" type="button" style="margin: 0px 5px;"><i class="far fa-copy" data-toggle="tooltip" data-bs-tooltip="" title="Select team"></i></button>
                                         </a>
@@ -150,34 +150,8 @@
                                 </table>
                             </div>
                         </div>
-                        <div th:if="${selectedTeam.currentUserTeamAdmin}" class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Sync</button></div>
+                        <div class="form-group text-center"><button class="btn btn-primary btn-block" type="submit">Sync</button></div>
                     </form>
-<!--                    <form th:if="${selectedTeam.id != null && selectedTeam.currentUserTeamAdmin}" method="post" th:action="@{/newDriver}" th:object="${newDriver}">-->
-<!--                        <input type="hidden" th:field="*{teamId}" th:value="${selectedTeam.id}">-->
-<!--                        <div class="form-group">-->
-<!--                            <div class="table-responsive">-->
-<!--                                <table class="table table-striped">-->
-<!--                                    <thead>-->
-<!--                                        <tr>-->
-<!--                                            <th>Driver name</th>-->
-<!--                                            <th>Driver iRacing ID</th>-->
-<!--                                            <th>Team admin</th>-->
-<!--                                            <th></th>-->
-<!--                                        </tr>-->
-<!--                                    </thead>-->
-<!--                                    <tbody>-->
-<!--                                        <tr>-->
-<!--                                            <td><input th:field="*{name}" class="form-control" type="text" name="newDriverName" placeholder="Driver name"></td>-->
-<!--                                            <td><input th:field="*{id}" class="form-control" type="number" placeholder="000000" name="newIracingId"></td>-->
-<!--                                            <td class="text-center"><input th:field="*{teamAdmin}" type="checkbox"></td>-->
-<!--                                            <td></td>-->
-<!--                                            <td><button class="btn btn-primary" type="submit" title="Add driver to team"><i class="fas fa-plus-square"></i></button></td>-->
-<!--                                        </tr>-->
-<!--                                    </tbody>-->
-<!--                                </table>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </form>-->
                 </div>
             </div>
         </div>
