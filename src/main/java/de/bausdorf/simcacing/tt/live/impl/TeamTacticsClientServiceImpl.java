@@ -82,7 +82,7 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 		// Maybe Json is escaped - so remove escape characters
 		Map<String, Object> clientMessage = readClientMessage(clientString.replace("\\", ""));
 
-		if (!clientAccessToken.isPresent()) {
+		if (clientAccessToken.isEmpty()) {
 			log.warn("No x-teamtactics-token header");
 			return "TOKEN_ERROR";
 		}
@@ -120,6 +120,12 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 
 	private ClientMessage validateClientMessage(Map<String, Object> clientMessage, String accessToken) {
 		String clientId = (String)clientMessage.get(MessageConstants.Message.CLIENT_ID);
+		if (clientId == null) {
+			clientId = (String)clientMessage.get("client_id");
+			if (clientId == null) {
+				log.warn("no clientId in {}", clientMessage);
+			}
+		}
 		validateAccessToken(accessToken, clientId);
 
 		String messageType = (String)clientMessage.get(KEY_TYPE);
