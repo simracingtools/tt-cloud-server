@@ -27,12 +27,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum MessageType {
 	PING(MessageConstants.MessageType.PING_NAME),
+	AUTH(MessageConstants.MessageType.AUTHORIZE_NAME),
 	LAP(MessageConstants.MessageType.LAPDATA_NAME),
 	SESSION_INFO(MessageConstants.MessageType.SESSION_INFO_NAME),
 	RUN_DATA(MessageConstants.MessageType.RUN_DATA_NAME),
 	EVENT(MessageConstants.MessageType.EVENTDATA_NAME),
 	TYRES(MessageConstants.MessageType.TYRES_NAME),
-	SYNC(MessageConstants.MessageType.SYNCDATA_NAME);
+	SYNC(MessageConstants.MessageType.SYNCDATA_NAME),
+	SESSION_DATA(MessageConstants.MessageType.SESSION_DATA_NAME),
+	TELEMETRY(MessageConstants.MessageType.TELEMETRY_NAME);
 
 	private final String jsonKey;
 
@@ -49,7 +52,7 @@ public enum MessageType {
 		if( key == null ) {
 			throw new IllegalArgumentException("Invalid message type null");
 		}
-		switch(key) {
+		switch(key.toLowerCase()) {
 			case MessageConstants.MessageType.LAPDATA_NAME: return LAP;
 			case MessageConstants.MessageType.SESSION_INFO_NAME: return SESSION_INFO;
 			case MessageConstants.MessageType.RUN_DATA_NAME: return RUN_DATA;
@@ -57,6 +60,9 @@ public enum MessageType {
 			case MessageConstants.MessageType.SYNCDATA_NAME: return SYNC;
 			case MessageConstants.MessageType.TYRES_NAME: return TYRES;
 			case MessageConstants.MessageType.PING_NAME: return PING;
+			case MessageConstants.MessageType.AUTHORIZE_NAME: return AUTH;
+			case MessageConstants.MessageType.SESSION_DATA_NAME: return SESSION_DATA;
+			case MessageConstants.MessageType.TELEMETRY_NAME: return TELEMETRY;
 			default:
 				throw new IllegalArgumentException("Invalid message type \"" + key + "\"");
 		}

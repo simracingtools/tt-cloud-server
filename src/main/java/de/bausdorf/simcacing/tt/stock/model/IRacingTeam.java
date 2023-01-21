@@ -61,4 +61,8 @@ public class IRacingTeam {
 		}
 		return false;
 	}
+
+	public boolean isAdmin(String memberId) {
+		return authorizedDriverIds.contains(memberId);
+	}
 }

@@ -47,6 +47,10 @@ public class TeamtacticsServerProperties {
     private int serviceDurationSecondsWs;
     private int serviceDurationSecondsTyres;
     private int serviceDurationSecondsFuel10l;
+    private String mqttBrokerHost;
+    private String mqttUsername;
+    private String mqttPassword;
+    private String mqttClientId;
 
     @Bean
     ConfigProperties configProperties() {

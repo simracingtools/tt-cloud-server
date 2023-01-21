@@ -26,12 +26,15 @@ public class MessageConstants {
 
     public static class MessageType {
         public static final String LAPDATA_NAME = "lapdata";
-        public static final String SESSION_INFO_NAME = "sessionInfo";
-        public static final String RUN_DATA_NAME = "runData";
+        public static final String SESSION_INFO_NAME = "sessioninfo";
+        public static final String RUN_DATA_NAME = "rundata";
         public static final String EVENTDATA_NAME = "event";
-        public static final String SYNCDATA_NAME = "syncData";
+        public static final String SYNCDATA_NAME = "syncdata";
         public static final String TYRES_NAME ="tyres";
         public static final String PING_NAME = "ping";
+        public static final String AUTHORIZE_NAME = "authorize";
+        public static final String SESSION_DATA_NAME = "sessiondata";
+        public static final String TELEMETRY_NAME = "telemetry";
 
         private MessageType() {}
     }
