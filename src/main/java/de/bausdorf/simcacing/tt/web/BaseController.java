@@ -73,22 +73,18 @@ public class BaseController {
 
     public List<IRacingTeam> getMyTeams(TeamRepository teamRepository) {
         List<IRacingTeam> teams = teamRepository.findByIdIsNotNull().stream()
-                .filter(team -> team.getTeamAdminIds().contains(currentUser().getIracingId()))
+                .filter(team -> team.getAuthorizedDriverIds().contains(currentUser().getIracingId()))
                 .collect(Collectors.toList());
-        teams.addAll(teamRepository.findByAuthorizedDriverIdsContaining(currentUser().getIracingId()).stream()
-                .filter(s -> !teams.contains(s)).collect(Collectors.toList())
-        );
         return teams;
     }
 
     protected TtIdentity currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Optional<TtIdentity> details = auth != null ? userService.findById(auth.getName()) : Optional.empty();
-        return details.isPresent() ? details.get()
-                : TtIdentity.builder()
+        return details.orElseGet(() -> TtIdentity.builder()
                 .name("Unknown")
                 .userType(TtUserType.TT_NEW)
-                .build();
+                .build());
     }
 
     @ModelAttribute(MESSAGES)
