@@ -1,5 +1,7 @@
 package de.bausdorf.simcacing.tt.live.model.iracing;
 
+import de.bausdorf.simcacing.tt.iracing.model.SessionData;
+import de.bausdorf.simcacing.tt.iracing.model.Telemetry;
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
 import de.bausdorf.simcacing.tt.live.clientapi.MessageType;
 import de.bausdorf.simcacing.tt.live.impl.transformers.ClientMessageReader;

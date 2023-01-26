@@ -1,6 +1,6 @@
 package de.bausdorf.simcacing.tt.util;
 
-import de.bausdorf.simcacing.tt.live.model.iracing.SessionData;
+import de.bausdorf.simcacing.tt.iracing.model.SessionData;
 
 import java.util.List;
 import java.util.stream.Collectors;

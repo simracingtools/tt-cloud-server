@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.live.model.iracing;
+package de.bausdorf.simcacing.tt.iracing.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
