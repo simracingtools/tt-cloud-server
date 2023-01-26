@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.live.impl;
  * #L%
  */
 
-import java.util.Map;
 import java.util.Optional;
 
 import de.bausdorf.simcacing.tt.live.clientapi.*;
@@ -53,19 +52,19 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 	public String receiveClientData(@RequestBody String clientString,
 			@RequestHeader("x-teamtactics-token") Optional<String> clientAccessToken) {
 
-		// Maybe Json is escaped - so remove escape characters
-		Map<String, Object> clientMessage = messageReader.readClientMessage(clientString.replace("\\", ""));
-
 		if (clientAccessToken.isEmpty()) {
 			log.warn("No x-teamtactics-token header");
 			return "TOKEN_ERROR";
 		}
 		try {
-			ClientMessage msg = messageReader.validateClientMessage(clientMessage, clientAccessToken.get());
-			if (msg.getType() != MessageType.PING) {
-				processMessage(msg);
+			// Maybe Json is escaped - so remove escape characters
+			ClientMessage clientMessage = messageReader.convertClientMessage(clientString.replace("\\", ""));
+			clientMessage.setAccessToken(clientAccessToken.get());
+			messageReader.validateClientMessage(clientMessage);
+			if (clientMessage.getType() != MessageType.PING) {
+				processMessage(clientMessage);
 			}
-			return msg.getType().name();
+			return clientMessage.getType().name();
 		} catch (InvalidClientMessageException e) {
 			log.warn(e.getMessage());
 			return "VALIDATION_ERROR";
@@ -77,8 +76,6 @@ public class TeamTacticsClientServiceImpl implements TeamTacticsClientService {
 			return "UNSUPPORTED_CLIENT";
 		}
 	}
-
-
 
 	private void processMessage(ClientMessage msg) {
 		try {

@@ -38,5 +38,6 @@ public class ClientMessage {
 	private String sessionId;
 	private String teamId;
 	private String clientId;
+	private String accessToken;
 	private Map<String, Object> payload;
 }

@@ -3,12 +3,16 @@ package de.bausdorf.simcacing.tt.live.impl.transformers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.impl.validation.ClientTokenValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +37,16 @@ public class ClientMessageReader {
 
     public ClientMessageReader(@Autowired ClientTokenValidator tokenValidator) {
         this.tokenValidator = tokenValidator;
-        this.objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+        this.objectMapper = JsonMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false)
+                .build();
     }
 
+    @Deprecated(forRemoval = true)
     public Map<String, Object> readClientMessage(String clientString) {
         try {
             // Maybe json string is quoted - so remove quotes if present
@@ -52,6 +61,27 @@ public class ClientMessageReader {
         }
     }
 
+    public ClientMessage convertClientMessage(String clientString){
+        try {
+            // Maybe json string is quoted - so remove quotes if present
+            if (clientString.startsWith("\"") && clientString.endsWith("\"")) {
+                clientString = clientString.substring(1, clientString.length() - 1);
+            }
+            return objectMapper.readValue(clientString, ClientMessage.class);
+        } catch (JsonProcessingException e) {
+            throw new InvalidClientMessageException(e.getMessage());
+        }
+    }
+
+    public ClientMessage convertClientMessage(Reader reader) {
+        try {
+            return objectMapper.readValue(reader, ClientMessage.class);
+        } catch (IOException e) {
+            throw new InvalidClientMessageException(e.getMessage());
+        }
+    }
+
+    @Deprecated(forRemoval = true)
     public ClientMessage validateClientMessage(Map<String, Object> clientMessage, String accessToken) {
         String clientId = (String)clientMessage.get(MessageConstants.Message.CLIENT_ID);
         tokenValidator.validateAccessToken(accessToken, clientId);
@@ -90,5 +120,32 @@ public class ClientMessageReader {
         } catch( Exception e ) {
             throw new InvalidClientMessageException(e.getMessage());
         }
+    }
+
+    public void validateClientMessage(ClientMessage message) {
+        tokenValidator.validateAccessToken(message);
+        if( message.getType() == null ) {
+            throw new InvalidClientMessageException("No message type in message");
+        }
+        if( message.getVersion() == null ) {
+            throw new InvalidClientMessageException("No message version");
+        } else {
+            if( !acceptedVersions.contains(message.getVersion())) {
+                throw new UnsupportedClientException("Client version " + message.getVersion() + " not accepted");
+            }
+        }
+        if( message.getClientId() == null ) {
+            throw new InvalidClientMessageException("Message without client id");
+        }
+        if( message.getSessionId() == null ) {
+            throw new InvalidClientMessageException("Message without session id");
+        }
+    }
+
+    public <K> K convertPayload(ClientMessage message, String payloadProperty, Class<K> targetType) {
+        if (payloadProperty == null)
+            return objectMapper.convertValue(message.getPayload(), targetType);
+        else
+            return objectMapper.convertValue(message.getPayload().get(payloadProperty), targetType);
     }
 }
