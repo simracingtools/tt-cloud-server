@@ -25,7 +25,10 @@ package de.bausdorf.simcacing.tt.stock;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
+
 public interface DriverRepository extends CrudRepository<IRacingDriver, String> {
 
+    List<IRacingDriver> findAllByIdIn(List<String> driverIds);
 
 }

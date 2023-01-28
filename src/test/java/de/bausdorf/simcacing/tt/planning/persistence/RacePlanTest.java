@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.planning.model;
+package de.bausdorf.simcacing.tt.planning.persistence;
 
 /*-
  * #%L
@@ -22,75 +22,75 @@ package de.bausdorf.simcacing.tt.planning.model;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.util.ArrayList;
 import java.util.List;
 
+import de.bausdorf.simcacing.tt.planning.RacePlan;
+import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
-import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class RacePlanTest {
+class RacePlanTest {
 
 	private static final LocalDate START_DATE = LocalDate.parse("2020-01-01");
-	private static final ZonedDateTime START_TIME = ZonedDateTime.of(START_DATE, LocalTime.parse("13:00"), TimeTools.GMT);
+	private static final OffsetDateTime START_TIME = OffsetDateTime.of(START_DATE, LocalTime.parse("13:00"),
+			ZoneId.of("GMT").getRules().getOffset(LocalDateTime.of(START_DATE, LocalTime.parse("13:00"))));
 	private static final LocalDateTime START_TOD = LocalDateTime.of(START_DATE, LocalTime.parse("15:00"));
 
-	RacePlanParameters planParameters;
+	PlanParameters planParameters;
 	Roster roster;
 
 	@BeforeEach
 	public void setup() {
-		planParameters = RacePlanParameters.builder()
+		planParameters = PlanParameters.builder()
 				.avgFuelPerLap(16.8)
 				.maxCarFuel(115.5)
 				.avgLapTime(Duration.ofMinutes(8).plusSeconds(45))
 				.avgPitLaneTime(Duration.ofMinutes(1))
-				.carId("55")
+				.carId(55L)
 				.id("47110815")
 				.name("Testplan")
 				.raceDuration(Duration.ofHours(6))
-				.sessionStartTime(START_TIME)
+				.sessionStartDateTime(START_TIME)
 				.greenFlagOffsetTime(Duration.ZERO)
 				.todStartTime(START_TOD)
-				.teamId("4711")
-				.trackId("252")
+				.teamId(4711L)
+				.trackId(252L)
+				.stints(new ArrayList<>())
 				.build();
 
 		roster = new Roster();
-		roster.addDriver(IRacingDriver.builder()
+		roster.getDrivers().add(IRacingDriver.builder()
 				.name("Robert")
 				.id("11111")
 				.build());
-		roster.addDriver(IRacingDriver.builder()
+		roster.getDrivers().add(IRacingDriver.builder()
 				.name("Dave")
 				.id("22222")
 				.build());
-		roster.addDriver(IRacingDriver.builder()
+		roster.getDrivers().add(IRacingDriver.builder()
 				.name("Sascha")
 				.id("33333")
 				.build());
-		roster.addEstimation(buildEstimation("Robert",
+		roster.getDriverEstimations().add(buildEstimation("Robert",
 				Duration.ofMinutes(8).plusSeconds(45), 15.1,
 				LocalDateTime.of(START_DATE, LocalTime.parse("15:00:00"))));
-		roster.addEstimation(buildEstimation("Robert",
-				Duration.ofMinutes(9).plusSeconds(00), 14.9,
+		roster.getDriverEstimations().add(buildEstimation("Robert",
+				Duration.ofMinutes(9).plusSeconds(0), 14.9,
 				LocalDateTime.of(START_DATE, LocalTime.parse("17:00:00"))));
-		roster.addScheduleEntry(buildOpenScheduleEntry("Robert", START_TIME));
-		roster.addScheduleEntry(buildOpenScheduleEntry("Dave", START_TIME));
-		roster.addScheduleEntry(buildOpenScheduleEntry("Sascha", START_TIME));
+		roster.getDriverAvailability().add(buildOpenScheduleEntry("Robert", START_TIME));
+		roster.getDriverAvailability().add(buildOpenScheduleEntry("Dave", START_TIME));
+		roster.getDriverAvailability().add(buildOpenScheduleEntry("Sascha", START_TIME));
 
 		planParameters.setRoster(roster);
 	}
 
 	@Test
-	public void calculate_race_plan() {
+	void calculate_race_plan() {
 
 		RacePlan plan = RacePlan.createRacePlanTemplate(planParameters);
 		planParameters.setStints(plan.getCurrentRacePlan());
@@ -101,21 +101,21 @@ public class RacePlanTest {
 	}
 
 	@Test
-	public void calculate_race_with_drivers_set_plan() {
+	void calculate_race_with_drivers_set_plan() {
 		RacePlan plan = prepareAssignedRacePlan();
 
 		plan.getCurrentRacePlan().stream().forEach(
-				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
+				s -> log.info("{} - {}",s.getTodStartTime(), s.getDriverName())
 		);
 	}
 
 	@Test
-	public void calculate_for_time_in_race() {
+	void calculate_for_time_in_race() {
 		RacePlan plan = prepareAssignedRacePlan();
 
 		log.info("Base plan:");
 		plan.getCurrentRacePlan().stream().forEach(
-				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
+				s -> log.info("{} - {}",s.getTodStartTime(), s.getDriverName())
 		);
 
 		List<Stint> stints = plan.calculateLiveStints(
@@ -125,45 +125,43 @@ public class RacePlanTest {
 
 		log.info("In-race plan:");
 		stints.stream().forEach(
-				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
+				s -> log.info("{} - {}",s.getTodStartTime(), s.getDriverName())
 		);
 	}
 
 	@Test
-	public void calculate_for_different_session_start_time() {
-		RacePlan plan = prepareAssignedRacePlan();
-		planParameters.shiftSessionStartTime(START_TIME.plusHours(2));
-		plan = RacePlan.createRacePlanTemplate(planParameters);
+	void calculate_for_different_session_start_time() {
+		RacePlan plan = RacePlan.createRacePlanTemplate(planParameters);
 
 		log.info("Base plan:");
 		plan.getCurrentRacePlan().stream().forEach(
-				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
+				s -> log.info("{} - {}",s.getTodStartTime(), s.getEndTime())
 		);
 
 		List<Stint> stints = plan.calculateLiveStints(
-				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30),
-				planParameters.getSessionStartTime().plusHours(2).plusMinutes(30).toLocalDateTime(),
-				planParameters.getSessionStartTime().plusHours(6));
+				planParameters.getSessionStartDateTime().plusHours(2).plusMinutes(30),
+				planParameters.getSessionStartDateTime().plusHours(2).plusMinutes(30).toLocalDateTime(),
+				planParameters.getSessionStartDateTime().plusHours(6));
 
 		log.info("Changed start time plan:");
 		stints.stream().forEach(
-				s -> log.info("{} - {}",s.getTodStartTime(), s.shortInfo())
+				s -> log.info("{} - {}",s.getTodStartTime(), s.getEndTime())
 		);
 	}
 
 	private Estimation buildEstimation(String driverName, Duration avgLapTime, double avgFuelPerLap, LocalDateTime fromToD) {
 		return Estimation.builder()
-				.driver(roster.getDriverByName(driverName))
+				.driver(roster.getDrivers().stream().filter(d -> d.getName().equalsIgnoreCase(driverName)).findFirst().orElse(null))
 				.avgLapTime(avgLapTime)
 				.avgFuelPerLap(avgFuelPerLap)
 				.todFrom(fromToD)
 				.build();
 	}
 
-	private ScheduleEntry buildOpenScheduleEntry(String driverName, ZonedDateTime from) {
+	private ScheduleEntry buildOpenScheduleEntry(String driverName, OffsetDateTime from) {
 		return ScheduleEntry.builder()
-				.driver(roster.getDriverByName(driverName))
-				.from(from)
+				.driver(roster.getDrivers().stream().filter(d -> d.getName().equalsIgnoreCase(driverName)).findFirst().orElse(null))
+				.fromTime(from)
 				.status(ScheduleDriverOptionType.OPEN)
 				.build();
 	}

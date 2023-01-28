@@ -22,10 +22,11 @@ package de.bausdorf.simcacing.tt.web.model.planning;
  * #L%
  */
 
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import de.bausdorf.simcacing.tt.planning.persistence.ScheduleEntry;
 import lombok.Data;
 
 @Data
@@ -38,11 +39,22 @@ public class TeamScheduleView {
 		this.teamSchedule = new ArrayList<>();
 	}
 
-	public void setTimezone(ZoneId zoneId) {
-		for (DriverScheduleView driverScheduleView : teamSchedule) {
-			for (ScheduleView scheduleEntry : driverScheduleView.getScheduleEntries()) {
-				scheduleEntry.setValidFromZone(zoneId);
-			}
-		}
+	public void addDriverScheduleView(ScheduleEntry scheduleEntry) {
+		Optional<DriverScheduleView> existingDriverView = teamSchedule.stream()
+				.filter(view -> view.getDriverId().equalsIgnoreCase(scheduleEntry.getDriver().getId()))
+				.findFirst();
+		ScheduleView scheduleView = ScheduleView.builder()
+				.status(scheduleEntry.getStatus())
+				.validFrom(scheduleEntry.getFromTime().toLocalDateTime())
+				.build();
+		existingDriverView.ifPresentOrElse(
+				view -> view.getScheduleEntries().add(scheduleView),
+				() -> teamSchedule.add(DriverScheduleView.builder()
+								.driverName(scheduleEntry.getDriver().getName())
+								.driverId(scheduleEntry.getDriver().getId())
+								.validated(scheduleEntry.getDriver().isValidated())
+								.scheduleEntries(new ArrayList<>(List.of(scheduleView)))
+								.build())
+		);
 	}
 }

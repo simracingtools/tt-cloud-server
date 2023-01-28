@@ -22,11 +22,7 @@ package de.bausdorf.simcacing.tt.live.model.live;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +36,7 @@ import de.bausdorf.simcacing.tt.live.model.client.RunData;
 import de.bausdorf.simcacing.tt.live.model.client.ServiceFlagType;
 import de.bausdorf.simcacing.tt.live.model.client.Stint;
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
-import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
+import de.bausdorf.simcacing.tt.planning.PitStopServiceType;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
@@ -78,13 +74,13 @@ public class PitstopDataView {
 			log.debug("Creating pitstop data view");
 			RaceClock clock = new PitstopDataView.RaceClock();
 			ZonedDateTime from = viewForPittedStints(controller, clock, pitstopDataViews);
-			log.debug("Race clock after pitted stints: {}", clock.toString());
+			log.debug("Race clock after pitted stints: {}", clock);
 			log.debug("Use planned stints from: {}", from);
 			if (from == null) {
 				from = controller.getSessionRegistered();
 			}
 			if (controller.getRacePlan() != null) {
-				log.debug("Plan start time is: {}", controller.getRacePlan().getPlanParameters().getSessionStartTime().toString());
+				log.debug("Plan start time is: {}", controller.getRacePlan().getPlanParameters().getSessionStartDateTime().toString());
 				viewForPlannedStints(controller, from, clock, pitstopDataViews);
 			}
 		}
@@ -97,14 +93,19 @@ public class PitstopDataView {
 		if (runData != null) {
 			sessionToD = LocalDateTime.of(sessionToD.toLocalDate(), runData.getSessionToD());
 		}
-		List<de.bausdorf.simcacing.tt.planning.model.Stint> stints =
-				controller.getRacePlan().calculateLiveStints(from, sessionToD, from.plus(controller.getRemainingSessionTime()));
+		ZonedDateTime targetTime = from.plus(controller.getRemainingSessionTime());
+		List<de.bausdorf.simcacing.tt.planning.persistence.Stint> stints =
+				controller.getRacePlan().calculateLiveStints(
+						OffsetDateTime.of(from.toLocalDateTime(), from.getOffset()),
+						sessionToD,
+						OffsetDateTime.of(targetTime.toLocalDateTime(), targetTime.getOffset())
+				);
 		controller.getRacePlan().setCurrentRacePlan(stints);
-		for (de.bausdorf.simcacing.tt.planning.model.Stint stint : stints) {
+		for (de.bausdorf.simcacing.tt.planning.persistence.Stint stint : stints) {
 			clock.lapCount += stint.getLaps();
 			clock.stintNo++;
-			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(stint.getStintDuration(true));
-			List<String> driverList = controller.getRacePlan().getPlanParameters().getAllDrivers().stream()
+			clock.accumulatedStintDuration = clock.accumulatedStintDuration.plus(PlanningTools.getStintDuration(stint, true));
+			List<String> driverList = controller.getRacePlan().getPlanParameters().getRoster().getDrivers().stream()
 					.map(IRacingDriver::getName)
 					.collect(Collectors.toList());
 			driverList.add("unassigned");
@@ -122,7 +123,7 @@ public class PitstopDataView {
 					.timePitted(stint.getEndTime().format(DateTimeFormatter.ofPattern(TimeTools.HH_MM_SS_XXX)))
 					.stintNo(Integer.toUnsignedString(clock.stintNo))
 					.allDrivers(driverList)
-					.stintDuration(stint.getStintDurationString(true))
+					.stintDuration(TimeTools.shortDurationString(PlanningTools.getStintDuration(stint, true)))
 					.pitStopDuration(pitstopDuration)
 					.repairTime("")
 					.refuel(stint.getService().contains(PitStopServiceType.FUEL))

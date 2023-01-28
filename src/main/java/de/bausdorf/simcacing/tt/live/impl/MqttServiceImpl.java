@@ -1,5 +1,27 @@
 package de.bausdorf.simcacing.tt.live.impl;
 
+/*-
+ * #%L
+ * tt-cloud-server
+ * %%
+ * Copyright (C) 2020 - 2023 bausdorf engineering
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.impl.transformers.ClientMessageReader;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
@@ -26,7 +48,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @Slf4j
@@ -95,16 +116,13 @@ public class MqttServiceImpl {
                 } catch (IOException e) {
                     log.warn(e.getMessage());
                 }
-//                mqttGateway.sendToMqtt("Echo: " + oneLineMessage, "/echoes");
 
                 try {
-                    Map<String, Object> messageMap = messageReader.readClientMessage(oneLineMessage);
-                    String accessToken = (String)messageMap.get("accessToken");
-                    log.debug("{}", messageMap);
-                    ClientMessage clientMessage = messageReader.validateClientMessage(messageMap, accessToken);
+                    ClientMessage clientMessage = messageReader.convertClientMessage(oneLineMessage);
+                    messageReader.validateClientMessage(clientMessage);
                     log.debug("{}", clientMessage);
                     if (clientMessage.getType() == MessageType.AUTH) {
-                        mqttGateway.sendToMqtt("Authorized", topic + "/" + accessToken);
+                        mqttGateway.sendToMqtt("Authorized", topic + "/" + clientMessage.getAccessToken());
                     }
                 } catch (InvalidClientMessageException e) {
                     log.warn("Invalid client message on {}: {}", topic, oneLineMessage);

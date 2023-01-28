@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.planning.model;
+package de.bausdorf.simcacing.tt.planning;
 
 /*-
  * #%L
@@ -24,12 +24,14 @@ package de.bausdorf.simcacing.tt.planning.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.bausdorf.simcacing.tt.planning.PlanningTools;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
+import de.bausdorf.simcacing.tt.planning.persistence.Stint;
+import de.bausdorf.simcacing.tt.planning.persistence.Estimation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,11 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 @Slf4j
 public class RacePlan {
-	private RacePlanParameters planParameters;
+	private PlanParameters planParameters;
 
 	private List<Stint> currentRacePlan;
 
-	public static RacePlan createRacePlanTemplate(RacePlanParameters params) {
+	public static RacePlan createRacePlanTemplate(PlanParameters params) {
 		RacePlan newRacePlan =  RacePlan.builder()
 				.planParameters(params)
 				.currentRacePlan(params.getStints() == null ? new ArrayList<>() : params.getStints())
@@ -61,31 +63,31 @@ public class RacePlan {
 	}
 
 	public void calculateLiveStints() {
-		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
+		OffsetDateTime raceClock = planParameters.getSessionStartDateTime().plus(planParameters.getGreenFlagOffsetTime());
 		LocalDateTime todClock = getTodRaceTime(Duration.ZERO);
-		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
+		OffsetDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		currentRacePlan = calculateLiveStints(raceClock, todClock, sessionEndTime);
 	}
 
-	public List<Stint> calculateLiveStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft) {
+	public List<Stint> calculateLiveStints(OffsetDateTime raceClock, LocalDateTime todClock, OffsetDateTime sessionEndTime) {
 		int stintIndex = PlanningTools.stintIndexAt(raceClock, planParameters.getStints());
 		log.debug("calculating live stint plan from index: {}", stintIndex);
-		return calculateStints(raceClock, todClock, raceTimeLeft, stintIndex);
+		return calculateStints(raceClock, todClock, sessionEndTime, stintIndex);
 	}
 
 	public void calculatePlannedStints() {
-		ZonedDateTime raceClock = planParameters.getSessionStartTime().plus(planParameters.getGreenFlagOffsetTime());
+		OffsetDateTime raceClock = planParameters.getSessionStartDateTime().plus(planParameters.getGreenFlagOffsetTime());
 		LocalDateTime todClock = getTodRaceTime(Duration.ZERO);
-		ZonedDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
+		OffsetDateTime sessionEndTime = raceClock.plus(planParameters.getRaceDuration());
 		if (!Duration.ZERO.equals(planParameters.getAvgLapTime())) {
 			currentRacePlan = calculateStints(raceClock, todClock, sessionEndTime, 0);
 		}
 	}
 
-	public List<Stint> calculateStints(ZonedDateTime raceClock, LocalDateTime todClock, ZonedDateTime raceTimeLeft, int fromIndex) {
+	public List<Stint> calculateStints(OffsetDateTime raceClock, LocalDateTime todClock, OffsetDateTime sessionEndTime, int fromIndex) {
 		List<Stint> stints = new ArrayList<>();
 		int stintIndex = fromIndex;
-		while( raceClock.isBefore(raceTimeLeft) ) {
+		while( raceClock.isBefore(sessionEndTime) ) {
 
 			List<PitStopServiceType> service = new ArrayList<>(Arrays.asList(PitStopServiceType.values()));
 			String currentDriver = "unassigned";
@@ -97,18 +99,18 @@ public class RacePlan {
 
 			Stint nextStint = calculateNewStint(raceClock, todClock, currentDriver,
 					planParameters.getMaxCarFuel(), service,
-					planParameters.getDriverNameEstimationAt(currentDriver, todClock),
-					Duration.between(raceClock, raceTimeLeft));
+					PlanningTools.getDriverNameEstimationAt(planParameters, currentDriver, todClock),
+					Duration.between(raceClock, sessionEndTime));
 			stints.add(nextStint);
 
-			raceClock = raceClock.plus(nextStint.getStintDuration(true));
-			todClock = todClock.plus(nextStint.getStintDuration(true));
+			raceClock = raceClock.plus(PlanningTools.getStintDuration(nextStint, true));
+			todClock = todClock.plus(PlanningTools.getStintDuration(nextStint, true));
 			stintIndex++;
 		}
 		return stints;
 	}
 
-	private Stint calculateNewStint(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
+	private Stint calculateNewStint(OffsetDateTime stintStartTime, LocalDateTime todStartTime, String driverName,
 			double amountFuel, List<PitStopServiceType> service, Estimation estimation, Duration timeLeft) {
 		Stint stint = newStintForDriver(stintStartTime, todStartTime, driverName);
 
@@ -126,7 +128,8 @@ public class RacePlan {
 			stint.setLastStint(true);
 		} else {
 			// There are further stints
-			stint.setService(service);
+
+			stint.setService(new ArrayList<>(service)); // Duplicate service list to prevent entity identity problems
 			stint.setRefuelAmount(amountFuel - fuelLeft);
 			stint.setEndTime(stintStartTime
 					.plus(stintDuration)
@@ -139,7 +142,7 @@ public class RacePlan {
 		return stint;
 	}
 
-	private Stint newStintForDriver(ZonedDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {
+	private Stint newStintForDriver(OffsetDateTime stintStartTime, LocalDateTime todStartTime, String driverName) {
 		return Stint.builder()
 				.driverName(driverName)
 				.startTime(stintStartTime)

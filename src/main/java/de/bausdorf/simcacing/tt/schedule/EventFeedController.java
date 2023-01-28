@@ -30,16 +30,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import de.bausdorf.simcacing.tt.planning.PlanParameterRepository;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
+import de.bausdorf.simcacing.tt.stock.StockDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
-import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
 import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
-import de.bausdorf.simcacing.tt.stock.TrackRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
 import de.bausdorf.simcacing.tt.util.TimeTools;
@@ -58,16 +58,16 @@ public class EventFeedController {
 	public static final String START_CELL = "<td>";
 
 	private final RaceEventRepository eventRepository;
-	private final TrackRepository trackRepository;
-	private final RacePlanRepository planRepository;
+	private final StockDataRepository stockDataRepository;
+	private final PlanParameterRepository planRepository;
 	private final TeamRepository teamRepository;
 
 	public EventFeedController(@Autowired RaceEventRepository raceEventRepository,
-			@Autowired TrackRepository trackRepository,
-			@Autowired RacePlanRepository planRepository,
+			@Autowired StockDataRepository stockDataRepository,
+			@Autowired PlanParameterRepository planRepository,
 			@Autowired TeamRepository teamRepository) {
 		this.eventRepository = raceEventRepository;
-		this.trackRepository = trackRepository;
+		this.stockDataRepository = stockDataRepository;
 		this.planRepository = planRepository;
 		this.teamRepository = teamRepository;
 	}
@@ -87,7 +87,7 @@ public class EventFeedController {
 		events.forEach(event -> {
 			ZonedDateTime startTime = ScheduleTools.zonedDateTimeFromDateAndTime(event.getSessionDateTime().toLocalDateTime(), event.getSessionDateTime().getOffset().toString());
 			ZonedDateTime endTime = startTime.plus(event.getRaceDuration());
-			Optional<IRacingTrack> track = trackRepository.findById(event.getTrackId());
+			Optional<IRacingTrack> track = stockDataRepository.findTrackById(event.getTrackId());
 
 			String eventDescription = "<b>" + event.getName() + "</b>" + BR +
 					event.getSeason() + " - " + event.getSeries() + BR +
@@ -116,12 +116,12 @@ public class EventFeedController {
 	@GetMapping("/planList")
 	public List<PlanDescriptionView> getRacePlans(@RequestParam List<String> teamIds,
 			@RequestParam String trackId, @RequestParam String duration) {
-		List<RacePlanParameters> planParameters = planRepository.findByTeamIds(teamIds);
+		List<PlanParameters> planParameters = planRepository.findAllByTeamIdIn(teamIds.stream().map(Long::parseLong).collect(Collectors.toList()));
 		return planParameters.stream()
-				.filter(s -> s.getTrackId().equalsIgnoreCase(trackId))
+				.filter(s -> s.getTrackId() == Long.parseLong(trackId))
 				.filter(s -> s.getRaceDuration().equals(TimeTools.durationFromString(duration)))
 				.map(s -> {
-					Optional<IRacingTeam> team = teamRepository.findById(s.getTeamId());
+					Optional<IRacingTeam> team = teamRepository.findById(Long.toString(s.getTeamId()));
 					return PlanDescriptionView.builder()
 							.id(s.getId())
 							.name(s.getName())

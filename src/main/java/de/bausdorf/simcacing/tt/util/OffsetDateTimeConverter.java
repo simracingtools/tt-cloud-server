@@ -24,7 +24,11 @@ package de.bausdorf.simcacing.tt.util;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Converter
 public class OffsetDateTimeConverter implements AttributeConverter<OffsetDateTime, String> {
@@ -41,6 +45,14 @@ public class OffsetDateTimeConverter implements AttributeConverter<OffsetDateTim
         if(s == null) {
             return null;
         }
-        return OffsetDateTime.parse(s);
+        try {
+            return OffsetDateTime.parse(s);
+        } catch (DateTimeParseException e) {
+            int dotPos = s.indexOf('.');
+            if (dotPos >= 0) {
+                s = s.substring(0, dotPos);
+            }
+            return OffsetDateTime.of(LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneOffset.UTC);
+        }
     }
 }

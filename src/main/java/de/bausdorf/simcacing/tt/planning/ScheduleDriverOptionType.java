@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.planning.model;
+package de.bausdorf.simcacing.tt.planning;
 
 /*-
  * #%L
@@ -31,9 +31,9 @@ public enum ScheduleDriverOptionType {
     BLOCKED("bg-danger"),
     UNSCHEDULED("bg-info");
 
-    private String cssClassName;
+    private final String cssClassName;
 
-    private ScheduleDriverOptionType(String cssClass) {
+    ScheduleDriverOptionType(String cssClass) {
         this.cssClassName = cssClass;
     }
 

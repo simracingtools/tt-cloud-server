@@ -25,11 +25,8 @@ package de.bausdorf.simcacing.tt.web.model.planning;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
-import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
-import de.bausdorf.simcacing.tt.util.TimeTools;
+import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +37,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ScheduleView {
-	private ZonedDateTime validFrom;
+	private LocalDateTime validFrom;
 	private ScheduleDriverOptionType status;
 
 	public LocalDate getValidFromDate() {
@@ -49,9 +46,9 @@ public class ScheduleView {
 
 	public void setValidFromDate(LocalDate date) {
 		if (validFrom == null) {
-			validFrom = ZonedDateTime.of(date, LocalTime.MIN, TimeTools.GMT);
+			validFrom = LocalDateTime.of(date, LocalTime.MIN);
 		} else {
-			validFrom = ZonedDateTime.of(date, validFrom.toLocalTime(), validFrom.getZone());
+			validFrom = LocalDateTime.of(date, validFrom.toLocalTime());
 		}
 	}
 
@@ -61,21 +58,9 @@ public class ScheduleView {
 
 	public void setValidFromTime(LocalTime time) {
 		if (validFrom == null) {
-			validFrom = ZonedDateTime.of(LocalDate.MIN, time, TimeTools.GMT);
+			validFrom = LocalDateTime.of(LocalDate.MIN, time);
 		} else {
-			validFrom = ZonedDateTime.of(validFrom.toLocalDate(), time, validFrom.getZone());
-		}
-	}
-
-	public ZoneId getValidFromZone() {
-		return validFrom.getZone();
-	}
-
-	public void setValidFromZone(ZoneId zoneId) {
-		if (validFrom == null) {
-			validFrom = ZonedDateTime.of(LocalDateTime.MIN, zoneId);
-		} else {
-			validFrom = ZonedDateTime.of(validFrom.toLocalDateTime(), zoneId);
+			validFrom = LocalDateTime.of(validFrom.toLocalDate(), time);
 		}
 	}
 }

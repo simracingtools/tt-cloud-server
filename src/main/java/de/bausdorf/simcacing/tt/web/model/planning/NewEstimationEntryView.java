@@ -25,9 +25,13 @@ package de.bausdorf.simcacing.tt.web.model.planning;
 import java.time.Duration;
 import java.time.LocalTime;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
+@Builder
 public class NewEstimationEntryView {
 	private String planId;
 	private String driverId;

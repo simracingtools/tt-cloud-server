@@ -23,7 +23,6 @@ package de.bausdorf.simcacing.tt.live.impl;
  */
 
 import java.time.Duration;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -41,11 +40,11 @@ import de.bausdorf.simcacing.tt.live.model.live.ServiceChangeMessage;
 import de.bausdorf.simcacing.tt.live.model.live.SessionDataView;
 import de.bausdorf.simcacing.tt.live.model.live.SyncDataView;
 import de.bausdorf.simcacing.tt.live.model.live.TyreDataView;
+import de.bausdorf.simcacing.tt.planning.PlanParameterRepository;
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
-import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
-import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
-import de.bausdorf.simcacing.tt.planning.model.RacePlan;
-import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
+import de.bausdorf.simcacing.tt.planning.PitStopServiceType;
+import de.bausdorf.simcacing.tt.planning.RacePlan;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.DriverStatsRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
@@ -56,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -72,19 +72,19 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 
 	private final TeamtacticsServerProperties config;
 	private final SessionMap data;
-	private final EnumMap<MessageType, MessageValidator> validators;
+	private final EnumMap<MessageType, MessageValidator<?>> validators;
 	private final Map<String, MessageTransformer> transformers;
 	private final Map<String, String> liveTopics;
 	private final SimpMessagingTemplate messagingTemplate;
 	final DriverRepository driverRepository;
 	final ActiveSessionRepository sessionRepository;
-	final RacePlanRepository planRepository;
+	final PlanParameterRepository planRepository;
 	final DriverStatsRepository driverStatsRepository;
 
 	public SessionHolder(@Autowired SimpMessagingTemplate messagingTemplate,
 			@Autowired DriverRepository driverRepository,
 			@Autowired ActiveSessionRepository sessionRepository,
-			@Autowired RacePlanRepository planRepository,
+			@Autowired PlanParameterRepository planRepository,
 			@Autowired DriverStatsRepository driverStatsRepository,
 			@Autowired TeamtacticsServerProperties config) {
 		this.data = new SessionMap();
@@ -100,7 +100,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	}
 
 	@Override
-	public void registerMessageValidator(MessageValidator validator) {
+	public void registerMessageValidator(MessageValidator<?> validator) {
 		log.info("Registering validator for " + validator.supportedMessageType().name());
 		validators.put(validator.supportedMessageType(), validator);
 	}
@@ -259,9 +259,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	public SessionDataView respondAck(LiveClientMessage message) {
 		log.info("Connect message from {}: {}", message.getTeamId(), message.getText());
 		String teamId = message.getTeamId();
-		if (!liveTopics.containsKey(teamId)) {
-			liveTopics.put(teamId, LIVE_PREFIX + teamId);
-		}
+		liveTopics.computeIfAbsent(teamId, key -> LIVE_PREFIX + key);
 		SessionDataView sessionDataView = SessionDataView.getSessionDataView(getSessionControllerBySubscriptionId(teamId));
 		if (sessionDataView != null) {
 			return sessionDataView;
@@ -286,7 +284,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		int finishedStopsCount = controller.getPitStops().size();
 		int pitstopListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
 		try {
-			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+			de.bausdorf.simcacing.tt.planning.persistence.Stint planToModify =
 					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
 			if (planToModify != null) {
 				log.debug("Changing stint: {}", planToModify);
@@ -312,7 +310,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		PitStopServiceType serviceType = PitStopServiceType.fromCheckId(msgParts[0]);
 
 		if (serviceType != null) {
-			de.bausdorf.simcacing.tt.planning.model.Stint planToModify =
+			de.bausdorf.simcacing.tt.planning.persistence.Stint planToModify =
 					PlanningTools.stintToModify(controller, pitstopListIndex - finishedStopsCount);
 			if (planToModify != null) {
 				log.debug("Changing stint: {}", planToModify);
@@ -351,7 +349,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	}
 
 	@Override
-	public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+	public void onApplicationEvent(@NonNull ApplicationReadyEvent applicationReadyEvent) {
 		log.info("Server timezone: {}", TimeZone.getDefault().getID());
 		log.info("Loading active sessions from repository");
 		List<SessionController> activeSessions = sessionRepository.loadAll();
@@ -449,27 +447,28 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	}
 
 	private RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
-		List<RacePlanParameters> planParameters;
+		List<PlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
-			planParameters = planRepository.findByFieldValue(RacePlanParameters.TRACK_ID, sessionData.getTrackId());
+			planParameters = planRepository.findAllByTrackId(Long.parseLong(sessionData.getTrackId()));
 		} else {
-			planParameters = planRepository.findByTeamIds(Collections.singletonList(teamId));
+			planParameters = planRepository.findAllByTeamId(Long.parseLong(teamId));
 		}
 		planParameters = planParameters.stream()
-				.filter(s -> s.getTrackId().equalsIgnoreCase(sessionData.getTrackId()))
-				.filter(s -> s.getCarId().equalsIgnoreCase(sessionData.getCarId()))
+				.filter(s -> s.getTrackId() == Long.parseLong(sessionData.getTrackId()))
+				.filter(s -> s.getCarId() == Long.parseLong(sessionData.getCarId()))
 				.collect(Collectors.toList());
 		if (planParameters.isEmpty()) {
 			log.info("No race plan available for session {}", sessionData.getSessionId().toString());
 		} else if (planParameters.size() > 1) {
 			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
 		} else {
-			RacePlanParameters serverZonedRacePlan = new RacePlanParameters(planParameters.get(0), ZoneId.systemDefault());
-			if (config.isShiftSessionStartTimeToNow()) {
-				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
-			} else {
-				serverZonedRacePlan.shiftSessionStartTime(sessionRegisteredTime);
-			}
+			PlanParameters serverZonedRacePlan = new PlanParameters(planParameters.get(0));
+//			if (config.isShiftSessionStartTimeToNow()) {
+//				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
+//			} else {
+//				serverZonedRacePlan.shiftSessionStartTime(sessionRegisteredTime);
+//			}
+			serverZonedRacePlan.shiftTimezone(sessionRegisteredTime.getZone());
 			log.info("Using race plan {}", serverZonedRacePlan.getId());
 			return RacePlan.createRacePlanTemplate(serverZonedRacePlan);
 		}
@@ -477,7 +476,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	}
 
 	private ClientData validateAndConvert(ClientMessage message) {
-		MessageValidator validator = validators.get(message.getType());
+		MessageValidator<?> validator = validators.get(message.getType());
 		if( validator != null ) {
 			return validator.validate(message);
 		}

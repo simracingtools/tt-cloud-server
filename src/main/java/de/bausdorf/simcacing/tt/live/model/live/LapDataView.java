@@ -29,7 +29,7 @@ import java.util.Optional;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.live.model.client.LapData;
 import de.bausdorf.simcacing.tt.live.model.client.Stint;
-import de.bausdorf.simcacing.tt.planning.model.Estimation;
+import de.bausdorf.simcacing.tt.planning.persistence.Estimation;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

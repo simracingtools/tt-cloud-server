@@ -24,7 +24,7 @@ package de.bausdorf.simcacing.tt.web.model.planning;
 
 import java.time.LocalTime;
 
-import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
+import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
 import lombok.Data;
 
 @Data

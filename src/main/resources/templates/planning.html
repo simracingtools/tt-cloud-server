@@ -21,7 +21,7 @@
   #L%
   -->
 
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
     <head th:replace="index :: head"></head>
     <body>
         <header th:replace="index :: header"></header>
@@ -30,6 +30,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
+                    <input id="selectedPlanId" th:value="${selectedPlan.id}" type="hidden">
                     <div th:if="${viewMode.equals('schedule')}" th:fragment="schedule-table" class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -37,17 +38,17 @@
                                 <th>Stint</th>
                                 <th>Start Local</th>
                                 <th>Start ToD</th>
-                                <th th:each="driver : ${selectedPlan.getAllDrivers()}" th:text="${driver.getName()}">Dave</th>
+                                <th th:each="driver : ${selectedPlan.allDrivers}" th:text="${driver.getName()}">Dave</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="stint, stintStat: ${selectedPlan.getStints()}">
-                                <td th:text="${stintStat.index + 1}">1</td>
-                                <td th:text="${stint.getStartTimeString()}">00:04:53</td>
-                                <td th:text="${stint.getTodStartTimeString()}">09:34:53</td>
-                                <td th:each="driver : ${selectedPlan.getAllDrivers()}"
+                            <tr th:each="stint, stintStat: ${selectedPlan.stints}">
+                                <td th:text="${stintStat.index + 1}" class="text-center">1</td>
+                                <td th:text="${#temporals.format(stint.startTime, 'HH:mm:ss')}" class="text-center">00:04:53</td>
+                                <td th:text="${#temporals.format(stint.todStartTime, 'HH:mm:ss')}" class="text-center">09:34:53</td>
+                                <td th:each="driver : ${selectedPlan.allDrivers}"
                                     th:text="${selectedPlan.getDriverStatusAt(driver.getId(), stint.getStartTime()).name()}"
-                                    th:class="${selectedPlan.getDriverStatusAt(driver.getId(), stint.getStartTime()).cssClassName()}">
+                                    th:class="${selectedPlan.getDriverStatusAt(driver.getId(), stint.getStartTime()).cssClassName() + ' text-center'}">
                                 </td>
                             </tr>
                             </tbody>
@@ -55,7 +56,6 @@
                     </div>
 
                     <div th:if="${viewMode.equals('time') || viewMode.equals('variation')}" th:fragment="stint-table" class="table-responsive">
-                        <input id="selectedPlanId" th:value="${selectedPlan.id}" type="hidden">
                         <table class="table table-striped">
                             <thead style="vertical-align: middle;">
                             <tr class="text-center">
@@ -112,13 +112,14 @@
                                     </li>
                                 </ul>
                                 <input th:field="*{id}" type="hidden">
+                                <input th:field="*{timezone}" type="hidden">
                             </div>
                         </div>
                         <div th:if="${viewMode.equals('time')}">
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group">
-                                        <input class="form-control" type="text" th:field="*{name}" placeholder="New race plan">
+                                        <input class="form-control" type="text" th:field="*{planName}" placeholder="New race plan">
                                         <select th:field="*{trackId}" class="form-control" name="track" required="">
                                             <option th:each="track : ${tracks}" th:value="${track.id}" th:text="${track.name}">Nürburgring Combined 24</option>
                                         </select>
@@ -139,19 +140,19 @@
                                 </div>
                                 <div class="col">
                                     <div class="form-group"><label th:text="'Time (' + ${user.timezone} + ')'">Time (Local)</label>
-                                        <input th:field="*{startLocalTime}" class="form-control" type="time" required="">
+                                        <input th:field="*{sessionStartTime}" class="form-control" type="time" required="">
                                     </div>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="col">
                                     <div class="form-group"><label>Race start date (Sim)</label>
-                                        <input th:field="*{todStartDate}" class="form-control" type="date" name="raceStartTod" required="">
+                                        <input th:field="*{todDate}" class="form-control" type="date" name="raceStartTod" required="">
                                     </div>
                                 </div>
                                 <div class="col">
                                     <div class="form-group"><label>Time (ToD)</label>
-                                        <input th:field="*{startTodTime}" class="form-control" type="time" required="">
+                                        <input th:field="*{todTime}" class="form-control" type="time" required="">
                                     </div>
                                 </div>
                             </div>
@@ -238,9 +239,13 @@
                             </div>
                         </div>
                         <div th:if="${viewMode.equals('schedule')}">
+                            <input th:field="*{trackId}" type="hidden">
+                            <input th:field="*{carId}" type="hidden">
+                            <input th:field="*{teamId}" type="hidden">
+                            <input th:field="*{planName}" type="hidden">
                             <input th:field="*{maxCarFuel}" type="hidden">
                             <input th:field="*{avgFuelPerLap}" type="hidden">
-                            <input th:field="*{sessionStartTime}" type="hidden">
+                            <input th:field="*{startTime}" type="hidden">
                             <input th:field="*{todStartTime}" type="hidden">
                             <input th:field="*{avgLapTime}" type="hidden">
                             <div class="form-row">

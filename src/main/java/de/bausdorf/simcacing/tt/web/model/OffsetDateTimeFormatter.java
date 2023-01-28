@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.util;
+package de.bausdorf.simcacing.tt.web.model;
 
 /*-
  * #%L
@@ -22,17 +22,21 @@ package de.bausdorf.simcacing.tt.util;
  * #L%
  */
 
-import de.bausdorf.simcacing.tt.iracing.model.SessionData;
+import org.springframework.format.Formatter;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import java.text.ParseException;
+import java.time.OffsetDateTime;
+import java.util.Locale;
 
-public class DataTools {
-    private DataTools() { super(); }
+public class OffsetDateTimeFormatter implements Formatter<OffsetDateTime> {
+    @Override
+    @Nonnull public OffsetDateTime parse(@Nonnull String s, @Nonnull Locale locale) throws ParseException {
+        return OffsetDateTime.parse(s);
+    }
 
-    public static List<SessionData.Session> lastSessionFirst(SessionData.SessionInfo sessionsInfo) {
-        return sessionsInfo.getSessions().stream()
-                .sorted((s1, s2) -> Integer.compare(s2.getSessionNum(), s1.getSessionNum()))
-                .collect(Collectors.toList());
+    @Override
+    @Nonnull public String print(@Nonnull OffsetDateTime offsetDateTime, @Nonnull Locale locale) {
+        return offsetDateTime.toString();
     }
 }

@@ -22,20 +22,10 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import de.bausdorf.simcacing.tt.web.model.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import de.bausdorf.simcacing.tt.web.model.DoubleFormatter;
-import de.bausdorf.simcacing.tt.web.model.DurationFormatter;
-import de.bausdorf.simcacing.tt.web.model.IntegerFormatter;
-import de.bausdorf.simcacing.tt.web.model.LocalDateFormatter;
-import de.bausdorf.simcacing.tt.web.model.LocalDateTimeFormatter;
-import de.bausdorf.simcacing.tt.web.model.LocalTimeFormatter;
-import de.bausdorf.simcacing.tt.web.model.ScheduleDriverOptionTypeFormatter;
-import de.bausdorf.simcacing.tt.web.model.SubscriptionTypeFormatter;
-import de.bausdorf.simcacing.tt.web.model.TtUserTypeFormatter;
-import de.bausdorf.simcacing.tt.web.model.ZonedDateTimeFormatter;
 
 @Configuration
 public class SpringWebConfig implements WebMvcConfigurer {
@@ -50,6 +40,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
 		registry.addFormatter(new ScheduleDriverOptionTypeFormatter());
 		registry.addFormatter(new LocalDateTimeFormatter());
 		registry.addFormatter(new ZonedDateTimeFormatter());
+		registry.addFormatter(new OffsetDateTimeFormatter());
 		registry.addFormatter(new TtUserTypeFormatter());
 		registry.addFormatter(new SubscriptionTypeFormatter());
 	}

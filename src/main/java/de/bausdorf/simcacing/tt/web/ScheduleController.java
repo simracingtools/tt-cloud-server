@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 import de.bausdorf.simcacing.tt.iracing.IRacingClient;
+import de.bausdorf.simcacing.tt.stock.StockDataRepository;
 import de.bausdorf.simcacing.tt.web.model.schedule.ImportSelectView;
 import de.bausdorf.simracing.irdataapi.model.SeasonDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +44,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import de.bausdorf.simcacing.tt.schedule.RaceEventRepository;
 import de.bausdorf.simcacing.tt.schedule.model.RaceEvent;
-import de.bausdorf.simcacing.tt.stock.CarRepository;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
-import de.bausdorf.simcacing.tt.stock.TrackRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
@@ -59,8 +58,7 @@ public class ScheduleController extends BaseController {
 
 	public static final String EVENTSCHEDULE_VIEW = "eventschedule";
 	public static final String REDIRECT_SCHEDULE = "redirect:/schedule";
-	private final TrackRepository trackRepository;
-	private final CarRepository carRepository;
+	private final StockDataRepository stockDataRepository;
 	private final TeamRepository teamRepository;
 	private final RaceEventRepository eventRepository;
 	private final IRacingClient dataClient;
@@ -68,14 +66,12 @@ public class ScheduleController extends BaseController {
 	private List<SeasonDto> seasonDtos = new ArrayList<>();
 	private OffsetDateTime lastUpdated;
 
-	public ScheduleController(@Autowired TrackRepository trackRepository,
-							  @Autowired CarRepository carRepository,
+	public ScheduleController(@Autowired StockDataRepository stockDataRepository,
 							  @Autowired RaceEventRepository eventRepository,
 							  @Autowired TeamRepository teamRepository,
 							  @Autowired IRacingClient dataClient) {
-		this.carRepository = carRepository;
+		this.stockDataRepository = stockDataRepository;
 		this.eventRepository = eventRepository;
-		this.trackRepository = trackRepository;
 		this.teamRepository = teamRepository;
 		this.dataClient = dataClient;
 	}
@@ -148,12 +144,12 @@ public class ScheduleController extends BaseController {
 
 	@ModelAttribute("allCars")
 	List<IRacingCar> getAllCars() {
-		return carRepository.loadAll();
+		return stockDataRepository.loadAllCars();
 	}
 
 	@ModelAttribute("allTracks")
 	List<IRacingTrack> getAllTracks() {
-		return trackRepository.loadAll();
+		return stockDataRepository.loadAllTracks();
 	}
 
 	@ModelAttribute("teams")

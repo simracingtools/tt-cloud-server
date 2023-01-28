@@ -72,10 +72,9 @@ public class BaseController {
     }
 
     public List<IRacingTeam> getMyTeams(TeamRepository teamRepository) {
-        List<IRacingTeam> teams = teamRepository.findByIdIsNotNull().stream()
+        return teamRepository.findByIdIsNotNull().stream()
                 .filter(team -> team.getAuthorizedDriverIds().contains(currentUser().getIracingId()))
                 .collect(Collectors.toList());
-        return teams;
     }
 
     protected TtIdentity currentUser() {
@@ -158,7 +157,7 @@ public class BaseController {
             redirectUri += (viewName.startsWith("/") ? "redirect:" : "redirect:/") + viewName;
         }
 
-        public RedirectBuilder withParameter(String name, String value) {
+        public RedirectBuilder withParameter(@NonNull String name, String value) {
             if(!StringUtils.isEmpty(value)) {
                 redirectUri += (parameterCount == 0 ? "?" : "&") + name + "=" + value;
                 parameterCount++;
@@ -166,8 +165,12 @@ public class BaseController {
             return this;
         }
 
-        public RedirectBuilder withParameter(String name, long value) {
-            return withParameter(name, value == 0L ? null : Long.toString(value));
+        public RedirectBuilder withParameter(@NonNull String name, @NonNull Optional<String> value) {
+            value.ifPresent(val -> {
+                redirectUri += (parameterCount == 0 ? "?" : "&") + name + "=" + val;
+                parameterCount++;
+            });
+            return this;
         }
 
         public String build(@Nullable Model model) {

@@ -40,16 +40,13 @@ import lombok.extern.slf4j.Slf4j;
 class StockRepositoryTest {
 
 	@Autowired
-	CarRepository carRepository;
-
-	@Autowired
-	TrackRepository trackRepository;
+	StockDataRepository stockDataRepository;
 
 	@Test
-	@Disabled
+	@Disabled("Manual test")
 	void loadAllTracksFromRepository() {
 		long loadStart = System.currentTimeMillis();
-		List<IRacingTrack> allTracks = trackRepository.loadAll();
+		List<IRacingTrack> allTracks = stockDataRepository.loadAllTracks();
 		long loadEnd = System.currentTimeMillis();
 		assertThat(allTracks).isNotEmpty();
 		log.info("Loading of {} tracks took {} ms", allTracks.size(), loadEnd - loadStart);
@@ -57,17 +54,17 @@ class StockRepositoryTest {
 		allTracks.clear();
 
 		loadStart = System.currentTimeMillis();
-		allTracks = trackRepository.loadAll();
+		allTracks = stockDataRepository.loadAllTracks();
 		loadEnd = System.currentTimeMillis();
 		assertThat(allTracks).isNotEmpty();
 		log.info("Loading of {} tracks took {} ms", allTracks.size(), loadEnd - loadStart);
 	}
 
 	@Test
-	@Disabled
+	@Disabled("Manual test")
 	void loadAllCarsFromRepository() {
 		long loadStart = System.currentTimeMillis();
-		List<IRacingCar> allTracks = carRepository.loadAll();
+		List<IRacingCar> allTracks = stockDataRepository.loadAllCars();
 		long loadEnd = System.currentTimeMillis();
 		assertThat(allTracks).isNotEmpty();
 		log.info("Loading of {} cars took {} ms", allTracks.size(), loadEnd - loadStart);
@@ -75,7 +72,7 @@ class StockRepositoryTest {
 		allTracks.clear();
 
 		loadStart = System.currentTimeMillis();
-		allTracks = carRepository.loadAll();
+		allTracks = stockDataRepository.loadAllCars();
 		loadEnd = System.currentTimeMillis();
 		assertThat(allTracks).isNotEmpty();
 		log.info("Loading of {} cars took {} ms", allTracks.size(), loadEnd - loadStart);

@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.planning.model;
+package de.bausdorf.simcacing.tt.planning;
 
 /*-
  * #%L
@@ -32,9 +32,11 @@ public enum PitStopServiceType {
 	FR("FR", 0);
 
 	private final String code;
+	private final long serviceSeconds;
 
-	private PitStopServiceType(String code, long seconds) {
+	PitStopServiceType(String code, long seconds) {
 		this.code = code;
+		this.serviceSeconds = seconds;
 	}
 
 	public static PitStopServiceType ofCode(String c) {

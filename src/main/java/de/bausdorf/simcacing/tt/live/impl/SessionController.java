@@ -24,8 +24,9 @@ package de.bausdorf.simcacing.tt.live.impl;
 
 import de.bausdorf.simcacing.tt.live.clientapi.DuplicateLapException;
 import de.bausdorf.simcacing.tt.live.model.client.*;
-import de.bausdorf.simcacing.tt.planning.model.Estimation;
-import de.bausdorf.simcacing.tt.planning.model.RacePlan;
+import de.bausdorf.simcacing.tt.planning.PlanningTools;
+import de.bausdorf.simcacing.tt.planning.persistence.Estimation;
+import de.bausdorf.simcacing.tt.planning.RacePlan;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.Getter;
@@ -227,10 +228,9 @@ public class SessionController {
 
 	public Duration getCurrentStintTime() {
 		Optional<Stint> lastStint = getLastStint();
-		if (lastStint.isPresent()) {
-			return lastStint.get().getCurrentStintDuration() != null ? lastStint.get().getCurrentStintDuration() : Duration.ZERO;
-		}
-		return Duration.ZERO;
+		return lastStint.filter(stint -> stint.getCurrentStintDuration() != null)
+				.map(Stint::getCurrentStintDuration)
+				.orElse(Duration.ZERO);
 	}
 
 	public Duration getRemainingStintTime() {
@@ -316,7 +316,7 @@ public class SessionController {
 			if (sessionToD.isBefore(todStartTime.toLocalTime())) {
 				todDate = todDate.plusDays(1);
 			}
-			return racePlan.getPlanParameters().getDriverEstimationAt(currentDriver, LocalDateTime.of(todDate, sessionToD));
+			return PlanningTools.getDriverEstimationAt(racePlan.getPlanParameters(), currentDriver, LocalDateTime.of(todDate, sessionToD));
 		}
 		return null;
 	}
@@ -338,7 +338,7 @@ public class SessionController {
 
 	private void setStintValuesToLap(LapData newLap) {
 		Optional<LapData> lastRecordedLap = getLastRecordedLap();
-		if (!lastRecordedLap.isPresent()) {
+		if (lastRecordedLap.isEmpty()) {
 			newLap.setStint(1);
 			newLap.setStintLap(1);
 		} else {
@@ -467,8 +467,7 @@ public class SessionController {
 		Estimation estimation = null;
 		if (atTod != null) {
 			LocalDateTime todDateTime = LocalDateTime.of(atTod.toLocalDate(), sessionToD != null ? sessionToD : LocalTime.MIN);
-			estimation = racePlan == null ? null : racePlan.getPlanParameters()
-					.getDriverEstimationAt(currentDriver, todDateTime);
+			estimation = racePlan == null ? null : PlanningTools.getDriverEstimationAt(racePlan.getPlanParameters(), currentDriver, todDateTime);
 		}
 		return Assumption.builder()
 				.avgFuelPerLap(Optional.ofNullable(estimation == null ? null : estimation.getAvgFuelPerLap()))

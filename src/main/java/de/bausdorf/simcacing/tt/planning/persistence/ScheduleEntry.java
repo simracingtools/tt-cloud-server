@@ -1,4 +1,4 @@
-package de.bausdorf.simcacing.tt.util;
+package de.bausdorf.simcacing.tt.planning.persistence;
 
 /*-
  * #%L
@@ -22,17 +22,29 @@ package de.bausdorf.simcacing.tt.util;
  * #L%
  */
 
-import de.bausdorf.simcacing.tt.iracing.model.SessionData;
+import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
+import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
+import de.bausdorf.simcacing.tt.util.OffsetDateTimeConverter;
+import lombok.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.persistence.*;
+import java.time.OffsetDateTime;
 
-public class DataTools {
-    private DataTools() { super(); }
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Getter
+@Setter
+@Entity
+public class ScheduleEntry {
+    @Id
+    @GeneratedValue
+    private long id;
 
-    public static List<SessionData.Session> lastSessionFirst(SessionData.SessionInfo sessionsInfo) {
-        return sessionsInfo.getSessions().stream()
-                .sorted((s1, s2) -> Integer.compare(s2.getSessionNum(), s1.getSessionNum()))
-                .collect(Collectors.toList());
-    }
+    @Convert(converter = OffsetDateTimeConverter.class)
+    private OffsetDateTime fromTime;
+    @ManyToOne
+    private IRacingDriver driver;
+    @Enumerated(EnumType.STRING)
+    private ScheduleDriverOptionType status;
 }

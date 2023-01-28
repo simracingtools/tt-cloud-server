@@ -38,10 +38,10 @@ import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
-import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
-import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
-import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
-import de.bausdorf.simcacing.tt.planning.model.Stint;
+import de.bausdorf.simcacing.tt.planning.PlanParameterRepository;
+import de.bausdorf.simcacing.tt.planning.PitStopServiceType;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
+import de.bausdorf.simcacing.tt.planning.persistence.Stint;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import de.bausdorf.simcacing.tt.web.model.planning.DriverChangeMessage;
@@ -50,6 +50,7 @@ import de.bausdorf.simcacing.tt.web.model.planning.ServiceChangeMessage;
 import de.bausdorf.simcacing.tt.web.model.planning.StintDriverView;
 import de.bausdorf.simcacing.tt.web.model.planning.StintView;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Controller
@@ -69,18 +70,19 @@ public class StintPlanController {
 	};
 
 	private final SimpMessagingTemplate messagingTemplate;
-	private final RacePlanRepository planRepository;
+	private final PlanParameterRepository planRepository;
 
 	public StintPlanController(@Autowired SimpMessagingTemplate messagingTemplate,
-			@Autowired RacePlanRepository planRepository) {
+			@Autowired PlanParameterRepository planRepository) {
 		this.messagingTemplate = messagingTemplate;
 		this.planRepository = planRepository;
 	}
 
 	@MessageMapping("/driverplanchange")
 	@SendTo("")
+	@Transactional
 	public void changeDriverPlanning(DriverChangeMessage message) {
-		Optional<RacePlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
+		Optional<PlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
 		if (racePlanParameters.isPresent() ) {
 			int stintListIndex = Integer.parseInt(message.getSelectId().split("-")[1]);
 			try {
@@ -96,8 +98,9 @@ public class StintPlanController {
 	}
 
 	@MessageMapping("/serviceplanchange")
+	@Transactional
 	public void changeServicePlanning(ServiceChangeMessage message) {
-		Optional<RacePlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
+		Optional<PlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
 		if (racePlanParameters.isPresent() ) {
 			String[] msgParts = message.getCheckId().split("-");
 			int stintListIndex = Integer.parseInt(msgParts[1]);
@@ -119,8 +122,9 @@ public class StintPlanController {
 
 	@MessageMapping("/planclient")
 	@SendToUser("/plan/client-ack")
+	@Transactional
 	public List<StintView> clientConnected(PlanningClientMessage message) {
-		Optional<RacePlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
+		Optional<PlanParameters> racePlanParameters = planRepository.findById(message.getPlanId());
 		return racePlanParameters.map(this::createStintViewList).orElseGet(ArrayList::new);
 	}
 
@@ -128,19 +132,19 @@ public class StintPlanController {
 		messagingTemplate.convertAndSend("/plan/" + planId + "/stinttable", stintData);
 	}
 
-	private void recalculateSaveAndSend(RacePlanParameters racePlanParameters, String planId) {
+	private void recalculateSaveAndSend(PlanParameters racePlanParameters, String planId) {
 		PlanningTools.recalculateStints(racePlanParameters);
 		planRepository.save(racePlanParameters);
 		sendPitstopData(createStintViewList(racePlanParameters), planId);
 	}
 
-	private List<StintView> createStintViewList(RacePlanParameters racePlanParameters) {
+	private List<StintView> createStintViewList(PlanParameters racePlanParameters) {
 		List<StintView> stintsViews = new ArrayList<>();
 
 		// Select driver colors
 		Map<String, String> driverColors = new HashMap<>();
 		int colorIndex = 0;
-		for (IRacingDriver driver : racePlanParameters.getAllDrivers()) {
+		for (IRacingDriver driver : racePlanParameters.getRoster().getDrivers()) {
 			driverColors.put(driver.getName(), DRIVER_COLORS[colorIndex++ % 9]);
 		}
 
@@ -153,13 +157,16 @@ public class StintPlanController {
 					.startLocal(stint.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
 					.startToD(stint.getTodStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
 					.laps(Integer.toUnsignedString(stint.getLaps()))
-					.duration(TimeTools.shortDurationString(stint.getStintDuration(true)))
-					.availableDrivers(racePlanParameters.getAvailableDrivers(stint).stream()
+					.duration(TimeTools.shortDurationString(PlanningTools.getStintDuration(stint, true)))
+					.availableDrivers(PlanningTools.getAvailableDrivers(racePlanParameters, stint).stream()
 							.map(s -> StintDriverView.builder()
 									.driverName(s.getName())
 									.driverId(s.getId())
 									.colorStyle(driverColors.get(s.getName()))
-									.availableStyle(racePlanParameters.getDriverStatusAt(s.getId(), stint.getEndTime()).cssClassName())
+									.availableStyle(PlanningTools.getDriverStatusAt(
+											racePlanParameters.getRoster(),
+											s.getId(),
+											stint.getEndTime()).cssClassName())
 									.build())
 							.collect(Collectors.toList())
 					)

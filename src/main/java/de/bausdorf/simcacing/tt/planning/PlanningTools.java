@@ -23,19 +23,27 @@ package de.bausdorf.simcacing.tt.planning;
  */
 
 import java.time.Duration;
-import java.time.ZonedDateTime;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
-import de.bausdorf.simcacing.tt.planning.model.PitStopServiceType;
-import de.bausdorf.simcacing.tt.planning.model.RacePlan;
-import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
-import de.bausdorf.simcacing.tt.planning.model.Stint;
+import de.bausdorf.simcacing.tt.planning.persistence.ScheduleEntry;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
+import de.bausdorf.simcacing.tt.planning.persistence.Roster;
+import de.bausdorf.simcacing.tt.planning.persistence.Stint;
+import de.bausdorf.simcacing.tt.planning.persistence.Estimation;
+import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PlanningTools {
+	public static final IRacingDriver NN_DRIVER = IRacingDriver.builder()
+			.name("N.N")
+			.id("0")
+			.build();
 
 	private static int wsServiceSeconds = 5;
 	private static int tyreServiceSeconds = 20;
@@ -45,13 +53,49 @@ public class PlanningTools {
 		super();
 	}
 
-	public static String driverNameAt(ZonedDateTime clock, List<Stint> stints) {
+	public static String driverNameAt(OffsetDateTime clock, List<Stint> stints) {
 		log.debug("Get driver for clock: {}", clock.toString());
 		Stint stint = stintAt(clock, stints);
 		return stint != null ? stint.getDriverName() : "unassigned";
 	}
 
-	public static Stint stintAt(ZonedDateTime clock, List<Stint> stints) {
+	public static List<IRacingDriver> getAvailableDrivers(PlanParameters parameters, Stint stint) {
+		if (parameters.getRoster() != null ) {
+			return getAvailableDrivers(parameters.getRoster(), stint.getStartTime()).stream()
+					.filter(s -> getDriverStatusAt(parameters.getRoster(), s.getId(), stint.getEndTime()) != ScheduleDriverOptionType.BLOCKED)
+					.collect(Collectors.toList());
+		}
+		return Collections.singletonList(NN_DRIVER);
+	}
+
+	public static ScheduleDriverOptionType getDriverStatusAt(Roster roster, String driverId, OffsetDateTime time) {
+		List<ScheduleEntry> scheduleEntryList = roster.getDriverAvailability().stream()
+				.filter(e -> e.getDriver().getId().equalsIgnoreCase(driverId))
+				.collect(Collectors.toList());
+		ScheduleEntry last = null;
+		for (ScheduleEntry scheduleEntry : scheduleEntryList) {
+			if (scheduleEntry.getFromTime().isAfter(time)) {
+				break;
+			}
+			last = scheduleEntry;
+		}
+		return last != null ? last.getStatus() : ScheduleDriverOptionType.UNSCHEDULED;
+	}
+
+	public static List<IRacingDriver> getAvailableDrivers(Roster roster, OffsetDateTime forTime) {
+		Set<IRacingDriver> availableDrivers = new HashSet<>();
+		for (ScheduleEntry scheduleEntry : roster.getDriverAvailability()) {
+			if (scheduleEntry.getFromTime().isAfter(forTime)) {
+				continue;
+			}
+			if (scheduleEntry.getStatus() != ScheduleDriverOptionType.BLOCKED) {
+				availableDrivers.add(scheduleEntry.getDriver());
+			}
+		}
+		return new ArrayList<>(availableDrivers);
+	}
+
+	public static Stint stintAt(OffsetDateTime clock, List<Stint> stints) {
 		for (Stint stint : stints) {
 			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
 			if (stint.getStartTime().isEqual(clock)
@@ -62,7 +106,7 @@ public class PlanningTools {
 		return null;
 	}
 
-	public static int stintIndexAt(ZonedDateTime clock, List<Stint> stints) {
+	public static int stintIndexAt(OffsetDateTime clock, List<Stint> stints) {
 		for (Stint stint : stints) {
 			log.debug("Stint from {} until {}", stint.getStartTime().toString(), stint.getEndTime().toString());
 			if (stint.getStartTime().isEqual(clock)
@@ -75,7 +119,7 @@ public class PlanningTools {
 
 	public static Stint stintToModify(SessionController controller, int liveIndex) {
 		try {
-			de.bausdorf.simcacing.tt.planning.model.Stint changedStint =
+			Stint changedStint =
 					controller.getRacePlan().getCurrentRacePlan().get(liveIndex);
 			log.debug("Changed stint: {}", changedStint);
 			return PlanningTools.stintAt(changedStint.getStartTime(), controller.getRacePlan().getPlanParameters().getStints());
@@ -114,9 +158,62 @@ public class PlanningTools {
 		wsServiceSeconds = config.getServiceDurationSecondsWs();
 	}
 
-	public static void recalculateStints(RacePlanParameters parameters) {
+	public static void recalculateStints(PlanParameters parameters) {
 		RacePlan plan = RacePlan.createRacePlanTemplate(parameters);
 		plan.calculatePlannedStints();
-		parameters.setStints(plan.getCurrentRacePlan());
+		parameters.updateStints(plan.getCurrentRacePlan());
+	}
+
+	public static Duration getStintDuration(Stint stint, boolean includePitStopTimes) {
+		if (stint.getStartTime() != null && stint.getEndTime() != null) {
+			if (!includePitStopTimes) {
+				return Duration.between(stint.getStartTime(), stint.getEndTime())
+						.minus(PlanningTools.calculateServiceDuration(stint.getService(), stint.getRefuelAmount()));
+			}
+			return Duration.between(stint.getStartTime(), stint.getEndTime());
+		}
+		return Duration.ZERO;
+	}
+
+	public static Estimation getDriverNameEstimationAt(PlanParameters parameters, String driverName, LocalDateTime todDateTime) {
+	if (parameters.getRoster() != null && driverName != null) {
+			List<Estimation> estimationList = parameters.getRoster().getDriverEstimations().stream()
+					.filter(e -> e.getDriver().getName().equalsIgnoreCase(driverName))
+					.collect(Collectors.toList());
+			Estimation last = getGenericEstimation(parameters);
+			for (Estimation estimation : estimationList) {
+				if (estimation.getTodFrom().isAfter(todDateTime)) {
+					break;
+				}
+				last = estimation;
+			}
+			return last;
+		}
+		return getGenericEstimation(parameters);
+	}
+
+	public static Estimation getDriverEstimationAt(PlanParameters parameters, IRacingDriver driver, LocalDateTime todDateTime) {
+		if (parameters.getRoster() != null) {
+			List<Estimation> estimationList = parameters.getRoster().getDriverEstimations().stream()
+					.filter(e -> e.getDriver().getName().equalsIgnoreCase(driver.getId()))
+					.collect(Collectors.toList());
+			Estimation last = getGenericEstimation(parameters);
+			for (Estimation estimation : estimationList) {
+				if (estimation.getTodFrom().isAfter(todDateTime)) {
+					break;
+				}
+				last = estimation;
+			}
+			return last;
+		}
+		return getGenericEstimation(parameters);
+	}
+
+	public static Estimation getGenericEstimation(PlanParameters parameters) {
+		return Estimation.builder()
+				.todFrom(parameters.getTodStartTime())
+				.avgFuelPerLap(parameters.getAvgFuelPerLap())
+				.avgLapTime(parameters.getAvgLapTime())
+				.build();
 	}
 }

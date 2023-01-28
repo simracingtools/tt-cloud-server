@@ -22,7 +22,6 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +31,9 @@ import de.bausdorf.simcacing.tt.live.clientapi.SessionKey;
 import de.bausdorf.simcacing.tt.live.impl.SessionController;
 import de.bausdorf.simcacing.tt.live.impl.SessionHolder;
 import de.bausdorf.simcacing.tt.live.model.client.SessionIdentifier;
-import de.bausdorf.simcacing.tt.planning.RacePlanRepository;
-import de.bausdorf.simcacing.tt.planning.model.RacePlan;
-import de.bausdorf.simcacing.tt.planning.model.RacePlanParameters;
+import de.bausdorf.simcacing.tt.planning.PlanParameterRepository;
+import de.bausdorf.simcacing.tt.planning.RacePlan;
+import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
 import de.bausdorf.simcacing.tt.stock.TeamRepository;
 import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
@@ -63,13 +62,13 @@ public class IndexController extends BaseController {
     SessionHolder sessionHolder;
 
     final TeamRepository teamRepository;
-    final RacePlanRepository planRepository;
+    final PlanParameterRepository planRepository;
 
     RestTemplate restTemplate;
 
     public IndexController(@Autowired SessionHolder holder,
             @Autowired TeamRepository teamRepository,
-            @Autowired RacePlanRepository planRepository,
+            @Autowired PlanParameterRepository planRepository,
             @Autowired TeamtacticsServerProperties config) {
         this.planRepository = planRepository;
         this.teamRepository = teamRepository;
@@ -106,7 +105,7 @@ public class IndexController extends BaseController {
     @Secured({ "ROLE_TT_MEMBER", "ROLE_TT_TEAMADMIN", "ROLE_TT_SYSADMIN" })
     public String getLive(@RequestParam("subscriptionId") Optional<String> subscriptionId,
             @RequestParam Optional<String> planId, Model model) {
-        if (!subscriptionId.isPresent()) {
+        if (subscriptionId.isEmpty()) {
             addError("No racing session selected", model);
             return INDEX_VIEW;
         }
@@ -150,13 +149,13 @@ public class IndexController extends BaseController {
         teams.addAll(teamRepository.findByAuthorizedDriverIdsContaining(currentUser().getIracingId()).stream()
                 .filter(s -> !teams.contains(s)).collect(Collectors.toList())
         );
-        return planRepository.findByTeamIds(teams.stream()
-                .map(IRacingTeam::getId)
+        return planRepository.findAllByTeamIdIn(teams.stream()
+                .map(t -> Long.parseLong(t.getId()))
                 .collect(Collectors.toList())).stream()
                 .map(s -> PlanDescriptionView.builder()
                         .id(s.getId())
                         .name(s.getName())
-                        .team(teamRepository.findById(s.getTeamId()).orElse(IRacingTeam.builder()
+                        .team(teamRepository.findById(Long.toString(s.getTeamId())).orElse(IRacingTeam.builder()
                                 .name("Team not found")
                                 .build()).getName()
                         )
@@ -177,11 +176,11 @@ public class IndexController extends BaseController {
 
                 model.addAttribute("planParameters", controller.getRacePlan().getPlanParameters());
             } else if (selectedPlanId != null) {
-                Optional<RacePlanParameters> planParameters = planRepository.findById(selectedPlanId);
+                Optional<PlanParameters> planParameters = planRepository.findById(selectedPlanId);
 
-                if (config.isShiftSessionStartTimeToNow()) {
-                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(ZonedDateTime.now()));
-                }
+//                if (config.isShiftSessionStartTimeToNow()) {
+//                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(ZonedDateTime.now()));
+//                }
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
             model.addAttribute("stintTableRows", new Integer[50]);

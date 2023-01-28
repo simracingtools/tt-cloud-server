@@ -27,17 +27,19 @@ import java.util.Locale;
 
 import org.springframework.format.Formatter;
 
-import de.bausdorf.simcacing.tt.planning.model.ScheduleDriverOptionType;
+import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
+
+import javax.annotation.Nonnull;
 
 public class ScheduleDriverOptionTypeFormatter implements Formatter<ScheduleDriverOptionType> {
 
 	@Override
-	public ScheduleDriverOptionType parse(String s, Locale locale) throws ParseException {
+	@Nonnull public ScheduleDriverOptionType parse(@Nonnull String s, @Nonnull Locale locale) throws ParseException {
 		return ScheduleDriverOptionType.fromCssClass(s);
 	}
 
 	@Override
-	public String print(ScheduleDriverOptionType scheduleDriverOptionType, Locale locale) {
+	@Nonnull public String print(@Nonnull ScheduleDriverOptionType scheduleDriverOptionType, @Nonnull Locale locale) {
 		return scheduleDriverOptionType.cssClassName();
 	}
 }
