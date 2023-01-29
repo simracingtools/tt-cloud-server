@@ -28,9 +28,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -51,7 +49,9 @@ public class TtIdentity implements UserDetails {
     private String name;
     private String email;
     private String imageUrl;
+    @Column(unique = true, nullable = false)
     private String iracingId;
+    @Column(unique = true, nullable = false)
     private String clientMessageAccessToken;
     private TtUserType userType;
     private String zoneIdName;

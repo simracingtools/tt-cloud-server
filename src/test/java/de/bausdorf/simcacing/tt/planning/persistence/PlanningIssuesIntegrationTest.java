@@ -28,6 +28,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 import de.bausdorf.simcacing.tt.planning.PlanParameterRepository;
+import de.bausdorf.simcacing.tt.web.security.TtIdentityRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +41,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import de.bausdorf.simcacing.tt.planning.PlanningTools;
 import de.bausdorf.simcacing.tt.planning.persistence.PlanningIssuesIntegrationTest.TestConfig;
-import de.bausdorf.simcacing.tt.web.security.TtClientRegistrationRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -64,7 +64,7 @@ class PlanningIssuesIntegrationTest {
 		}
 	}
 	@Autowired
-	TtClientRegistrationRepository clientRegistrationRepository;
+	TtIdentityRepository clientRegistrationRepository;
 
 	@Autowired
 	PlanParameterRepository planRepository;

@@ -24,23 +24,23 @@ package de.bausdorf.simcacing.tt.live.impl.validation;
 
 import de.bausdorf.simcacing.tt.live.clientapi.ClientMessage;
 import de.bausdorf.simcacing.tt.live.clientapi.UnauthorizedAccessException;
-import de.bausdorf.simcacing.tt.web.security.TtClientRegistrationRepository;
-import de.bausdorf.simcacing.tt.web.security.TtUser;
+import de.bausdorf.simcacing.tt.web.security.TtIdentity;
+import de.bausdorf.simcacing.tt.web.security.TtIdentityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class ClientTokenValidator {
     public static final String TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID = "Token could not be validated on client id ";
-    private final TtClientRegistrationRepository clientRepository;
+    private final TtIdentityRepository clientRepository;
 
     private final Map<String, String> tokenCache;
 
-    public ClientTokenValidator(@Autowired TtClientRegistrationRepository clientRepository) {
+    public ClientTokenValidator(@Autowired TtIdentityRepository clientRepository) {
         this.clientRepository = clientRepository;
         this.tokenCache = new HashMap<>();
     }
@@ -48,23 +48,21 @@ public class ClientTokenValidator {
     public void validateAccessToken(String accessToken, String clientId) {
         String authorizedClientId = tokenCache.get(accessToken);
         if (authorizedClientId == null) {
-            List<TtUser> users = clientRepository.findByAccessToken(accessToken);
-            if (users.isEmpty()) {
-                throw new UnauthorizedAccessException("No token for client id " + clientId);
-            }
-            for (TtUser user : users) {
-                if (user.getClientMessageAccessToken() == null) {
-                    continue;
-                }
-                if (user.getClientMessageAccessToken().equalsIgnoreCase(accessToken)
-                        && user.getIRacingId().equalsIgnoreCase(clientId)) {
-                    authorizedClientId = clientId;
-                    tokenCache.put(accessToken, authorizedClientId);
-                    return;
-                }
-            }
-            tokenCache.put(accessToken, "NONE");
-            throw new UnauthorizedAccessException(TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID + clientId);
+            Optional<TtIdentity> userOptional = clientRepository.findByClientMessageAccessToken(accessToken);
+            userOptional.ifPresentOrElse(
+                    user -> {
+                        if (user.getClientMessageAccessToken().equalsIgnoreCase(accessToken)
+                                && user.getIracingId().equalsIgnoreCase(clientId)) {
+                            tokenCache.put(accessToken, clientId);
+                        } else {
+                            tokenCache.put(accessToken, "NONE");
+                            throw new UnauthorizedAccessException(TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID + clientId);
+                        }
+                    },
+                    () -> {
+                        throw new UnauthorizedAccessException("No token for client id " + clientId);
+                    }
+            );
         } else {
             if (!authorizedClientId.equalsIgnoreCase(clientId)) {
                 throw new UnauthorizedAccessException(TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID + clientId);
@@ -73,29 +71,6 @@ public class ClientTokenValidator {
     }
 
     public void validateAccessToken(ClientMessage message) {
-        String authorizedClientId = tokenCache.get(message.getAccessToken());
-        if (authorizedClientId == null) {
-            List<TtUser> users = clientRepository.findByAccessToken(message.getAccessToken());
-            if (users.isEmpty()) {
-                throw new UnauthorizedAccessException("No token for client id " + message.getClientId());
-            }
-            for (TtUser user : users) {
-                if (user.getClientMessageAccessToken() == null) {
-                    continue;
-                }
-                if (user.getClientMessageAccessToken().equalsIgnoreCase(message.getAccessToken())
-                        && user.getIRacingId().equalsIgnoreCase(message.getClientId())) {
-                    authorizedClientId = message.getClientId();
-                    tokenCache.put(message.getAccessToken(), authorizedClientId);
-                    return;
-                }
-            }
-            tokenCache.put(message.getAccessToken(), "NONE");
-            throw new UnauthorizedAccessException(TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID + message.getClientId());
-        } else {
-            if (!authorizedClientId.equalsIgnoreCase(message.getClientId())) {
-                throw new UnauthorizedAccessException(TOKEN_COULD_NOT_BE_VALIDATED_ON_CLIENT_ID + message.getClientId());
-            }
-        }
+        validateAccessToken(message.getAccessToken(), message.getClientId());
     }
 }
