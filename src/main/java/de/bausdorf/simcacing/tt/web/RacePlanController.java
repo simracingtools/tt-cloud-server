@@ -29,12 +29,7 @@ import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
 import de.bausdorf.simcacing.tt.planning.persistence.Roster;
 import de.bausdorf.simcacing.tt.planning.persistence.ScheduleEntry;
 import de.bausdorf.simcacing.tt.stock.*;
-import de.bausdorf.simcacing.tt.stock.model.DriverStats;
-import de.bausdorf.simcacing.tt.stock.model.IRacingCar;
-import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
-import de.bausdorf.simcacing.tt.stock.model.IRacingTeam;
-import de.bausdorf.simcacing.tt.stock.model.IRacingTrack;
-import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
+import de.bausdorf.simcacing.tt.stock.model.*;
 import de.bausdorf.simcacing.tt.util.TimeTools;
 import de.bausdorf.simcacing.tt.util.UnitConverter;
 import de.bausdorf.simcacing.tt.web.model.planning.DriverEstimationView;
@@ -434,8 +429,12 @@ public class RacePlanController extends BaseController {
 		Optional<PlanParameters> planParameters = planRepository.findById(planId);
 		if (planParameters.isPresent()) {
 			prepareModel(planParameters.get(), model);
-			Optional<DriverStats> driverStats = statsRepository.findByDriverTrackCar(driverId,
-					Long.toString(planParameters.get().getTrackId()), Long.toString(planParameters.get().getCarId()));
+			DriverStatsPk statsPk = DriverStatsPk.builder()
+					.driverId(driverId)
+					.trackId(Long.toString(planParameters.get().getTrackId()))
+					.carId(Long.toString(planParameters.get().getCarId()))
+					.build();
+			Optional<DriverStats> driverStats = statsRepository.findById(statsPk);
 			if (driverStats.isPresent()) {
 				StatsEntry entry = driverStats.get().getFastestEntry();
 				NewEstimationEntryView newEstimationEntryView = (NewEstimationEntryView) model.getAttribute(NEW_ESTIMATION_ENTRY);

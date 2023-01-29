@@ -30,5 +30,7 @@ import java.util.List;
 public interface PlanParameterRepository extends CrudRepository<PlanParameters, String> {
     List<PlanParameters> findAllByTeamIdIn(List<Long> teamIds);
     List<PlanParameters> findAllByTeamId(long teamId);
+    List<PlanParameters> findAllByTeamIdAndTrackIdAndCarId(long teamId, long trackId, long carId);
+    List<PlanParameters> findAllByTrackIdAndCarId(long trackId, long carId);
     List<PlanParameters> findAllByTrackId(long trackId);
 }

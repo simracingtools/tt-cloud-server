@@ -4,7 +4,7 @@ package de.bausdorf.simcacing.tt.stock.model;
  * #%L
  * tt-cloud-server
  * %%
- * Copyright (C) 2020 bausdorf engineering
+ * Copyright (C) 2020 - 2023 bausdorf engineering
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,30 +22,20 @@ package de.bausdorf.simcacing.tt.stock.model;
  * #L%
  */
 
-import java.time.Duration;
-import java.time.LocalTime;
-
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.Embeddable;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@Builder
 @NoArgsConstructor
+@Builder
 @ToString
-@Entity
-public class StatsEntry {
-	@Id
-	@GeneratedValue
-	private long id;
-	private LocalTime todStart;
-	private LocalTime todEnd;
-	private int stintLaps;
-	private Duration avgLapTime;
-	private double avgFuelPerLap;
-	private double avgTrackTemp;
+@Embeddable
+public class DriverStatsPk implements Serializable {
+    private String driverId;
+    private String trackId;
+    private String carId;
 }

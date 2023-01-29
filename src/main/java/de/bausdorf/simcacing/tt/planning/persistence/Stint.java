@@ -28,6 +28,7 @@ import de.bausdorf.simcacing.tt.util.TimeTools;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -93,5 +94,10 @@ public class Stint {
     public void shiftTimezone(ZoneId zoneId) {
         startTime = TimeTools.shiftTimezone(startTime, zoneId);
         endTime = TimeTools.shiftTimezone(endTime, zoneId);
+    }
+
+    public void shitStartTime(Duration timeShift) {
+        startTime = startTime.plus(timeShift);
+        endTime = endTime.plus(timeShift);
     }
 }

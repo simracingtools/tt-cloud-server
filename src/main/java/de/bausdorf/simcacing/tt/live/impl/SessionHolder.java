@@ -47,6 +47,8 @@ import de.bausdorf.simcacing.tt.planning.RacePlan;
 import de.bausdorf.simcacing.tt.planning.persistence.PlanParameters;
 import de.bausdorf.simcacing.tt.stock.DriverRepository;
 import de.bausdorf.simcacing.tt.stock.DriverStatsRepository;
+import de.bausdorf.simcacing.tt.stock.model.DriverStats;
+import de.bausdorf.simcacing.tt.stock.model.DriverStatsPk;
 import de.bausdorf.simcacing.tt.stock.model.IRacingDriver;
 import de.bausdorf.simcacing.tt.stock.model.StatsEntry;
 import de.bausdorf.simcacing.tt.util.TeamtacticsServerProperties;
@@ -420,19 +422,32 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		Stint lastStint = controller.processEventData(eventData);
 		if (lastStint != null) {
 			Pitstop pitstop = controller.getLastPitstop();
-			driverStatsRepository.addStatsEntry(
-					controller.getCurrentDriver().getId(),
-					controller.getSessionData().getTrackId(),
-					controller.getSessionData().getCarId(),
-					StatsEntry.builder()
-							.avgFuelPerLap(lastStint.getAvgFuelPerLap())
-							.avgLapTime(lastStint.getAvgLapTime())
-							.avgTrackTemp(lastStint.getAvgTrackTemp())
-							.todStart(lastStint.getTodStart())
-							.todEnd(lastStint.getTodEnd())
-							.stintLaps(lastStint.getLaps())
-							.pitstop(pitstop)
-							.build()
+			DriverStatsPk statsPk = DriverStatsPk.builder()
+					.driverId(controller.getCurrentDriver().getId())
+					.trackId(controller.getSessionData().getTrackId())
+					.carId(controller.getSessionData().getCarId())
+					.build();
+			StatsEntry newStatsEntry = StatsEntry.builder()
+					.avgFuelPerLap(lastStint.getAvgFuelPerLap())
+					.avgLapTime(lastStint.getAvgLapTime())
+					.avgTrackTemp(lastStint.getAvgTrackTemp())
+					.todStart(lastStint.getTodStart())
+					.todEnd(lastStint.getTodEnd())
+					.stintLaps(lastStint.getLaps())
+					.build();
+			Optional<DriverStats> driverStats = driverStatsRepository.findById(statsPk);
+			driverStats.ifPresentOrElse(
+					stats -> {
+						stats.getStats().add(newStatsEntry);
+						driverStatsRepository.save(stats);
+					},
+					() -> {
+						DriverStats newDriverStats = DriverStats.builder()
+								.id(statsPk)
+								.stats(new ArrayList<>(List.of(newStatsEntry)))
+								.build();
+						driverStatsRepository.save(newDriverStats);
+					}
 			);
 			sessionRepository.savePitstop(sessionId, pitstop, lastStint);
 			controller.getLastRecordedLap().ifPresent(lapData -> sessionRepository.saveLap(sessionId, lapData));
@@ -449,25 +464,39 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	private RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
 		List<PlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
-			planParameters = planRepository.findAllByTrackId(Long.parseLong(sessionData.getTrackId()));
+			planParameters = planRepository.findAllByTrackIdAndCarId(
+					Long.parseLong(sessionData.getTrackId()),
+					Long.parseLong(sessionData.getCarId())
+			);
 		} else {
-			planParameters = planRepository.findAllByTeamId(Long.parseLong(teamId));
+			planParameters = planRepository.findAllByTeamIdAndTrackIdAndCarId(
+					Long.parseLong(teamId),
+					Long.parseLong(sessionData.getTrackId()),
+					Long.parseLong(sessionData.getCarId())
+			);
 		}
-		planParameters = planParameters.stream()
-				.filter(s -> s.getTrackId() == Long.parseLong(sessionData.getTrackId()))
-				.filter(s -> s.getCarId() == Long.parseLong(sessionData.getCarId()))
-				.collect(Collectors.toList());
 		if (planParameters.isEmpty()) {
-			log.info("No race plan available for session {}", sessionData.getSessionId().toString());
+			log.warn("No race plan available for session {}", sessionData.getSessionId().toString());
 		} else if (planParameters.size() > 1) {
-			log.warn("More than one race plan available for session {}", sessionData.getSessionId().toString());
+			log.info("More than one race plan available for session {}", sessionData.getSessionId().toString());
+			planParameters = planParameters.stream()
+					.filter(plan -> plan.getSessionStartDateTime().toLocalDate().equals(sessionRegisteredTime.toLocalDate()))
+					.collect(Collectors.toList());
+			if (planParameters.isEmpty()) {
+				log.warn("No race plan available for {}", sessionRegisteredTime.toLocalDate());
+			} else {
+				PlanParameters serverZonedRacePlan = new PlanParameters(planParameters.get(0));
+				serverZonedRacePlan.shiftTimezone(sessionRegisteredTime.getZone());
+				log.info("Using race plan {}", serverZonedRacePlan.getId());
+				return RacePlan.createRacePlanTemplate(serverZonedRacePlan);
+			}
 		} else {
 			PlanParameters serverZonedRacePlan = new PlanParameters(planParameters.get(0));
-//			if (config.isShiftSessionStartTimeToNow()) {
-//				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
-//			} else {
-//				serverZonedRacePlan.shiftSessionStartTime(sessionRegisteredTime);
-//			}
+			if (config.isShiftSessionStartTimeToNow()) {
+				serverZonedRacePlan.shiftSessionStartTime(ZonedDateTime.now().minusMinutes(1));
+			} else {
+				serverZonedRacePlan.shiftSessionStartTime(sessionRegisteredTime);
+			}
 			serverZonedRacePlan.shiftTimezone(sessionRegisteredTime.getZone());
 			log.info("Using race plan {}", serverZonedRacePlan.getId());
 			return RacePlan.createRacePlanTemplate(serverZonedRacePlan);

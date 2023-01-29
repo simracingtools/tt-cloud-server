@@ -26,8 +26,10 @@ import java.time.LocalTime;
 
 import de.bausdorf.simcacing.tt.planning.ScheduleDriverOptionType;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class NewScheduleEntryView {
 	private String planId;
 	private String driverId;

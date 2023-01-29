@@ -95,6 +95,14 @@ public class PlanParameters {
         roster.getDriverAvailability().forEach(a -> a.setFromTime(TimeTools.shiftTimezone(a.getFromTime(), zoneId)));
     }
 
+    public void shiftSessionStartTime(ZonedDateTime shiftTo) {
+        OffsetDateTime newStartTime = OffsetDateTime.of(shiftTo.toLocalDateTime(), shiftTo.getOffset());
+        Duration timeShift = Duration.between(sessionStartDateTime, newStartTime);
+        roster.getDriverAvailability().forEach(a -> a.setFromTime(a.getFromTime().plus(timeShift)));
+        stints.forEach(stint -> stint.shitStartTime(timeShift));
+        sessionStartDateTime = newStartTime;
+    }
+
     public void updateStints(List<Stint> currentRacePlan) {
         List<Stint> updatedStints = new ArrayList<>();
         for (int i = 0; i < currentRacePlan.size(); i++) {

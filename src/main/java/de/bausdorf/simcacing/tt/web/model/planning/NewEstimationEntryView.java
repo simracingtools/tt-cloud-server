@@ -28,9 +28,11 @@ import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class NewEstimationEntryView {
 	private String planId;
@@ -38,8 +40,4 @@ public class NewEstimationEntryView {
 	private LocalTime timeFrom;
 	private Duration avgLapTime;
 	private Double avgFuelPerLap;
-
-	public NewEstimationEntryView(String planId) {
-		this.planId = planId;
-	}
 }

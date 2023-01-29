@@ -22,6 +22,7 @@ package de.bausdorf.simcacing.tt.web;
  * #L%
  */
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,7 +80,6 @@ public class IndexController extends BaseController {
 
     @GetMapping({"/", "/index", "index.html"})
     public String index(@RequestParam Optional<String> error, @RequestParam Optional<String> warning, Model model) {
-
         error.ifPresent(s -> addError(s, model));
         warning.ifPresent(s -> addWarning(s, model));
         return INDEX_VIEW;
@@ -145,10 +145,8 @@ public class IndexController extends BaseController {
 
     @ModelAttribute("plans")
     public List<PlanDescriptionView> racePlans() {
-        List<IRacingTeam> teams = teamRepository.findByOwnerId(currentUser().getIracingId());
-        teams.addAll(teamRepository.findByAuthorizedDriverIdsContaining(currentUser().getIracingId()).stream()
-                .filter(s -> !teams.contains(s)).collect(Collectors.toList())
-        );
+        List<IRacingTeam> teams = getMyTeams(teamRepository);
+
         return planRepository.findAllByTeamIdIn(teams.stream()
                 .map(t -> Long.parseLong(t.getId()))
                 .collect(Collectors.toList())).stream()
@@ -178,9 +176,9 @@ public class IndexController extends BaseController {
             } else if (selectedPlanId != null) {
                 Optional<PlanParameters> planParameters = planRepository.findById(selectedPlanId);
 
-//                if (config.isShiftSessionStartTimeToNow()) {
-//                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(ZonedDateTime.now()));
-//                }
+                if (config.isShiftSessionStartTimeToNow()) {
+                    planParameters.ifPresent(racePlanParameters -> racePlanParameters.shiftSessionStartTime(ZonedDateTime.now()));
+                }
                 planParameters.ifPresent(racePlanParameters -> controller.setRacePlan(RacePlan.createRacePlanTemplate(racePlanParameters)));
             }
             model.addAttribute("stintTableRows", new Integer[50]);
