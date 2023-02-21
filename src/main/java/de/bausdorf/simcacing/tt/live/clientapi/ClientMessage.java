@@ -24,6 +24,7 @@ package de.bausdorf.simcacing.tt.live.clientapi;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.*;
 
 @Data
@@ -37,6 +38,7 @@ public class ClientMessage {
 	private String version;
 	private String sessionId;
 	private String teamId;
+	@JsonAlias({"clientId", "client_id"})
 	private String clientId;
 	private String accessToken;
 	private Map<String, Object> payload;
