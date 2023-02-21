@@ -116,12 +116,13 @@ public class IRacingClient {
 		Arrays.stream(seasonDto.getSchedules()).forEach(schedule -> Arrays.stream(schedule.getRaceTimeDescriptors())
 				.forEach(desc -> Arrays.stream(desc.getSessionTimes()).forEach(time -> {
 					String[] seriesParts = seasonDto.getSeasonName().split("-");
+					String seriesName = seriesParts.length > 0 ? seriesParts[0].trim() : "";
 
 					RaceEvent event = RaceEvent.builder()
 							.season(seasonDto.getSeasonShortName())
 							.carIds(carIds)
 							.raceDuration(Duration.ofMinutes(schedule.getRaceTimeLimit()))
-							.series(seriesParts.length > 0 ? seriesParts[0].trim() : "")
+							.series(seriesName.contains(seasonDto.getSeasonShortName()) ? "Special Events" : seriesName)
 							.simDateTime(schedule.getWeather().getSimulatedStartTime())
 							.raceSessionOffset(Long.toString(desc.getSessionMinutes() - schedule.getRaceTimeLimit()))
 							.sessionDateTime(time.toOffsetDateTime())
