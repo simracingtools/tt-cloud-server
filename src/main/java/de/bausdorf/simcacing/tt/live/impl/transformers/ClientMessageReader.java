@@ -31,14 +31,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.bausdorf.simcacing.tt.live.clientapi.*;
 import de.bausdorf.simcacing.tt.live.impl.validation.ClientTokenValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class ClientMessageReader {
@@ -54,12 +52,18 @@ public class ClientMessageReader {
         acceptedVersions.add("2.00");
     }
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper clientMessageMapper;
+    private final ObjectMapper payloadMapper;
     private final ClientTokenValidator tokenValidator;
 
     public ClientMessageReader(@Autowired ClientTokenValidator tokenValidator) {
         this.tokenValidator = tokenValidator;
-        this.objectMapper = JsonMapper.builder()
+        this.clientMessageMapper = JsonMapper.builder()
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
+                .build();
+        this.payloadMapper = JsonMapper.builder()
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_VALUES)
@@ -68,6 +72,11 @@ public class ClientMessageReader {
                 .build();
     }
 
+    /**
+     * @deprecated use convertClientMessage(String clientString)
+     * @param clientString
+     * @return Json string converted to generic hashmap.
+     */
     @Deprecated(forRemoval = true)
     public Map<String, Object> readClientMessage(String clientString) {
         try {
@@ -77,7 +86,7 @@ public class ClientMessageReader {
             }
             TypeReference<HashMap<String, Object>> typeRef
                     = new TypeReference<HashMap<String, Object>>() {};
-            return objectMapper.readValue(clientString, typeRef);
+            return clientMessageMapper.readValue(clientString, typeRef);
         } catch (JsonProcessingException e) {
             throw new InvalidClientMessageException(e.getMessage());
         }
@@ -89,7 +98,7 @@ public class ClientMessageReader {
             if (clientString.startsWith("\"") && clientString.endsWith("\"")) {
                 clientString = clientString.substring(1, clientString.length() - 1);
             }
-            return objectMapper.readValue(clientString, ClientMessage.class);
+            return clientMessageMapper.readValue(clientString, ClientMessage.class);
         } catch (JsonProcessingException e) {
             throw new InvalidClientMessageException(e.getMessage());
         }
@@ -97,12 +106,18 @@ public class ClientMessageReader {
 
     public ClientMessage convertClientMessage(Reader reader) {
         try {
-            return objectMapper.readValue(reader, ClientMessage.class);
+            return clientMessageMapper.readValue(reader, ClientMessage.class);
         } catch (IOException e) {
             throw new InvalidClientMessageException(e.getMessage());
         }
     }
 
+    /**
+     * @deprecated Use validateClientMessage(ClientMessage clientMessage)
+     * @param clientMessage
+     * @param accessToken
+     * @return Client message object.
+     */
     @Deprecated(forRemoval = true)
     public ClientMessage validateClientMessage(Map<String, Object> clientMessage, String accessToken) {
         String clientId = (String)clientMessage.get(MessageConstants.Message.CLIENT_ID);
@@ -164,10 +179,17 @@ public class ClientMessageReader {
         }
     }
 
-    public <K> K convertPayload(ClientMessage message, String payloadProperty, Class<K> targetType) {
+    public <K> @Nullable K convertPayload(ClientMessage message, String payloadProperty, Class<K> targetType) {
         if (payloadProperty == null)
-            return objectMapper.convertValue(message.getPayload(), targetType);
+            return payloadMapper.convertValue(message.getPayload(), targetType);
         else
-            return objectMapper.convertValue(message.getPayload().get(payloadProperty), targetType);
+            return payloadMapper.convertValue(message.getPayload().get(payloadProperty), targetType);
+    }
+
+    public <K> @Nullable K convertPayload(ClientMessage message, Class<K> targetType) {
+        String propertyName = message.getPayload().keySet().stream()
+                .filter(p -> p.equalsIgnoreCase(targetType.getSimpleName()))
+                .findFirst().orElse(null);
+        return convertPayload(message, propertyName, targetType);
     }
 }
