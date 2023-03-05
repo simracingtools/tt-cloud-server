@@ -112,7 +112,7 @@ public class MqttServiceImpl {
                 String oneLineMessage = message.getPayload().toString().replace("\n", "");
 
                 try(FileWriter mqttLogWriter = new FileWriter("mqttlog.txt", true)) {
-                    mqttLogWriter.write(topic + '#' + oneLineMessage + '\n');
+                    mqttLogWriter.write(topic + '§' + oneLineMessage + '\n');
                 } catch (IOException e) {
                     log.warn(e.getMessage());
                 }
