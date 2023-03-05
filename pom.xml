@@ -24,7 +24,7 @@
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <maven.test.skip>true</maven.test.skip>
     <google.cloud.version>3.4.0</google.cloud.version>
-    <ir-data-api.version>2.8.0</ir-data-api.version>
+    <ir-data-api.version>2.8.1</ir-data-api.version>
   </properties>
 
   <dependencyManagement>
