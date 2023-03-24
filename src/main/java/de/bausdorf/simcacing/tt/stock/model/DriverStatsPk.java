@@ -27,8 +27,7 @@ import lombok.*;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

@@ -54,7 +54,8 @@ class JsonTest {
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("telemetry.json")))) {
             ClientMessage clientMessage = messageReader.convertClientMessage(reader);
             assertNotNull(clientMessage);
-            Telemetry telemetry = messageReader.convertPayload(clientMessage, "telemetry", Telemetry.class);
+            Telemetry telemetry = messageReader.convertPayload(clientMessage, Telemetry.class);
+            assertNotNull(telemetry);
             assertNotEquals(0.0D, telemetry.getSessionTime());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
@@ -65,7 +66,8 @@ class JsonTest {
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("sessiondata1.json")))) {
             ClientMessage clientMessage = messageReader.convertClientMessage(reader);
             assertNotNull(clientMessage);
-            SessionData sessionData = messageReader.convertPayload(clientMessage, "sessionData", SessionData.class);
+            SessionData sessionData = messageReader.convertPayload(clientMessage, SessionData.class);
+            assertNotNull(sessionData);
             assertNotNull(sessionData.getSessionInfo());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
@@ -76,7 +78,8 @@ class JsonTest {
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("sessiondata.json")))) {
             ClientMessage clientMessage = messageReader.convertClientMessage(reader);
             assertNotNull(clientMessage);
-            SessionData sessionData = messageReader.convertPayload(clientMessage, null, SessionData.class);
+            SessionData sessionData = messageReader.convertPayload(clientMessage, SessionData.class);
+            assertNotNull(sessionData);
             assertNotNull(sessionData.getSessionInfo());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -95,13 +98,15 @@ class JsonTest {
                 assertNotNull(clientMessage);
 
                 if (clientMessage.getType() == MessageType.SESSION_DATA) {
-                    SessionData sessionData = messageReader.convertPayload(clientMessage, null, SessionData.class);
+                    SessionData sessionData = messageReader.convertPayload(clientMessage, SessionData.class);
                     assertNotNull(sessionData);
                     sessionDataCount++;
                     List<SessionData.Session> sessions = DataTools.lastSessionFirst(sessionData.getSessionInfo());
-                    log.info("Current Session {}: lap {} standing {}", sessions.get(0).getSessionNum(), sessions.get(0).getResultsLapsComplete(), sessions.get(0).getResultsPositions());
+                    int driverCarIdx = sessionData.getDriverInfo().getDriverCarIdx();
+                    SessionData.Driver driver = sessionData.getDriverInfo().getDrivers().get(driverCarIdx);
+                    log.info("Current Session {}: lap {} driver {}", sessions.get(0).getSessionNum(), sessions.get(0).getResultsLapsComplete(), driver.getUserName());
                 } else if (clientMessage.getType() == MessageType.TELEMETRY) {
-                    Telemetry telemetry = messageReader.convertPayload(clientMessage, "telemetry", Telemetry.class);
+                    Telemetry telemetry = messageReader.convertPayload(clientMessage, Telemetry.class);
                     assertNotNull(telemetry);
                     telemetryCount++;
                 }
