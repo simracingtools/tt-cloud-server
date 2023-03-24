@@ -208,7 +208,7 @@
                 <caption>Team sync</caption>
                 <thead>
                 <tr th:if="${planParameters != null}">
-                    <th th:each="driver : ${planParameters.getAllDrivers()}"
+                    <th th:each="driver : ${planParameters.roster.drivers}"
                         th:text="${driver.name}"
                         th:id="'syncTH-' + ${driver.id}"></th>
                 </tr>
@@ -218,7 +218,7 @@
                 </thead>
                 <tbody>
                 <tr th:if="${planParameters != null}">
-                    <td th:each="driver : ${planParameters.getAllDrivers()}"
+                    <td th:each="driver : ${planParameters.roster.drivers}"
                         th:id="'syncTD-' + ${driver.id}" class="table-danger">--:--:--</td>
                 </tr>
                 </tbody>
