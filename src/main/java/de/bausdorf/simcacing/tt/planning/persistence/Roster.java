@@ -43,7 +43,7 @@ public class Roster {
     @GeneratedValue
     private long id;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     private List<IRacingDriver> drivers = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

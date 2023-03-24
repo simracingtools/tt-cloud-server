@@ -463,7 +463,7 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 	}
 
 	@Transactional
-	protected RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
+	public RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
 		List<PlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
 			planParameters = planRepository.findAllByTrackIdAndCarId(
