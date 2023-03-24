@@ -53,7 +53,7 @@ public class PlanParameters {
     private Duration avgPitLaneTime;
     private Double avgFuelPerLap;
     private Double maxCarFuel;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stint> stints;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "roster_id")
