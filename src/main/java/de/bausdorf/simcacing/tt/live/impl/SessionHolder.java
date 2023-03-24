@@ -63,6 +63,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
 @Controller
 @Slf4j
@@ -461,7 +462,8 @@ public class SessionHolder implements MessageProcessor, ApplicationListener<Appl
 		sendTyreData(tyreData, controller.getSessionData().getSessionId().getSubscriptionId());
 	}
 
-	private RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
+	@Transactional
+	protected RacePlan selectRacePlan(SessionData sessionData, String teamId, ZonedDateTime sessionRegisteredTime) {
 		List<PlanParameters> planParameters;
 		if (teamId.equalsIgnoreCase("0")) {
 			planParameters = planRepository.findAllByTrackIdAndCarId(
