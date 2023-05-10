@@ -108,6 +108,7 @@ public class GoogleUserService extends OidcUserService implements UserDetailsSer
             identityRepository.save(TtIdentity.builder()
                     .email((String) attributes.get("email"))
                     .id(userId)
+                    .iracingId(String.valueOf(Math.abs(Math.random() * 100000)))
                     .clientMessageAccessToken(UUID.randomUUID().toString())
                     .imageUrl((String) attributes.get("picture"))
                     .name((String) attributes.get("name"))
