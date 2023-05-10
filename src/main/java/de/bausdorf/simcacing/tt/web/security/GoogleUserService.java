@@ -35,6 +35,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class GoogleUserService extends OidcUserService implements UserDetailsService {
@@ -107,6 +108,7 @@ public class GoogleUserService extends OidcUserService implements UserDetailsSer
             identityRepository.save(TtIdentity.builder()
                     .email((String) attributes.get("email"))
                     .id(userId)
+                    .clientMessageAccessToken(UUID.randomUUID().toString())
                     .imageUrl((String) attributes.get("picture"))
                     .name((String) attributes.get("name"))
                     .created(OffsetDateTime.now())
