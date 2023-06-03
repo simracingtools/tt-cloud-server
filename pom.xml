@@ -9,7 +9,7 @@
   </parent>
   <groupId>de.bausdorf.simcacing</groupId>
   <artifactId>tt-cloud-server</artifactId>
-  <version>0.17.0-SNAPSHOT</version>
+  <version>0.17.1-SNAPSHOT</version>
   <name>tt-cloud-server</name>
   <organization>
     <name>bausdorf engineering</name>
@@ -24,7 +24,7 @@
     <gcloud-project-id>iracing-team-tactics</gcloud-project-id>
     <maven.test.skip>true</maven.test.skip>
     <google.cloud.version>3.4.0</google.cloud.version>
-    <ir-data-api.version>23.2.1</ir-data-api.version>
+    <ir-data-api.version>23.2.2</ir-data-api.version>
   </properties>
 
   <dependencyManagement>
